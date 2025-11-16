@@ -1,8 +1,9 @@
+
 *{
     border: 0;
-    font-family: monospace;
     padding: 0;
     margin: 0;
+    font-family: var(--HEADER), var(--P);
 }
 :root{
 --lightblue: #6DE1D2;
@@ -12,6 +13,9 @@
     --complement-of-yellow: #203E5F;
     --darker-black: #1A2634;
     --notso-energetic-yellow: #EEC550;
+    --font-color: whitesmoke;
+    --HEADER:"Bebas Neue";
+    --P:monospace;
 }
 #NAV{
     background-color: whitesmoke;
@@ -45,20 +49,21 @@
     display: grid;
     background-color: lightseagreen;
     grid-template: 7fr 3fr / 1fr;
-    height: 490px;
+    height: max(459px, 100vh);
     align-items: center;
     align-content: space-evenly;
     justify-items: center;
+    transition: all 700ms;
         #PROMPT{
-        background-color: lightblue;
-        width: 22vw;
-        font-size: 3vw;
+        background-color: whitesmoke;
+        width: auto;
+        font-size: 10vw;
         padding: 2vw;
         text-align: center;
     }
 
     button {
-        background-color: lightblue;
+        background-color: whitesmoke;
         color: var(--darker-black);
         margin: 0;
         padding: 10px 20px;
