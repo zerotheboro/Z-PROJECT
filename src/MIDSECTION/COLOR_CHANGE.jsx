@@ -43,12 +43,12 @@ function givedecison(e){
 
 function BODY(){
     return(
-        <main>
-            <tips/>
+        <>
             <section id="MAIN_CONTENT">
+                <h1>STROOP EFFECT</h1>
                 <button id="PROMPT" onClick={(e) => givedecison(e)}>COLOR!!!</button>
             </section>
-        </main>
+        </>
     );
         
 }

@@ -58,34 +58,7 @@
             text-decoration: none;
             color: var(--darker-black);
         }
-        ul{
-
-            position: absolute;
-            background-color: var(--notso-energetic-yellow);
-            visibility: hidden;
-            list-style: none;
-            border-radius: var(--radius);
-            width: var(--width_of_span);
-            right: 0;
-            height: 0;
-        }
-        li{
-            transition: all 0.3s;
-            background-color: var(--notso-energetic-yellow);
-        }
     }
-    span:hover{
-           ul{
-            visibility: visible;
-
-            li:hover{
-                background-color: var(--passion-orange);
-                color: var(--font-color); 
-            }
-           } 
-        }
-
-
     img{
         height: 3vw;
     }
@@ -102,18 +75,24 @@
         width: 16vw;
     }
 }
+
+
 section#options_of_tips_to_choose{
     height: 70vh;
     width: 100vw;
     background-color: var(--lightblue);
     button{
+        
         height: 55vh;
         width: 30vw;
         margin: 1vw;
         cursor: pointer;
+        transition: all 0.3s;
     }
     button:hover{
         background-color: var(--passion-orange);
+        color: var(--font-color);
+        
     }
 }
 
