@@ -17,15 +17,27 @@
     --notso-energetic-yellow: #EEC550;
     --font-color: whitesmoke;
     --HEADER:"Bebas Neue";
+    --HEADER-size: 10vw;
+    --HEADER-2-size: 7vw;
     --P:   "Oswald", "Open Sans", monospace;
+    --P-size:  4vw;
+    --P-NAV-size : 2.5vw;
 }
 
-
-
-
-
-
-
+button{
+    box-shadow: 0 7px 0 black; /* angled shadow */
+    transition: all 150ms ease;
+    border-radius: 3px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+}
+button:active {
+        transform: translate(0, 7px); /* move button exactly onto the shadow */
+        box-shadow: 0 0 0 black;        /* shadow disappears */
+        background-color: #C0D6DF;
+        color: #ffffff;
+    }
 
 
 
@@ -34,7 +46,7 @@
 
 #NAV{
     width: 100vw;
-    background-color: var(--darker-black);
+    background-color: var(--complement-of-yellow);
     display: grid;
     grid-template: 100% / 4fr 2fr 2fr 2fr;
     align-items: center;
@@ -45,7 +57,7 @@
     span{
         text-align: center;
         cursor: pointer;
-        font-size: 2.5vw;
+        font-size: var(--P-NAV-size);
         width: var(--width_of_span);
         --width_of_span: 10vw;
         border-radius: var(--radius);
@@ -82,7 +94,8 @@ section#options_of_tips_to_choose{
     width: 100vw;
     background-color: var(--lightblue);
     button{
-        
+        font-family: var(--P);
+        font-size: var(--P-size);
         height: 55vh;
         width: 30vw;
         margin: 1vw;
@@ -102,12 +115,13 @@ section#options_of_tips_to_choose{
 
 
 div#BENEFIT{
-    font-size: 4rem;
+    font-size: var(--HEADER-2-size);///////////////////////////////////////////////////////////
     text-align: center;
     background-color: var(--lightblue);
     height: 120vh;
     padding-top: 20vh;
     li{
+        font-size: var(--P-size);
         margin-left: 30vw;
         text-align: left;
     }
@@ -133,9 +147,13 @@ div#BENEFIT{
         #PROMPT{
         background-color: var(--font-color);
         width: auto;
-        font-size: 10vw;
-        padding: 2vw;
+        font-size: var(--HEADER-size);
+        padding: calc(var(--HEADER-size) / 5);
         text-align: center;
+    }
+
+    h1{
+        font-size: var(--HEADER-size);
     }
 
     button {
@@ -169,7 +187,7 @@ div#BENEFIT{
 
 
 
-@media only screen  and (max-width: 730px){
+@media only screen  and (max-width: 730px), ( orientation: portrait){
     .TIP div{
     height: min(600px, 80vh);
     background-color: var(--lightblue);
@@ -177,12 +195,12 @@ div#BENEFIT{
     
     h1{
         text-align: center;
-        font-size: 7vw;
+        font-size: var(--HEADER-2-size);
         font-family: var(--HEADER);
         margin-bottom: 2vh;
     }
     div{
-        height: 70%;
+        height: 50%;
         padding: 0;
         display: flex;
         gap: 7vh;
@@ -202,9 +220,13 @@ div#BENEFIT{
             width: 22vw;
             height: 22vw;
         }
+    }
 }
-}
-@media only screen and (min-width: 730px){
+
+
+
+
+@media only screen and (min-width: 730px), (orientation: landscape){
 .TIP div{
     height: max(700px, 130vh);
     background-color: var(--lightblue);
@@ -212,7 +234,7 @@ div#BENEFIT{
     
     h1{
         text-align: center;
-        font-size: 10vw;
+        font-size: var(--HEADER-size);
         font-family: var(--HEADER);
         margin-bottom: 8vh;
     }
@@ -224,7 +246,7 @@ div#BENEFIT{
         justify-content: center;
         align-content: center;
         p{
-            font-size: 5rem;
+            font-size: var(--P-size);
             font-family: var(--P);
             display: inline-flex;
             width: 50%;
@@ -257,7 +279,7 @@ footer{
     display: flex;
     justify-content: center;
     flex-direction: column;
-    font-size: 4vw;
+    font-size: calc(var(--HEADER-2-size) / 2);
     #contact{
         display: flex;
         justify-content: center;

@@ -48,8 +48,7 @@ export default function Tips(props) {
     
     
   const [show, setShow] = useState({
-    "PRE-LEARN" : false,
-    "META-LEARN" : false,
+
   }); 
 
   const PRE0 = (
@@ -110,6 +109,20 @@ export default function Tips(props) {
         [section]: !prevShow[section]
     }))
 }
+
+
+
+function handleClickfor1(section){
+  setShow(prevShow => {
+    const NewState = {};
+
+    list_of_tips.forEach((object) => {
+      NewState[object.type] = (object.type === section)? true : false;
+    });
+
+    return NewState
+  })
+}
   
 
 
@@ -117,7 +130,7 @@ export default function Tips(props) {
     <>
     <section id="options_of_tips_to_choose">
         {list_of_tips.map((section) =>
-        <button onClick={() => handleClick(section._type)}>
+        <button onClick={() => handleClickfor1(section._type)}>
             {section._type}
         </button> )}
     </section>
