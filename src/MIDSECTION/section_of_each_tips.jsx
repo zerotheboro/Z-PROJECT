@@ -1,83 +1,14 @@
-import LOGO from "../image/LOGO.png";
-import Main from './COLOR_CHANGE.jsx';
+
 import React, {useState} from "react";
 import {the_animation_obj} from "./../HEADER/ANIMATION.jsx";
-import gsap from "gsap";
+import { list_of_tips } from "./info_every_tips.jsx";
+import animation_of_each_tip from "./SCROLL_function.jsx";
 
-/*THE 2 CLASS */
-class TypeOfTips {
-  constructor(type, list, additional_material = null) {
-    this._type = type;
-    this._list = list;
-    this._additional_material = additional_material
-  }
-  get type() {
-    return this._type;
-  }
-  get list() {
-    return this._list;
-  }
-  get additional_material(){
-    return this._additional_material;
-  };
-}
-
-
-class DetailOfTips{
-  constructor(header = "hey this is a header", paragraph = "hey this is a text", img = LOGO){
-    this._header = header;
-    this._paragraph = paragraph;
-    this._img = img;
-  }
-  get header(){
-    return this._header;
-  }
-  get paragraph(){
-    return this._paragraph;
-  }
-  get img(){
-    return this._img;
-  }
-}
-
-
-
-// Module-scope data; export at top-level (not inside a function)
-export const list_of_tips = [
-  new TypeOfTips("PRE-LEARN", [
-    new DetailOfTips("Prime mind", "this is excercise where you would try to find incetives and "),
-    new DetailOfTips("WATER ur face/body", " althought quite obvious but does it come in common pratice"),
-    new DetailOfTips("BREAK is necessary ", "your brain needs break every 45minutes because"),
-    new DetailOfTips("Structure your day", "your brain loves certainty and doing this reduce energy of deciding what to do next"),
-    new DetailOfTips("small workout"),
-    new DetailOfTips("Track progress")
-  ], <Main/>),
-  new TypeOfTips("META-LEARN", [
-     new DetailOfTips("increase peripheral vision"),
-    new DetailOfTips("Use length pointer"),
-    new DetailOfTips("NO inner voice"),
-    new DetailOfTips("varied/spacial Repetition"),
-    new DetailOfTips("Memory palace"),
-    new DetailOfTips("Do what you crave last"),
-    new DetailOfTips("encode the more paths remember"),
-    new DetailOfTips("story telling")
-  ]),
-  new TypeOfTips("NOTE-TAKE", [
-    new DetailOfTips("Note-taking 4x4"),
-    new DetailOfTips("NO word-for-word"),
-  ]),
-];
-
-
-
-/*JUST JSX for render */
 export default function Tips(props) {
 
   const [show, setShow] = useState({
   });
   
-
-
   const list_of_tips_JSX = list_of_tips.map((each_section) => 
     <section id={each_section.type} key={each_section.type} style={{display : show[each_section.type] ? "block" : "none"}}>
       {each_section.additional_material}
@@ -108,6 +39,7 @@ function handleClickfor1(section){
   setShow(prevShow => {
 
     const NewState = {};
+
     list_of_tips.forEach((object) => {
       NewState[object.type] = (object.type === section)? !prevShow[section] : false;
     });
@@ -119,6 +51,12 @@ function handleClickfor1(section){
         the_animation_obj.the_tip_anime(selected_section.querySelectorAll(".TIP h1, .TIP div p, .TIP img"))
       }
     }, 3)
+
+    animation_of_each_tip()
+
+
+
+
 
     return NewState;
 
