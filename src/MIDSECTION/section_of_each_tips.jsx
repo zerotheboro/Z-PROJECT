@@ -1,8 +1,9 @@
 
-import React, {useState} from "react";
+import react, {useState} from "react";
 import {the_animation_obj} from "./../HEADER/ANIMATION.jsx";
 import { list_of_tips } from "./info_every_tips.jsx";
 import animation_of_each_tip from "./SCROLL_function.jsx";
+
 
 export default function Tips(props) {
 
