@@ -1,5 +1,37 @@
 import LOGO from "../image/LOGO.png";
 import Main from './COLOR_CHANGE.jsx';
+
+const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg}", { eager: true });
+
+const imageFiles = Object.entries(images).map(([path, module]) => ({
+  path,
+  url: module.default
+}));
+
+function image_importor(name) {
+  const found = imageFiles.find(file => file.path.includes(name));
+  if (!found) {
+    console.warn(`Image not found: ${name}`);
+    return null;
+  }
+  return found.url;
+}
+
+/*pls study this */
+
+
+
+
+
+async function image_selector(url_of_image, format='.svg'){
+  const imported_img = await import(`../image/${url_of_image}${format}`);
+
+  console.log(`../image/${url_of_image}${format}`)
+
+  return imported_img.default;
+}
+  
+
 /*THE 2 CLASS */
 class TypeOfTips {
   constructor(type, list, additional_material = null) {
@@ -41,8 +73,8 @@ class DetailOfTips{
 // Module-scope data; export at top-level (not inside a function)
 export const list_of_tips = [
   new TypeOfTips("PRE-LEARN", [
-    new DetailOfTips("Prime mind", "this is excercise where you would try to find incetives and", ),
-    new DetailOfTips("WATER ur face/body", " althought quite obvious but does it come in common pratice"),
+    new DetailOfTips("Prime mind", "this is excercise where you would try to find incetives and", image_importor("brain.svg")),
+    new DetailOfTips("WATER ur face/body", " althought quite obvious but does it come in common pratice", ),
     new DetailOfTips("BREAK is necessary ", "your brain needs break every 45minutes because"),
     new DetailOfTips("Structure your day", "your brain loves certainty and doing this reduce energy of deciding what to do next"),
     new DetailOfTips("small workout"),
