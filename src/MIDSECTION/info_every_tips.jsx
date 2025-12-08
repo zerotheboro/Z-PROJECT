@@ -2,11 +2,12 @@ import LOGO from "../image/LOGO.png";
 import Main from './COLOR_CHANGE.jsx';
 
 const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg}", { eager: true });
-
+/*return an object of file */
 const imageFiles = Object.entries(images).map(([path, module]) => ({
   path,
   url: module.default
 }));
+/*convert it back to another form of object */
 
 function image_importor(name) {
   const found = imageFiles.find(file => file.path.includes(name));
@@ -74,16 +75,16 @@ class DetailOfTips{
 export const list_of_tips = [
   new TypeOfTips("PRE-LEARN", [
     new DetailOfTips("Prime mind", "this is excercise where you would try to find incetives and", image_importor("brain.svg")),
-    new DetailOfTips("WATER ur face/body", " althought quite obvious but does it come in common pratice", ),
-    new DetailOfTips("BREAK is necessary ", "your brain needs break every 45minutes because"),
-    new DetailOfTips("Structure your day", "your brain loves certainty and doing this reduce energy of deciding what to do next"),
-    new DetailOfTips("small workout"),
-    new DetailOfTips("Track progress")
+    new DetailOfTips("WATER ur face/body", " althought quite obvious but does it come in common pratice", image_importor("water")),
+    new DetailOfTips("BREAK is necessary ", "brain needs break every 45minutes because", image_importor("relaxing_cat")),
+    new DetailOfTips("Structure your day", "brain loves certainty, structuring reduces energy of deciding what to do next", image_importor("multiple_checkbox")),
+    new DetailOfTips("small workout", "jumpstart ur blood circulating around the body", image_importor("dumbell")),
+    new DetailOfTips("Track progress", "motivate you and keep you in mind how much you progress", image_importor("checkbox"))
   ], <Main/>),
   new TypeOfTips("META-LEARN", [
-     new DetailOfTips("increase peripheral vision"),
+    new DetailOfTips("increase peripheral vision", "next time you read try not to read each word but in group", image_importor("eye")),
     new DetailOfTips("Use length pointer"),
-    new DetailOfTips("NO inner voice"),
+    new DetailOfTips("NO verbal voice"),
     new DetailOfTips("varied/spacial Repetition"),
     new DetailOfTips("Memory palace"),
     new DetailOfTips("Do what you crave last"),
@@ -91,7 +92,7 @@ export const list_of_tips = [
     new DetailOfTips("story telling")
   ]),
   new TypeOfTips("NOTE-TAKE", [
-    new DetailOfTips("Note-taking 4x4"),
+    new DetailOfTips("Note-take 4x4"),
     new DetailOfTips("NO word-for-word"),
   ]),
 ];
