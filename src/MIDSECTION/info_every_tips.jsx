@@ -18,19 +18,13 @@ function image_importor(name) {
   return found.url;
 }
 
-/*pls study this */
-
-
-
-
-
-async function image_selector(url_of_image, format='.svg'){
+/*async function image_selector(url_of_image, format='.svg'){
   const imported_img = await import(`../image/${url_of_image}${format}`);
 
   console.log(`../image/${url_of_image}${format}`)
 
   return imported_img.default;
-}
+}*/
   
 
 /*THE 2 CLASS */

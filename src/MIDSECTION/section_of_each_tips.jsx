@@ -56,7 +56,7 @@ function handleClickfor1(section){
       if (animation_of_each_tip){
         the_animation_obj.the_tip_anime(selected_section.querySelectorAll(".TIP h1, .TIP div p, .TIP img"))
       */
-      }, 3)
+      }, 7)
 
 
 

@@ -26,4 +26,4 @@ export default function animation_of_each_tip(section){
         /*BARELY need FUTHER IMPROVING */
         (inViewdetermination) ? the_animation_obj.the_tip_anime([array_of_tips_component[i]]) : null;
         
-    }});}
+    }});}                                                                                                                                                                                                                                                                                                     
