@@ -334,7 +334,7 @@ div#BENEFIT{
     }
 footer{
     background-color: var(--darker-black);
-    height: max(700px, 100vh);
+    height: auto;
     display: flex;
     justify-content: flex-start;
     flex-direction: column;
