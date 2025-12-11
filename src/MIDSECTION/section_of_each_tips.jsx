@@ -68,6 +68,7 @@ function handleClickfor1(section){
   return (
     <>
     <section id="options_of_tips_to_choose">
+        <h1>group of tips</h1>
         {list_of_tips.map((section) =>
         <button onClick={() => handleClickfor1(section._type)}>
             {section._type}

@@ -77,7 +77,7 @@ export const list_of_tips = [
   ], <Main/>),
   new TypeOfTips("META-LEARN", [
     new DetailOfTips("increase peripheral vision", "next time you read try not to read each word but in group", image_importor("eye")),
-    new DetailOfTips("Use length pointer"),
+    new DetailOfTips("Use length pointer", "use pointer(finger or ruler,...) to track ur reading", image_importor("book_pointer")),
     new DetailOfTips("NO verbal voice"),
     new DetailOfTips("varied/spacial Repetition"),
     new DetailOfTips("Memory palace"),

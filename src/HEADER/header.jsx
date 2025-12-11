@@ -11,7 +11,7 @@ function NAV(){
                 <span class="logo"><img src={img_source}/>EBULLIENCE</span>
                 <span><a href="#BENEFIT">BENEFITs</a></span>
                 <span>
-                    <a href="#options_of_tips_to_choose">TIP OPTION</a>
+                    <a href="#options_of_tips_to_choose">tips group</a>
                 </span>
                 <span><a href="#contact" target="_self">CONTACTs</a></span>
             </section>
