@@ -307,7 +307,7 @@ div#BENEFIT{
             display: inline-flex;
             gap: 7%;
             flex-direction: column;
-            width: 70%;
+            width: 50%;
         }
     }
     img{
@@ -358,9 +358,15 @@ footer{
     display: flex;
     justify-content: flex-start;
     flex-direction: column;
+    align-items: center;
     font-size: calc(var(--HEADER-2-size) / 2);
-    p{
+    p, h1{
         background-color: transparent;
+        color: var(--font-color);
+    }
+    img{
+        width: 40%;
+        height: auto;
     }
     #contact{
         display: flex;

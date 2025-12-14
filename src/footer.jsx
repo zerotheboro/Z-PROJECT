@@ -1,7 +1,7 @@
 import facebook from './image/facebook.svg';
 import youtube from './image/youtube.svg';
-import gmail from './image/gmail.svg'
-
+import gmail from './image/gmail.svg';
+import QR  from './image/QR_donation.png';
 
 const list_of_contact = [
     {
@@ -32,7 +32,13 @@ function Footer(){
             <div id="contact">
                 {divs_of_contacts}
             </div>
-            <p>phone number: 0909528511</p>
+            <div>
+                <h1>DONATION would help</h1>
+                <img src={QR}></img>
+            </div>
+            <div>
+                <p>phone number:<h1>0909528511</h1></p>
+            </div>
         </footer>
         </>
     )
