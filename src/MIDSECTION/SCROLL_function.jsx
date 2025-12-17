@@ -5,7 +5,7 @@ export default function animation_of_each_tip(section){
 
     let array_of_tips = document.querySelectorAll(`.TIP`)
 
-    let array_of_tips_component = document.querySelectorAll(`#${section} .TIP h1,#${section} .TIP img,#${section} .TIP p`)
+    let array_of_tips_component = document.querySelectorAll(`#${section} .TIP h1,#${section} .TIP img,#${section} .TIP p,#${section} .TIP video,#MAIN_CONTENT button`)
 
     window.addEventListener("scroll", () => {
 

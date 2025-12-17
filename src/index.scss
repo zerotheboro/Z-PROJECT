@@ -27,7 +27,7 @@ body{
     --HEADER-size: 10vw;
     --HEADER-2-size: 7vw;
     --P:   "Oswald", "Open Sans", monospace;
-    --P-size:  4.9vw;
+    --P-size:  6vw;
     --P-NAV-size : 2.5vw;
 }
 h1{
@@ -143,8 +143,8 @@ div#BENEFIT{
     font-size: var(--HEADER-2-size);///////////////////////////////////////////////////////////
     text-align: center;
     background-color: var(--lightblue);
-    height: 120vh;
-    padding-top: 20vh;
+    height: 130vh;
+    padding: 20vh 0 10vh 0;
     li{
         font-size: var(--P-size);
         margin-left: 30vw;
@@ -173,8 +173,9 @@ div#BENEFIT{
 #MAIN_CONTENT{
     display: grid;
     background-color: var(--lightblue);
-    grid-template: 3fr 6fr 1fr/ 1fr;
-    height: max(600px, 100vh);
+    grid-template: 3fr 5fr 1fr 1fr/ 1fr;
+    height: max(600px, 140vh);
+    padding: 2.5vh 2.5vw;
     align-items: center;
     align-content: space-evenly;
     justify-items: center;
@@ -218,11 +219,21 @@ div#BENEFIT{
 
 
 
+.TIP div:has(video){
+    flex-direction: column;
+    height: auto;
+    p {
+        width: 90% !important;
+        align-self: center;
+    }
+    video{
+        width: 80vw;
+        height: auto;
+        align-self: center;
+    }
+}
 
-
-
-
-@media only screen  and (max-width: 800px), ( orientation: portrait){
+@media only screen  and (max-width: 1000px), ( orientation: portrait){
     .TIP div{
     height: max(600px, 80vh);
     background-color: var(--lightblue);
@@ -282,9 +293,9 @@ div#BENEFIT{
 
 
 
-@media only screen and (min-width: 800px), (orientation: landscape){
+@media only screen and (min-width: 1000px), (orientation: landscape){
 .TIP div{
-    height: max(700px, 130vh);
+    height: max(700px, 140vh);
     background-color: var(--lightblue);
     padding: 2.5vh 2.5vw;
     
@@ -295,7 +306,7 @@ div#BENEFIT{
         margin-bottom: 8vh;
     }
     div{
-        height: 70%;
+        height: 80%;
         padding: 0;
         display: flex;
         gap: 2vw;
@@ -307,27 +318,13 @@ div#BENEFIT{
             display: inline-flex;
             gap: 7%;
             flex-direction: column;
-            width: 50%;
+            width: 60%;
         }
     }
     img{
             width: auto;
-            height: 40vh;
+            height: 32vh;
         }
-    /*div.citation{
-        background-color: var(--font-color);
-        display: inline-block;
-        height: 7vh;
-        transition: all 300ms;
-        padding-left: 0.2vw;
-        font-size: calc(var(--P-size)/2);
-    }
-    div.citation:hover{
-        background-color: var(--passion-orange);
-        color: var(--font-color);
-        padding-left: 0.7vw;
-        text-decoration: none;
-    }*/
 }}
 
 
