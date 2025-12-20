@@ -75,24 +75,25 @@ export const list_of_tips = [
     new DetailOfTips("Prime mind", "asking questions like why must I?...", image_importor("brain.svg")),
     new DetailOfTips("WATER ur face/body", "a little shift of % can affect ur brain alot!", image_importor("water")),
     new DetailOfTips("BREAK ≠ DISTRACTION", "don't pull out ur phone cause distraction unlike break it hooks u up and take more uneccsary time", image_importor("relaxing_cat")),
-    new DetailOfTips("small workout", "jumpstart ur blood circulating around the body", image_importor("dumbell")),
+    new DetailOfTips("small workout", "jumpstart ur blood, get the oxygen ur brain needs", image_importor("dumbell")),
     new DetailOfTips("Structure your day", "brain loves certainty, structuring reduces energy of deciding what to do next", image_importor("multiple_checkbox")),
     new DetailOfTips("Track progress", "motivate you and keep you in mind how much you progress", image_importor("checkbox")),
-    new DetailOfTips("AUTO GOOGLE", "This feature conditions u into going to the tab you want to learn", image_importor("google", "video"))
+    new DetailOfTips("AUTO GOOGLE", "This feature conditions u into going to the tab you want to learn rigth away; there is a set up tutorial", image_importor("google", "video"))
   ], <Main/>),
   new TypeOfTips("META-LEARN", [
-    new DetailOfTips("increase peripheral vision", "next time you read try not to read each word but in group", image_importor("eye")),
-    new DetailOfTips("Use length pointer", "use pointer(finger or ruler,...) to track ur reading", image_importor("book_pointer")),
-    new DetailOfTips("NO verbal voice"),
-    new DetailOfTips("varied/spacial Repetition"),
-    new DetailOfTips("Memory palace"),
-    new DetailOfTips("Do what you crave last"),
-    new DetailOfTips("encode the more paths remember"),
-    new DetailOfTips("story telling")
+    new DetailOfTips("peripheral vision", "next time you read try not to read each word but in group", image_importor("eye")),
+    new DetailOfTips("Use length pointer", "use pointer finger or ruler... to track ur reading allowing continutity(no progression) which saves ur time", image_importor("book_pointer")),
+    new DetailOfTips("NO verbal voice", "ur can read ≈  140 words, process "),
+    new DetailOfTips("Repetition", "repeatition is mastery and learning how to do it helps a lot. There are 2 ways to do it, 1 spacial repeat ur knowledge at certain space and 2 mix the order up "),
+    new DetailOfTips("most craving is last", "doing this makes u do everything you need with the drive of doing the things you crave the most!; I like coding and so I would do economy then bussiness lastly coding", image_importor("pirate_map")),
+    new DetailOfTips("encode cues", "cues can be emotion, picture, "),
+    new DetailOfTips("story telling", "story like`the oxygen concentration we breath is heated by our body temperature, passes to ur lungs suface area` is an ex of using it to remember what influences gas exchange"),
+    new DetailOfTips("ABBREVIATION!","Putting everything in 1 words and so would save memory & time with little effort; like HoChiMinhInternationalSchool helps me remember factors affecting demand (HabitsComplementsMarketingIncomeSubsitute)")
   ]),
   new TypeOfTips("NOTE-TAKE", [
     new DetailOfTips("Note-take 4x4"),
     new DetailOfTips("NO word-for-word"),
+    new DetailOfTips("CORNELL method")
   ]),
 ];
 

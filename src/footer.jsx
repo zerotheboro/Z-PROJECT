@@ -33,7 +33,7 @@ function Footer(){
                 {divs_of_contacts}
             </div>
             <div>
-                <h1>DONATION would help</h1>
+                <h1>DONATION help alot</h1>
                 <img src={QR}></img>
             </div>
             <div>
