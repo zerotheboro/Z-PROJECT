@@ -123,10 +123,9 @@ export const list_of_tips = [
     new DetailOfTips("AUTO GOOGLE",
       <>
         This feature auto open the tabs
-        you want to learn immidiately
+        you want to learn right away
         click {<button type="button" onClick={() => {navigator.clipboard.writeText("chrome://settings/onStartup")}}>link</button>} to copy & paste
-        follow the turtorial below
-        
+        or follow the turtorial below
       </>,
       image_importor("google", "video"))
 

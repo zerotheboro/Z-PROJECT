@@ -22,10 +22,10 @@ html{
     --notso-energetic-yellow: #EEC550;
     --font-color: whitesmoke;
     --HEADER:"Bebas Neue";
-    --HEADER-size: 10vw;
-    --HEADER-2-size: 7vw;
+    --HEADER-size: 6vw;
+    --HEADER-2-size: 5vw;
     --P:   "Oswald", "Open Sans", monospace;
-    --P-size:  4vw;
+    --P-size:  3.7vw;
     --P-NAV-size : 2.5vw;
 }
 h1{
@@ -128,7 +128,6 @@ section#options_of_tips_to_choose{
     button:hover{
         background-color: var(--passion-orange);
         color: var(--font-color);
-        
     }
 }
 
@@ -145,7 +144,7 @@ div#BENEFIT{
     padding: 20vh 0 10vh 0;
     li{
         font-size: var(--P-size);
-        margin-left: 30vw;
+        margin-left: 35%;
         text-align: left;
     }
     a, li{
@@ -170,13 +169,13 @@ div#BENEFIT{
 
 #MAIN_CONTENT{
     display: grid;
-    background-color: var(--lightblue);
-    grid-template: 3fr 5fr 1fr 1fr/ 1fr;
-    height: max(600px, 140vh);
+    grid-template: 2fr 2fr 1fr 1fr/ 1fr;
     padding: 2.5vh 2.5vw;
     align-items: center;
     align-content: space-evenly;
     justify-items: center;
+    background-color: var(--lightblue);
+    height: max(600px, 140vh);
     transition: all 700ms;
         #PROMPT{
         background-color: var(--font-color);
@@ -189,27 +188,11 @@ div#BENEFIT{
     h1{
         font-size: var(--HEADER-size);
     }
-
-    button {
-        background-color: var(--font-color);
-        color: var(--darker-black);
-        margin: 0;
-        padding: 10px 20px;
-        box-shadow: 0 7px 0 black; /* angled shadow */
-        transition: all 150ms ease;
-        border-radius: 3px;
-        font-size: 16px;
-        cursor: pointer;
-        border: none;
-        position: relative;
-    }
-    /* Hover (pressed state) */
     button:active {
-        transform: translate(0, 7px); /* move button exactly onto the shadow */
-        box-shadow: 0 0 0 black;        /* shadow disappears */
+        transform: translate(0, 7px) !important;/* move button exactly onto the shadow */
+        box-shadow: 0 0 0 black !important;        /* shadow disappears */
         background-color: #C0D6DF;
         color: #ffffff;
-        
     }
 }
 
@@ -226,13 +209,11 @@ div#BENEFIT{
         width: 90% !important;
         align-self: center;
     }
-    div{
-        height: auto;
-        video{
+    video{
         width: 80vw;
         align-self: center;
-        }
     }
+    
     
 }
 
@@ -298,31 +279,34 @@ div#BENEFIT{
 .TIP div{
     height: auto;
     background-color: var(--lightblue);
-    padding: 2.5vh 2.5vw;
-    align-items: start;
+    padding: 4vh 4vw;
+    height: auto;
+    display: grid;
+    grid-template: 1fr 6fr/ 6fr 4fr;
+    grid-template-areas:
+        "h1 img"
+        "p img";
+    gap: 1vw;
+    align-content: center;
     justify-content: center;
     justify-items: center;
+    p{
+        font-size: var(--P-size);
+        font-family: var(--P);
+        grid-area: p;
+        }
+    
     h1{
-        text-align: center;
+        justify-self: start;
         font-size: var(--HEADER-size);
         font-family: var(--HEADER);
-        margin-bottom: 8vh;
-    }
-    div{
-        height: max(80vh, 700px);
-        display: grid;
-        grid-template: 1fr/ 6fr 3fr;
-        gap: 2vw;
-        align-content: center;
-        p{
-            font-size: var(--P-size);
-            font-family: var(--P);
+        grid-area: h1;
         }
-    }
     img{
-            margin-top: 12vh;
-            width: auto;
-            height: 32vh;
+        margin-top: 12%;
+        width: 70%;
+        height: auto;
+        grid-area: img;
         }
     button{
         font-size: var(--P-size);
@@ -367,7 +351,7 @@ footer{
         color: var(--font-color);
     }
     img{
-        width: 40%;
+        width: 20%;
         height: auto;
     }
     #contact{
