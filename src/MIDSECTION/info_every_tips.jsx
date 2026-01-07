@@ -117,7 +117,7 @@ export const list_of_tips = [
       drinking low sugar matcha, water
       and eating salmon, walnuts,
     </>, 
-    image_importor("checkbox")),
+    image_importor("chicken")),
 
 
     new DetailOfTips("AUTO GOOGLE",
@@ -140,14 +140,34 @@ export const list_of_tips = [
     new DetailOfTips("Repetition", "repeatition is mastery and learning how to do it helps a lot. There are 2 ways to do it, 1 spacial repeat ur knowledge at certain space and 2 mix the order up "),
     new DetailOfTips("most craving is last", "doing this makes u do everything you need with the drive of doing the things you crave the most!; I like coding and so I would do economy then bussiness lastly coding", image_importor("pirate_map")),
     new DetailOfTips("encode cues", "cues can be emotion, picture, keyword, icon"),
-    new DetailOfTips("story telling", "story like`the oxygen concentration we breath is heated by our body temperature, passes to ur lungs suface area` is an ex of using it to remember what influences gas exchange"),
-    new DetailOfTips("ABBREVIATION!","Putting everything in 1 words and so would save memory & time with little effort; like HoChiMinhInternationalSchool helps me remember factors affecting demand (HabitsComplementsMarketingIncomeSubsitute)")
+    new DetailOfTips("story telling",
+      <>
+        story like`the oxygen concentration
+        we breath is heated by our body temperature,
+        passes to ur lungs suface area` is an ex of
+        using it to remember what influences gas exchange
+      </>),
+    new DetailOfTips("ABBREVIATION!",
+      <>
+        Arrange needed element's first letter
+        in 1 words and so would save memory & 
+        time by remember 1 word;
+      </>, 
+      image_importor("SWOT")),
+    new DetailOfTips("1 sentence",
+      <>
+        summerize every elements are needed 
+        to understand into a sentence, this 
+        forces u to choose between words which
+         activate ur comprehension skill
+      </>
+    )
   ]),
   new TypeOfTips("NOTE-TAKE", [
     new DetailOfTips("Note-take 4x4"),
     new DetailOfTips("NO word-for-word"),
     new DetailOfTips("CORNELL method", "main section(this retangle) write the content details and the side rectangle writes the main idea and the footer(lower square) recap overall idea."),
-    new DetailOfTips("HIGHLIGHT!", "" )
+    new DetailOfTips("HIGHLIGHT!", "only do it after reading full topic and have " )
   ]),
 ];
 

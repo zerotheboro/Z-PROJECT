@@ -222,6 +222,9 @@ div#BENEFIT{
     height: max(600px, 80vh);
     background-color: var(--lightblue);
     padding: 1vh 1vw;
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
     h1{
         text-align: center;
         font-size: var(--HEADER-2-size);
@@ -247,7 +250,7 @@ div#BENEFIT{
     }
     img{
             width: auto;
-            height: 16vh;
+            height: 33%;
         }
     
     }
@@ -350,9 +353,9 @@ footer{
         background-color: transparent;
         color: var(--font-color);
     }
-    img{
-        width: 20%;
-        height: auto;
+    a > img{
+        width: 28vh;
+        height: 28vh;
     }
     #contact{
         display: flex;
