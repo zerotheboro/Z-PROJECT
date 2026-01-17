@@ -147,6 +147,15 @@ export const list_of_tips = [
         passes to ur lungs suface area` is an ex of
         using it to remember what influences gas exchange
       </>),
+    new DetailOfTips("PRESENTATION", 
+      <>
+        Telling & recalling what u have learnt to 
+        sonebody could be urself, friends, it make 
+        u organize ur thoughts to explain hence boost 
+        ur understanding abt it.
+      </>, 
+      image_importor("PRESENTATION")),
+
     new DetailOfTips("ABBREVIATION!",
       <>
         Arrange needed element's first letter
@@ -160,6 +169,14 @@ export const list_of_tips = [
         to understand into a sentence, this 
         forces u to choose between words which
          activate ur comprehension skill
+      </>
+    ),
+    new DetailOfTips("summary & print",
+      <>
+        this is a google doc that would
+        help u in printing all the tips,
+        and explain it in more details
+        <a href="https://docs.google.com/document/d/1qfUi1f6OYUYhAAmggj1jGT7vZiK1PzGi_ZmotVSADTo/edit?usp=sharing" target="_blank"><button>THE GG DOC</button></a>
       </>
     )
   ]),

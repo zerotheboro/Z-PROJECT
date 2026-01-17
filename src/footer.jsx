@@ -1,5 +1,5 @@
 import facebook from './image/facebook.svg';
-import IG from './image/IG_ICON.png';
+import IG from './image/IG.png';
 import youtube from './image/youtube.svg';
 import gmail from './image/gmail.svg';
 import DONATE  from './image/QR_donation.png';

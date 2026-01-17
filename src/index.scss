@@ -224,10 +224,11 @@ div#BENEFIT{
     padding: 1vh 1vw;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 2vh;
     h1{
         text-align: center;
-        font-size: var(--HEADER-2-size);
+        font-size: calc(var(--HEADER-size));
         font-family: var(--HEADER);
         margin-bottom: 2vh;
     }
@@ -243,14 +244,14 @@ div#BENEFIT{
         justify-items: flex-start;
         p{
             font-size: 3rem;
-            font-family: var(--P);
+            font-family: calc(var(--P) + 1vw);
             width: 80%;
          
         }
     }
     img{
-            width: auto;
-            height: 33%;
+            height: 24vh;
+            width: 24vh;
         }
     
     }

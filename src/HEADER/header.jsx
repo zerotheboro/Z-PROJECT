@@ -39,7 +39,7 @@ function NAV(){
     return(
         <header>  
             <section id="NAV">
-                <span className="logo"><img src={img_source}/>EBULLIENCE</span>
+                <span className="logo"><img src={img_source}/>EDULLIENCE</span>
                 <span><a href="#BENEFIT">BENEFITs</a></span>
                 <span><a href="#options_of_tips_to_choose">tips group</a></span>
                 <span><a href="#contact">CONTACTs</a></span>
