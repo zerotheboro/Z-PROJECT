@@ -174,8 +174,8 @@ export const list_of_tips = [
     new DetailOfTips("summary & print",
       <>
         this is a google doc that would
-        help u in printing all the tips,
-        and explain it in more details
+        help u print all the tips,
+        and explain it in more details + evidences
         <a href="https://docs.google.com/document/d/1qfUi1f6OYUYhAAmggj1jGT7vZiK1PzGi_ZmotVSADTo/edit?usp=sharing" target="_blank"><button>THE GG DOC</button></a>
       </>
     )

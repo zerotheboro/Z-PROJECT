@@ -216,7 +216,9 @@ div#BENEFIT{
     
     
 }
-
+.TIP div > h1, .TIP div > h2, .TIP div > img{
+    will-change: opacity, transform;
+}
 @media only screen  and (max-width: 1200px), ( orientation: portrait){
     .TIP div{
     height: max(600px, 80vh);
@@ -294,7 +296,7 @@ div#BENEFIT{
     align-content: center;
     justify-content: center;
     justify-items: center;
-    p{
+     p{
         font-size: var(--P-size);
         font-family: var(--P);
         grid-area: p;

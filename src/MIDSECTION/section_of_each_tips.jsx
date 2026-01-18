@@ -14,10 +14,11 @@ export default function Tips(props) {
     const section_id = Object.keys(show).find(section => show[section] === true)
 
     const section = document.getElementById(section_id);
-
+    console.log(section_id)
     if(section){
       section.scrollIntoView({behavior: "smooth"})
     }
+    /*animation_of_each_tip(section_id); the section_id doesn't seem to be undefined*/
   },[show])
   
   const list_of_tips_JSX = list_of_tips.map((each_section) => 
@@ -60,11 +61,10 @@ function handleClickfor1(section_id){
     list_of_tips.forEach((object) => {
       NewState[object.type] = (object.type === section_id)? !prevShow[section_id] : false;
     });
-    
     setTimeout(() => {
       animation_of_each_tip(section_id);
-      }, 7)
-
+    }, 7)
+    console.log(section_id)
 
     return NewState;
 
