@@ -38,9 +38,9 @@ function Footer(){
             <div id="contact">
                 {divs_of_contacts}
             </div>
-            <h1>DONATION means alot</h1>
+            <h1>UR DONATION means alot</h1>
             <a href='' target='_blank'><img src={DONATE}></img></a>
-            <h1>UR OPINION MATTERS</h1>
+            <h1>UR OPINION MATTERS & <a href='#'>15% off</a> BOXITO </h1>
             <a href='https://forms.gle/dfjrofp26qWphvJK7' target='_blank'><img src={SURVEY}></img></a>
             <div>
                 <p>phone number:<h1>0909528511</h1></p>
