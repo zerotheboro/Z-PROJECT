@@ -21,13 +21,14 @@ export default function Tips(props) {
     /*animation_of_each_tip(section_id); the section_id doesn't seem to be undefined*/
   },[show])
   
+  /*these are props u use in the objects of info.jsx */
   const list_of_tips_JSX = list_of_tips.map((each_section) => 
     <section id={each_section.type} key={each_section.type} style={{display : show[each_section.type] ? "block" : "none"}}>
       {each_section.additional_material}
 
       {each_section.list.map((the_tip, idx) => (
         <section className="TIP" key={`${each_section.type}-${idx}`}>
-          <div>
+          <div className={the_tip.side}>
               <h1>{idx + 1}. {the_tip.header}</h1>
               <p>
                 {the_tip.paragraph}

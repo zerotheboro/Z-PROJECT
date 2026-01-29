@@ -51,10 +51,11 @@ class TypeOfTips {
 
 /*change img into asset */
 class DetailOfTips{
-  constructor(header = "header", paragraph = "p", asset = { src:LOGO, type: "image"}){
+  constructor(header = "header", paragraph = "p", asset = { src:LOGO, type: "image"}, side="right"){
     this._header = header;
     this._paragraph = paragraph;
     this._asset = asset;
+    this._side = side;
   }
   get header(){
     return this._header;
@@ -65,6 +66,9 @@ class DetailOfTips{
   get asset(){
     return this._asset;
   }
+  get side(){
+    return this._side;
+  }
 }
 
 
@@ -72,28 +76,39 @@ class DetailOfTips{
 // Module-scope data; export at top-level (not inside a function)
 export const list_of_tips = [
   new TypeOfTips("PRE-LEARN", [
-    new DetailOfTips("Prime mind", "asking questions like why must I?...", image_importor("brain.svg")),
+    new DetailOfTips("Prime mind", 
+    <>
+      determine the importance of it 
+      to yourself by asking what will this 
+      help me, and the more important something
+      is the more u pay attention. doing this
+      reflect the importance.
+    </>, image_importor("brain.svg"),),
+
+
     new DetailOfTips("WATER ur face/body", 
     <>
       Drink water around a glass of water
       and splash water onto ur face
     </>,
-    image_importor("water")),
+    image_importor("water"), "left"),
 
     
     new DetailOfTips("BREAK ≠ DISTRACTION", 
     <>
-      don't pull out ur phone cause distraction
-      unlike break it hooks u up and take more uneccsary time
+      try to take neccesary break and not 
+      surround urself with distractions which
+      can derail ur focus
     </>,
     image_importor("relaxing_cat")),
 
 
     new DetailOfTips("small workout", 
     <>
-      jumpstart ur blood, 
-      get the oxygen ur brain needs
-    </>, image_importor("dumbell")),
+      doing a small workout before learning
+      helps u get ur brain the oxygen it needed more
+      and it can be simple like streching or pushup, situp.
+    </>, image_importor("dumbell"), "left"),
 
     new DetailOfTips("Structure your day", 
     <>
@@ -101,6 +116,23 @@ export const list_of_tips = [
       reduces energy of deciding what to do next
     </>,
     image_importor("multiple_checkbox")),
+
+    new DetailOfTips("Everything in 1 place", 
+    <>
+      free up ur mind by putting everything u
+      need at 1 place, Moreover u would notice 
+      easier and get it done, <a href="https://zerotheboro.github.io/KINGSTON/" target="_blank">BOXITO</a> can help u achive that
+    </>,
+    image_importor("BOXITO")),
+
+    
+
+    new DetailOfTips("most craving is last",
+      <>
+        find the thing u love to do and do it last,
+        this gives u the urge to finish everything
+        in order to do the thing u want to do
+      </>, image_importor("pirate_map"), "left"),
 
 
     new DetailOfTips("Track progress",
@@ -117,7 +149,7 @@ export const list_of_tips = [
       drinking low sugar matcha, water
       and eating salmon, walnuts,
     </>, 
-    image_importor("chicken")),
+    image_importor("chicken"), "left"),
 
 
     new DetailOfTips("AUTO GOOGLE",
@@ -134,7 +166,7 @@ export const list_of_tips = [
       <>
         this is a google doc that would
         help u print all the tips,
-        and explain it in more details + evidences
+        and explain the tips in more details + evidences
         <a href="https://docs.google.com/document/d/1qfUi1f6OYUYhAAmggj1jGT7vZiK1PzGi_ZmotVSADTo/edit?usp=sharing" target="_blank"><button>THE GG DOC</button></a>
       </>
     ),
@@ -143,13 +175,16 @@ export const list_of_tips = [
 
 
   new TypeOfTips("META-LEARN", [
-    new DetailOfTips("HEADER first", "often we don't put much thoughts into headings but putting more processing into it aids u in getting the overall idea better"),
-    new DetailOfTips("peripheral vision", "next time you read try not to read each word but in group", image_importor("eye")),
+    new DetailOfTips("HEADER first", 
+    <>
+      often we don't put much thoughts
+      but doing it aids u in getting
+      the overall idea better
+    </>),
+    new DetailOfTips("peripheral vision", "next time you read try not to read each word but in group", image_importor("eye"), "left"),
     new DetailOfTips("Use length pointer", "use pointer finger or ruler... to track ur reading allowing continutity(no progression) which saves ur time", image_importor("book_pointer")),
-    new DetailOfTips("NO verbal voice", "ur can read ≈  140 words, process "),
-    new DetailOfTips("Repetition", "repeatition is mastery and learning how to do it helps a lot. There are 2 ways to do it, 1 spacial repeat ur knowledge at certain space and 2 mix the order up "),
-    new DetailOfTips("most craving is last", "doing this makes u do everything you need with the drive of doing the things you crave the most!; I like coding and so I would do economy then bussiness lastly coding", image_importor("pirate_map")),
-    new DetailOfTips("encode cues", "cues can be emotion, picture, keyword, icon"),
+    new DetailOfTips("NO verbal voice", "u can "),
+    new DetailOfTips("Repetition", "repeatition is mastery and learning how to do it helps a lot. There are 2 ways to do it, 1 spacial repeat ur knowledge at certain space and 2 mix the order up ", "left"),
     new DetailOfTips("story telling",
       <>
         story like`the oxygen concentration
@@ -160,11 +195,11 @@ export const list_of_tips = [
     new DetailOfTips("PRESENTATION", 
       <>
         Telling & recalling what u have learnt to 
-        sonebody could be urself, friends, it make 
-        u organize ur thoughts to explain hence boost 
-        ur understanding abt it.
+        sonebody could be urself, friends, allow u to 
+        organize ur thoughts to explain clearly hence 
+        boost ur understanding abt it.
       </>, 
-      image_importor("PRESENTATION")),
+      image_importor("PRESENTATION"), "left"),
 
     new DetailOfTips("ABBREVIATION!",
       <>
@@ -173,6 +208,17 @@ export const list_of_tips = [
         time by remember 1 word;
       </>, 
       image_importor("SWOT")),
+
+    new DetailOfTips("summary & print",
+      <>
+        this is a google doc that would
+        help u print all the tips,
+        and explain the tips in more details + evidences
+        <a href="https://docs.google.com/document/d/1qfUi1f6OYUYhAAmggj1jGT7vZiK1PzGi_ZmotVSADTo/edit?usp=sharing" target="_blank"><button>THE GG DOC</button></a>
+      </>
+    )
+  ]),
+  new TypeOfTips("NOTE-TAKE", [
     new DetailOfTips("1 sentence",
       <>
         summerize every elements are needed 
@@ -181,25 +227,38 @@ export const list_of_tips = [
          activate ur comprehension skill
       </>
     ),
+    new DetailOfTips("Note-take 4x4",
+    <>
+      a simplifed version of mind map,
+      each ideas divide into another 4 ideas
+      like how the picture show
+    </>),
+    new DetailOfTips("you vs book cycle",
+    <>
+      listen and write the down what
+      you had listen into a notebook as what
+      you know and finally compare to your book
+      if there are errors, then repeat or ask
+    </>
+    ),
+    new DetailOfTips("CORNELL method", 
+    <>
+      main section(this retangle) write the content 
+      details and the side rectangle writes the main
+      idea and the footer(lower square) recap overall idea.
+    </>,),
+    new DetailOfTips("HIGHLIGHT!", 
+    <>
+      only do it after reading full topic
+      and have summerized in ur own words
+    </>,
+    image_importor("highlight")),
+
     new DetailOfTips("summary & print",
       <>
         this is a google doc that would
         help u print all the tips,
-        and explain it in more details + evidences
-        <a href="https://docs.google.com/document/d/1qfUi1f6OYUYhAAmggj1jGT7vZiK1PzGi_ZmotVSADTo/edit?usp=sharing" target="_blank"><button>THE GG DOC</button></a>
-      </>
-    )
-  ]),
-  new TypeOfTips("NOTE-TAKE", [
-    new DetailOfTips("Note-take 4x4"),
-    new DetailOfTips("NO word-for-word"),
-    new DetailOfTips("CORNELL method", "main section(this retangle) write the content details and the side rectangle writes the main idea and the footer(lower square) recap overall idea."),
-    new DetailOfTips("HIGHLIGHT!", "only do it after reading full topic and have " ),
-    new DetailOfTips("summary & print",
-      <>
-        this is a google doc that would
-        help u print all the tips,
-        and explain it in more details + evidences
+        and explain the tips in more details + evidences
         <a href="https://docs.google.com/document/d/1qfUi1f6OYUYhAAmggj1jGT7vZiK1PzGi_ZmotVSADTo/edit?usp=sharing" target="_blank"><button>THE GG DOC</button></a>
       </>
     ),
