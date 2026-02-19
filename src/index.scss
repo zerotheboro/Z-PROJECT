@@ -10,6 +10,7 @@ body{
     overflow-x:hidden;
 }
 html{
+    background-color: var(--lightblue);
     scroll-behavior: smooth;
 }
 :root{
@@ -22,7 +23,7 @@ html{
     --notso-energetic-yellow: #EEC550;
     --font-color: whitesmoke;
     --HEADER:"Bebas Neue";
-    --HEADER-size: 6vw;
+    --HEADER-size: max(6vw, 2rem);
     --HEADER-2-size: 5vw;
     --P:   "Oswald", "Open Sans", monospace;
     --P-size:  3.7vw;
@@ -31,10 +32,7 @@ html{
 h1{
     font-family: var(--HEADER);
     font-size: var(--HEADER-size);
-}
-p{
-    font-family: var(--P);
-    font-size: var(--P-size);
+    text-align: center;
 }
 button{
     box-shadow: 0 7px 0 black; /* angled shadow */
@@ -138,23 +136,34 @@ section#options_of_tips_to_choose{
 
 
 div#BENEFIT{
-    font-size: var(--HEADER-2-size);///////////////////////////////////////////////////////////
-    text-align: center;
-    background-color: var(--lightblue);
-    height: 130vh;
-    padding: 20vh 0 10vh 0;
-    li{
-        font-size: max(var(--P-size), calc(var(--HEADER-size) - 2vw));
-        margin-left: 35%;
-        text-align: left;
+    display: flex;
+    justify-content: space-evenly;
+    height: 120vh;
+    padding: 1rem 0 8vh 0;
+    div.a_benefit{
+        display: inline-block;
+        border: var(--notso-energetic-yellow) 2px solid;
+        border-radius: 1rem;
+        height: auto;
+        width: 32vw;
+        padding : 1vw;
+        > h1{
+            font-size: calc(var(--HEADER-size) - 3vw);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: var(--notso-energetic-yellow) 2px solid;
+        }
+        >p{
+            font-size: 3vw !important;
+        }
     }
-    a, li{
+    a{
         transition: all 300ms
     }
     a:hover{
         background-color: var(--passion-orange);
         color: var(--font-color);
-        padding: 0.2vw;
+        padding: 0.4rem;
         text-decoration: none;
 
     }
@@ -171,7 +180,7 @@ div#BENEFIT{
 #MAIN_CONTENT{
     display: grid;
     grid-template: 2fr 2fr 1fr 1fr/ 1fr;
-    padding: 2.5vh 2.5vw;
+    padding: 2rem 2rem;
     align-items: center;
     align-content: space-evenly;
     justify-items: center;
@@ -204,7 +213,6 @@ div#BENEFIT{
 .TIP div:has(video){
     display: flex !important;
     flex-direction: column;
-    height: auto;
     align-items: center;
     p {
         width: 90% !important;
@@ -221,11 +229,9 @@ div#BENEFIT{
     will-change: opacity, transform;
 }
 @media only screen  and (max-width: 1200px), ( orientation: portrait){
-    h1{
-        font-size: calc(var(--HEADER-size) + 4vw);
-    }
-    p, li{
-        font-size: calc(var(--HEADER-size) + 1vw);
+    div#BENEFIT{
+        flex-direction: column;
+        align-items: center;
     }
     .TIP div{
     height: max(600px, 80vh);
@@ -237,14 +243,15 @@ div#BENEFIT{
     gap: 2vh;
     h1{
         text-align: center;
-        font-size: calc(var(--HEADER-size) + 4vw);
+        font-size: calc(var(--HEADER-size) );
         font-family: var(--HEADER);
         margin-bottom: 2vh;
     }
     p{
-            font-family: var(--P);
-            width: 80%;
-            text-wrap: pretty;
+        font-family: var(--P);
+        width: 80%;
+        text-wrap: pretty;
+        font-size: var(--P-size);
     }
     img{
             height: 20vh;

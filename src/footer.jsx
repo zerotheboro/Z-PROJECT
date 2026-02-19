@@ -42,14 +42,14 @@ function Footer(){
             <div id="contact">
                 {divs_of_contacts}
             </div>
-            <h1>UR DONATION means alot</h1>
+            <h1>YOUR DONATION means alot</h1>
             <a href='' target='_blank'><img src={DONATE}></img></a>
-            <h1>UR OPINION MATTERS</h1>
+            <h1>YOUR OPINION MATTER</h1>
             <a href='https://forms.gle/dfjrofp26qWphvJK7' target='_blank'><img src={SURVEY}></img></a>
-            <h1>UR PRIVACY MATTERS</h1>
-            <a href='https://forms.gle/dfjrofp26qWphvJK7' target='_blank'><img src={SURVEY}></img></a>
+            <h1>YOUR PRIVACY POLICY MATTER</h1>
+            <a href='/privacy-policy.html' target='_blank'><img src={SURVEY}></img></a>
             <div>
-                <p>phone number:<h1>0909528511</h1></p>
+                <h1>phone number:<br/>0909528511</h1>
             </div>
         </footer>
         </>

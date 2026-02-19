@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react";
 
 
 
-function NAV(){
+function NAV(props){
     let old_Y_value = useRef(window.scrollY);
 
     useEffect(()=>{
@@ -40,7 +40,7 @@ function NAV(){
         <header>  
             <section id="NAV">
                 <span className="logo"><img src={img_source}/>EDULIENCE</span>
-                <span><a href="#BENEFIT">BENEFITs</a></span>
+                <span><a onClick={props.language}>LANGUAGE</a></span>
                 <span><a href="#options_of_tips_to_choose">tips group</a></span>
                 <span><a href="#contact">CONTACTs</a></span>
             </section>

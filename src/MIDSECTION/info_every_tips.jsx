@@ -51,11 +51,13 @@ class TypeOfTips {
 
 /*change img into asset */
 class DetailOfTips{
-  constructor(header = "header", paragraph = "p", asset = { src:LOGO, type: "image"}, side="right"){
+  constructor(header = "header", paragraph = "p", asset = { src:LOGO, type: "image"}, side="right", VNheader = "VN 1#", VNparagraph = "VN para !!!"){
     this._header = header;
     this._paragraph = paragraph;
     this._asset = asset;
     this._side = side;
+    this._VNheader = VNheader;
+    this._VNparagraph =VNparagraph;
   }
   get header(){
     return this._header;
@@ -68,6 +70,12 @@ class DetailOfTips{
   }
   get side(){
     return this._side;
+  }
+  get VNheader(){
+    return this._VNheader;
+  }
+  get VNparagraph(){
+    return this._VNparagraph;
   }
 }
 
@@ -87,8 +95,8 @@ export const list_of_tips = [
 
     new DetailOfTips("Everything in 1 place", 
     <>
-      free up ur mind by putting everything u
-      need at 1 place, Moreover u would notice 
+      free up ur mind by putting everything you
+      need at 1 place, Moreover you would notice 
       easier and get it done, <a href="https://zerotheboro.github.io/KINGSTON/" target="_blank">BOXITO</a> can help u achive that
     </>,
     image_importor("BOXITO")),
@@ -105,8 +113,8 @@ export const list_of_tips = [
     new DetailOfTips("BREAK ≠ DISTRACTION", 
     <>
       try to take neccesary break and not 
-      surround urself with distractions which
-      can derail ur focus
+      surround yourself with distractions which
+      can derail your focus
     </>,
     image_importor("relaxing_cat")),
 
@@ -114,7 +122,7 @@ export const list_of_tips = [
     new DetailOfTips("small workout", 
     <>
       doing a small workout before learning
-      helps u get ur brain the oxygen it needed more
+      helps u get your brain the oxygen it needed more
       and it can be simple like streching or pushup, situp.
     </>, image_importor("dumbell"), "left"),
 
@@ -127,9 +135,9 @@ export const list_of_tips = [
 
     new DetailOfTips("most craving is last",
       <>
-        find the thing u love to do and do it last,
+        find the thing you love to do and do it last,
         this gives u the urge to finish everything
-        in order to do the thing u want to do
+        in order to do the thing you want to do
       </>, image_importor("pirate_map"), "left"),
 
 
@@ -163,7 +171,7 @@ export const list_of_tips = [
     new DetailOfTips("summary & print",
       <>
         this is a google doc that would
-        help u print all the tips,
+        help you print all the tips,
         and explain the tips in more details + evidences
         <a href="https://docs.google.com/document/d/1qfUi1f6OYUYhAAmggj1jGT7vZiK1PzGi_ZmotVSADTo/edit?usp=sharing" target="_blank"><button>THE GG DOC</button></a>
       </>
@@ -176,7 +184,7 @@ export const list_of_tips = [
     new DetailOfTips("HEADER first", 
     <>
       often we don't put much thoughts
-      but doing it aids u in getting
+      but doing it aids you in getting
       the overall idea better
     </>),
     new DetailOfTips("peripheral vision", 
@@ -188,8 +196,8 @@ export const list_of_tips = [
     new DetailOfTips("Use length pointer", 
       <>
         use pointer finger or ruler...
-         to track ur reading allowing continutity
-         (no progression) which saves ur time
+         to track your reading allowing continutity
+         (no progression) which saves your time
       </>, image_importor("book_pointer")),
 
     new DetailOfTips("Repetition", "repeatition is mastery and learning how to do it helps a lot. There are 2 ways to do it, 1 spacial repeat ur knowledge at certain space and 2 mix the order up ", "left"),
@@ -202,9 +210,9 @@ export const list_of_tips = [
       </>, image_importor('storytelling')),
     new DetailOfTips("PRESENTATION", 
       <>
-        Telling & recalling what u have learnt to 
-        sonebody could be urself, friends, allow u to 
-        organize ur thoughts to explain clearly hence 
+        Telling & recalling what you have learnt to 
+        sonebody could be yourself, friends, allow u to 
+        organize your thoughts to explain clearly hence 
         boost ur understanding abt it.
       </>, 
       image_importor("PRESENTATION"), "left"),
@@ -220,7 +228,7 @@ export const list_of_tips = [
     new DetailOfTips("summary & print",
       <>
         this is a google doc that would
-        help u print all the tips,
+        help you print all the tips,
         and explain the tips in more details + evidences
         <a href="https://docs.google.com/document/d/1qfUi1f6OYUYhAAmggj1jGT7vZiK1PzGi_ZmotVSADTo/edit?usp=sharing" target="_blank"><button>THE GG DOC</button></a>
       </>
@@ -231,8 +239,8 @@ export const list_of_tips = [
       <>
         summerize every elements are needed 
         to understand into a sentence, this 
-        forces u to choose between words which
-         activate ur comprehension skill
+        forces you to choose between words which
+         activate your comprehension skill
       </>
     ),
     new DetailOfTips("divide steps",
@@ -240,7 +248,7 @@ export const list_of_tips = [
         divide your excercise into steps
         with clear instructions like how
         Cambrigde do it
-      </>, image_importor("STEP")
+      </>, image_importor("STEP"), "left"
     ),
 
     new DetailOfTips("Note-take 4x4",
@@ -248,7 +256,8 @@ export const list_of_tips = [
       a simplifed version of mind map,
       each ideas divide into another 4 ideas
       like how the picture show
-    </>, image_importor("4X4")),
+    </>, image_importor("4X4")
+    ),
 
     new DetailOfTips("you vs book cycle",
     <>
@@ -269,14 +278,14 @@ export const list_of_tips = [
     new DetailOfTips("HIGHLIGHT!", 
     <>
       only do it after reading full topic
-      and have summerized in ur own words
+      and have summerized in your own words
     </>,
     image_importor("highlight"), "left"),
 
     new DetailOfTips("summary & print",
       <>
         this is a google doc that would
-        help u print all the tips,
+        help you print all the tips,
         and explain the tips in more details + evidences
         <a href="https://docs.google.com/document/d/1qfUi1f6OYUYhAAmggj1jGT7vZiK1PzGi_ZmotVSADTo/edit?usp=sharing" target="_blank"><button>THE GG DOC</button></a>
       </>
