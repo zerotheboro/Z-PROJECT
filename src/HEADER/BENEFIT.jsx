@@ -1,19 +1,13 @@
 
-
-
 function Benifit(){
-
-
     return(
+    <>
     <div id="BENEFIT">
-        <h1>WHY USE IT?</h1>
-        <ul>
-            <li>25+ tips, 1+ must fit u</li>
-            <li>summerized from:<br/><a target="_blank" href="https://jamesclear.com/atomic-habits">Atomic Habits</a>, <a href="https://www.youtube.com/@JimKwik" target="_blank">Jim Kwik</a>,...</li>
-            <li>these tips boost productivity<br/>therefore save learning time</li>
-            <li>Claim ur bonuses include free<br/>gym <a href="" title="WE OFFER 1 MONTH FREE">California</a>, <a href="#contact">Boxito 15% off</a>,... </li>
-        </ul>
-    </div>)
+        <h1>explore your learning with<br/>Edulience's <u>25+ useful ways</u><br/>for your brains</h1>
+        <a href="#options_of_tips_to_choose"><button>Start learning</button></a>
+    </div>
+    </>)
+
 }
 
 export default Benifit;

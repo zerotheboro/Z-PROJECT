@@ -10,6 +10,7 @@ body{
     overflow-x:hidden;
 }
 html{
+    background-color: var(--lightblue);
     scroll-behavior: smooth;
 }
 :root{
@@ -21,24 +22,32 @@ html{
     --darker-black: #1A2634;
     --notso-energetic-yellow: #EEC550;
     --font-color: whitesmoke;
-    --HEADER:"Bebas Neue";
-    --HEADER-size: 6vw;
+    --HEADER: "Bebas Neue", "Oswald", "Space Mono";
+    --HEADER-size: max(6vw, 2rem);
     --HEADER-2-size: 5vw;
-    --P:   "Oswald", "Open Sans", monospace;
+    --P:   "Oswald", "Open Sans",  "Space Grotesk", monospace;
     --P-size:  3.7vw;
     --P-NAV-size : 2.5vw;
 }
 h1{
-    font-family: var(--HEADER);
     font-size: var(--HEADER-size);
 }
-p{
-    font-family: var(--P);
-    font-size: var(--P-size);
+h2{
+    font-size: var(--HEADER-2-size);
 }
+p{
+    font-size: var(--P-size);
+    font-family: var(--P);
+}
+h1, h2{
+    font-family: var(--HEADER);
+    text-align: center;
+}
+
 button{
     box-shadow: 0 7px 0 black; /* angled shadow */
     transition: all 150ms ease;
+    font-size: var(--P-size);
     border-radius: 3px;
     font-size: 16px;
     cursor: pointer;
@@ -71,7 +80,7 @@ button:active {
         cursor: pointer;
         font-size: var(--P-NAV-size);
         width: var(--width_of_span);
-        --width_of_span: 10vw;
+        --width_of_span: 12vw;
         border-radius: var(--radius);
         --radius:3px;
         background-color: var(--notso-energetic-yellow);
@@ -104,7 +113,7 @@ button:active {
         font-weight: 700;
         color: var(--font-color);
         justify-self: start;
-        font-size: 3vw;
+        font-size: var(--P-NAV-size);
         letter-spacing: 0.1vw;
         width: 16vw;
     }
@@ -138,25 +147,75 @@ section#options_of_tips_to_choose{
 
 
 div#BENEFIT{
-    font-size: var(--HEADER-2-size);///////////////////////////////////////////////////////////
-    text-align: center;
-    background-color: var(--lightblue);
-    height: 130vh;
-    padding: 20vh 0 10vh 0;
-    li{
-        font-size: max(var(--P-size), calc(var(--HEADER-size) - 2vw));
-        margin-left: 35%;
+    height: auto;
+    padding: 8rem 0 8rem 10vw;
+    margin-bottom: 4rem;
+    h1{
         text-align: left;
+        u{
+            background-color: var(--energetic--yellow);
+            padding: .5rem;
+        }
     }
-    a, li{
-        transition: all 300ms
-    }
-    a:hover{
-        background-color: var(--passion-orange);
-        color: var(--font-color);
-        padding: 0.2vw;
+    li{
+        list-style-type: none;
         text-decoration: none;
+    }
+    li > span{
+        font-family: var(--P);
+        font-size: calc(var(--P-size) - .7vw);
+    }
+    button{
+        font-size: var(--P-size);
+    }
+}
+.Instructions{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding:0 0 4rem 0;
+    margin-bottom: 1rem;
+    video{
+        width: 80vw
+    }
+}
 
+
+
+
+
+div.table-wrapper {
+    text-align: center;
+    > h2{
+        justify-self: center;
+        font-size: var(--HEADER-2-size);
+    }
+}
+table{
+    margin: 4rem 0 4rem 0;
+    justify-self: center;
+    border-collapse: collapse;
+    border-spacing: 0;
+    td{
+        border-bottom: 4px var(--energetic--yellow) solid;
+        text-align: center;
+        padding: 4px;
+        width: 20vw;
+        font-size: var(--P-size);
+    }
+    td.inspire{
+        border-left: 4px var(--energetic--yellow) solid;
+        border-right: 4px var(--energetic--yellow) solid;
+    }
+    td.inspire{
+        background-color: var(--font-color);
+    }
+    th.Logo{
+        background-color: var(--energetic--yellow);
+        border:  4px var(--energetic--yellow) solid;
+    }
+    img{
+        width: 8vw;
     }
 }
 
@@ -168,26 +227,13 @@ div#BENEFIT{
 
 
 
-#MAIN_CONTENT{
-    display: grid;
-    grid-template: 2fr 2fr 1fr 1fr/ 1fr;
-    padding: 2.5vh 2.5vw;
-    align-items: center;
-    align-content: space-evenly;
-    justify-items: center;
-    background-color: var(--lightblue);
-    height: max(600px, 140vh);
-    transition: all 700ms;
-        #PROMPT{
+    #PROMPT{
         background-color: var(--font-color);
-        width: auto;
+        width: 70%;
+        height: 52%;
         font-size: var(--HEADER-size);
         padding: calc(var(--HEADER-size) / 5);
         text-align: center;
-    }
-
-    h1{
-        font-size: var(--HEADER-size);
     }
     button:active {
         transform: translate(0, 7px) !important;/* move button exactly onto the shadow */
@@ -195,7 +241,6 @@ div#BENEFIT{
         background-color: #C0D6DF;
         color: #ffffff;
     }
-}
 
 
 
@@ -204,7 +249,6 @@ div#BENEFIT{
 .TIP div:has(video){
     display: flex !important;
     flex-direction: column;
-    height: auto;
     align-items: center;
     p {
         width: 90% !important;
@@ -220,15 +264,25 @@ div#BENEFIT{
 .TIP div > h1, .TIP div > h2, .TIP div > img{
     will-change: opacity, transform;
 }
-@media only screen  and (max-width: 1200px), ( orientation: portrait){
-    h1{
-        font-size: calc(var(--HEADER-size) + 4vw);
+@media only screen  and (max-width: 1200px){
+    #NAV{
+        span.logo{
+            grid-area: logo;
+            justify-self: center;
+            font-size: calc(var(--P-NAV-size) + 1rem);
+        }
+        span{
+            width: calc(var(--width_of_span) + 4rem);
+            font-size: calc(var(--P-NAV-size) + 1rem);
+            margin-bottom: 1rem;
+        }
+        grid-template: 50% 50%/ 1fr 1fr 1fr;
+        grid-template-areas: "logo logo logo";
     }
-    p, li{
-        font-size: calc(var(--HEADER-size) + 1vw);
-    }
+
+
     .TIP div{
-    height: max(600px, 80vh);
+    height: max(720px, 80vh);
     background-color: var(--lightblue);
     padding: 1vh 1vw;
     display: flex;
@@ -237,14 +291,15 @@ div#BENEFIT{
     gap: 2vh;
     h1{
         text-align: center;
-        font-size: calc(var(--HEADER-size) + 4vw);
+        font-size: calc(var(--HEADER-size) );
         font-family: var(--HEADER);
         margin-bottom: 2vh;
     }
     p{
-            font-family: var(--P);
-            width: 80%;
-            text-wrap: pretty;
+        font-family: var(--P);
+        width: 80%;
+        text-wrap: pretty;
+        font-size: var(--P-size);
     }
     img{
             height: 20vh;
@@ -256,8 +311,13 @@ div#BENEFIT{
         width: fit-content;
         padding: 0 1vw 0 1vw;
     }
-    
+    .more_info{
+        border-left: 1rem var(--tomato) solid;
+        height: auto;
     }
+    }
+
+
     section#options_of_tips_to_choose{
         height: 100vh;
         display: flex;
@@ -284,7 +344,7 @@ div#BENEFIT{
 
 
 
-@media only screen and (min-width: 1200px), (orientation: landscape){
+@media only screen and (min-width: 1200px){
 .TIP div{
     height: auto;
     background-color: var(--lightblue);
@@ -321,7 +381,7 @@ div#BENEFIT{
         font-family: var(--HEADER);
         grid-area: h1;
         }
-    img{
+    img, .asset{
         margin-top: 12%;
         width: 70%;
         height: auto;
