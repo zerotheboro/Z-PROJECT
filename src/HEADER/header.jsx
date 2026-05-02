@@ -2,6 +2,11 @@
 import LOGO from "../image/LOGO.png";
 import Benifit from "./BENEFIT";
 import Instruction from "./instructions";
+import language from "../image/languages.svg"
+import quiz from "../image/quiz.svg"
+import team from "../image/team.svg"
+import contact from "../image/contact.svg"
+import wayofgroups from "../image/ways of groups.svg"
 import { the_animation_obj } from "./ANIMATION";
 import { useEffect, useRef } from "react";
 
@@ -41,12 +46,12 @@ function NAV(props){
         <header>  
             <section id="NAV">
                 <span className="logo"><img src={img_source}/>EDULIENCE</span>
-                <span><a onClick={props.language}>LANGUAGE</a></span>
-                <span><a href="#options_of_tips_to_choose">ways group</a></span>
-                <span><a href="#contact">CONTACTs</a></span>
+                <a onClick={props.language}><span><img src={language}/>library language</span></a>
+                <a href="#options_of_tips_to_choose"><span><img src={wayofgroups}/>library</span></a>
+                <a href="#quiz"><span><img src={quiz}/>quiz</span></a>
+                <a href="#FOOTER"><span><img src={contact}/>contact</span></a>
+                <a href="#carasoul"><span><img src={team}/>about us</span></a>
             </section>
-            <Benifit/>
-            <Instruction/>
         </header>
     );
 }

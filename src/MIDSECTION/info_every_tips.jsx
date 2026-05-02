@@ -1,15 +1,17 @@
 import LOGO from "../image/LOGO.png";
 import Main from './COLOR_CHANGE.jsx';
+import Clock from "./Clock.jsx";
+import Timer from './Clock.jsx';
 
-const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg,mp4}", { eager: true });
+export const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg,mp4,mp3}", { eager: true });
 /*return an object of file */
-const imageFiles = Object.entries(images).map(([path, module]) => ({
+export const imageFiles = Object.entries(images).map(([path, module]) => ({
   path,
   url: module.default
 }));
 /*convert it back to another form of object */
 
-function image_importor(name, type = "image") {
+export function image_importor(name, type = "image") {
   const found = imageFiles.find(file => file.path.includes(name));
   if (!found) {
     console.warn(`Image not found: ${name}`);
@@ -35,16 +37,20 @@ function image_importor(name, type = "image") {
 
 /*THE 2 CLASS */
 class TypeOfTips {
-  constructor(type, list, additional_material = null) {
+  constructor(type, introduction, list, additional_material = null) {
     this._type = type;
     this._list = list;
-    this._additional_material = additional_material
+    this._introduction = introduction;
+    this._additional_material = additional_material;
   }
   get type() {
     return this._type;
   }
   get list() {
     return this._list;
+  }
+  get introduction(){
+    return this._introduction
   }
   get additional_material(){
     return this._additional_material;
@@ -53,13 +59,15 @@ class TypeOfTips {
 
 /*change img into asset */
 class DetailOfTips{
-  constructor(header = "header", paragraph = "p", VNheader = "VN 1#", VNparagraph = "VN para !!!", asset = image_importor("LOGO", "image"), side="right", ){
+  constructor(header = "header", paragraph = "p", VNheader = "VN 1#", VNparagraph = "VN para !!!", asset = image_importor("LOGO", "image"), side="right", more_info= false, audio = false){
     this._header = header;
     this._paragraph = paragraph;
     this._asset = asset;
     this._side = side;
     this._VNheader = VNheader;
     this._VNparagraph =VNparagraph;
+    this._more_info =more_info;
+    this._audio = audio
   }
   get header(){
     return this._header;
@@ -79,13 +87,52 @@ class DetailOfTips{
   get VNparagraph(){
     return this._VNparagraph;
   }
+  get more_info(){
+    return this._more_info;
+  }
+  get audio(){
+    return this._audio
+  }
 }
 
+function CITATE(props){
+  const cite = "¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ¹⁰";
+  let num = "";
+  switch(props.n){
+    case "1": num = "¹";break;
+    case "2": num = "²";break;
+    case "3": num = "³";break;
+    case "4": num = "⁴";break;
+    case "5": num = "⁵";break;
+    case "6": num = "⁶";break;
+    case "7": num = "⁷";break;
+    case "8": num = "⁸";break;
+    case "9": num = "⁹";break;
+    case "10": num = "¹⁰";break;
+    case "11": num = "¹¹";break;
+    case "12": num = "¹²";break;
+    default : num = props.num;
+  }
+  return(
+    <a href={props.src} target="_blank" className="cite">({num})</a>
+  )
+}
 
 
 export const list_of_tips = [
   new TypeOfTips(
     "PRE-LEARN",
+    <>
+      <div className="introduction">
+        <h2>Introduction</h2>
+        <p>
+        - This section will give you a lists 
+        of methods that you can do to help you <u>get ready
+        to learn</u> before you learn.<br/>- Each method will have
+        different effort levels from easy, medium to hard.
+        </p>
+      </div>
+    </>,
     [
       new DetailOfTips(
         "Prime question",
@@ -99,16 +146,34 @@ export const list_of_tips = [
         "Câu hỏi đầu",
         <>
           Xác định tầm quan trọng của việc này
-          với chính bạn bằng cách tự hỏi: “Cái này sẽ
+          với cách tự hỏi: “Cái này sẽ
           giúp mình điều gì?”. Việc gì càng quan trọng
           thì bạn càng tự nhiên tập trung vào nó.
           Bước nhỏ này giống như soi lại để nhắc não:
           chuyện này <b>thật sự</b> quan trọng với mình.
         </>,
         image_importor("brain.svg"),
-        "right"
+        "left"
       ),
-
+       new DetailOfTips(
+        "Pomodoro technique",
+        <>
+          it's a time management tool that helps you
+          manage your task by, <br/>
+          step1 1: identify tasks needed
+        </>,
+        "cà chua quản lý thời gian",
+        <>
+          Bước 1: Chọn một công việc cần hoàn thành.
+          Bước 2: Đặt đồng hồ trong 25 phút. <br/>
+          Bước 3: Tập trung hoàn toàn vào công việc cho đến khi chuông reo.<br/>
+          Bước 4: Nghỉ giải lao ngắn trong 5 phút.<br/>
+          Bước 5: Sau mỗi 4 lần nghỉ ngắn, hãy nghỉ một quãng dài từ 15–30 phút.
+        </>,
+        image_importor(<Clock/>, ""),
+        "left",
+        <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      ),
       new DetailOfTips(
         "Everything in 1 place",
         <>
@@ -139,23 +204,6 @@ export const list_of_tips = [
         </>,
         image_importor("BOXITO"),
         "right"
-      ),
-
-      new DetailOfTips(
-        "WATER ur face/body",
-        <>
-          Drink water around a glass of water
-          and splash water onto ur face to awake
-          your mind!
-        </>,
-        "nước & nước",
-        <>
-          Uống khoảng một ly nước và té nước lên mặt
-          hoặc cơ thể để đánh thức cơ thể dậy.
-          Cơ thể tỉnh thì não mới dễ bật chế độ tập trung.
-        </>,
-        image_importor("water"),
-        "left"
       ),
       new DetailOfTips(
         "AUTO GOOGLE",
@@ -188,6 +236,49 @@ export const list_of_tips = [
           những thứ cần học, đỡ mất công tìm lại từ đầu.
         </>,
         image_importor("google", "video"),
+        "",
+        false,
+        image_importor("auto_goggle")
+      ),
+       new DetailOfTips(
+        "WATER ur face/body",
+        <>
+          Drink water around a glass of water
+          and splash water onto ur face to awake
+          your mind!
+        </>,
+        "nước & nước",
+        <>
+          Uống khoảng một ly nước và té nước lên mặt
+          hoặc cơ thể để đánh thức cơ thể dậy.
+          Cơ thể tỉnh thì não mới dễ bật chế độ tập trung.
+        </>,
+        image_importor("water"),
+        "left"
+      ),
+      
+      new DetailOfTips(
+        "Strooper effect",
+        <>
+          this is a brain excercise<CITATE n="3" src="https://www.apa.org/research-practice/conduct-research/stroop-effect#:~:text=Despite%20the%20slow%20start%2C%20Stroop,invaluable%20tool%20for%20exploring%20cognition."/> that 
+          trains the brain to handle disorder
+          informations, which is the color
+          and text, instruction: 1. press button<br/>
+          2. read the color and not the text.
+
+        </>,
+        "Bài Strooper",
+        <>
+          Đây là 1 bài khởi động cho 
+          bộ não<CITATE n="3" src="https://www.apa.org/research-practice/conduct-research/stroop-effect#:~:text=Despite%20the%20slow%20start%2C%20Stroop,invaluable%20tool%20for%20exploring%20cognition."/> cách sắp xếp thong tin mâu thuẫn
+          với nhau được chứng minh bỡi tiến sĩ Strooper.
+          bước 1: nhấn nút<br/>
+          bước 2: đọc cái màu của chữ
+        </>,
+        image_importor(<Main/>, ""),
+        "left", 
+        false,
+        image_importor("strooper_audio")
       ),
 
       new DetailOfTips(
@@ -229,7 +320,7 @@ export const list_of_tips = [
       new DetailOfTips(
         "long-term workout",
         <>
-          studies of Havard and British Columbia
+          studies of Stanford, South California<CITATE n="1" src="https://lifestylemedicine.stanford.edu/exercise-better-grades/"/>
           showed that doing excercises regulary
           grow your hippocampus a brain's region 
           associate with learning! because of that 
@@ -238,14 +329,13 @@ export const list_of_tips = [
         </>,
         "Vận động lâu dài",
         <>
-          nghiên cứu Havard and british Columbia
+          nghiên cứu ở Standford and Nam California<CITATE n="1" src="https://lifestylemedicine.stanford.edu/exercise-better-grades/"/>
           gợi ý rằng tập thể dục thường xuyên giúp
           não bộ lớn và vì vậy Edulience sẽ tặng bạn
           1 tháng tập ở California gym nhận nó ở phần
           ý kiến của bạn 
         </>,
         image_importor("dumbell"),
-        "left"
       ),
 
 
@@ -266,13 +356,13 @@ export const list_of_tips = [
       ),
 
       new DetailOfTips(
-        "most craving is last",
+        "Premack's principle",
         <>
           find the thing you love to do and do it last,
           this gives u the urge to finish everything
           in order to do the thing you want to do
         </>,
-        "thích nhất ở cuối",
+        "hiệu quả Premack",
         <>
           Tìm thứ bạn thích làm nhất (xem phim, chơi game,
           nghe nhạc…) và đặt nó ở <b>cuối danh sách</b>.
@@ -302,17 +392,18 @@ export const list_of_tips = [
       new DetailOfTips(
         "BRAIN DIET",
         <>
-          your brain need the nutrition and
-          drinking low sugar matcha, water
-          and eating salmon, walnuts,
+          + Omega-3 from fish Fatty fish (salmon, cod)<br/>
+          + Leafty vegetables (kale, spinach and broccoli)<br/>
+          + Berries (strawberries, blueberries)<br/>
+          + Walnuts (Avocado,Walnuts)<br/> suggested from Havard<CITATE src="https://www.health.harvard.edu/healthbeat/foods-linked-to-better-brainpower" n="2"></CITATE>
         </>,
         "Chế độ não ăn ",
         <>
-          Não cũng cần “dinh dưỡng tốt”.
-          Hạn chế đồ quá nhiều đường, ưu tiên
-          nước lọc, matcha ít đường, các thực phẩm
-          như cá hồi, quả óc chó… để não hoạt động
-          khoẻ và bền hơn.
+          + Omega-3 từ cá, đặc biệt là các loại cá béo (cá hồi, cá tuyết) <br/>
+          + Rau lá xanh (cải xoăn, rau bina và bông cải xanh)<br/>
+          + Các loại quả mọng (dâu tây, việt quất)<br/>
+          + Quả óc chó (bơ, óc chó)<br/>
+          nghiên cứu từ Havard<CITATE src="https://www.health.harvard.edu/healthbeat/foods-linked-to-better-brainpower" n="2"></CITATE>
         </>,
         image_importor("chicken"),
         "left"
@@ -320,25 +411,7 @@ export const list_of_tips = [
 
       
 
-      new DetailOfTips(
-        "Strooper effect",
-        <>
-          this is a brain excercise that 
-          trains the brain to handle disorder
-          informations, which is the color
-          and text, instruction: 1. press button<br/>
-          2. read the color and not the text.
-
-        </>,
-        "Bài Strooper",
-        <>
-          Đây là 1 bài khởi động cho 
-          bộ não cách sắp xếp thong tin mâu thuẫn
-          với nhau được chứng minh bỡi tiến sĩ Strooper.
-        </>,
-        image_importor(<Main/>, ""),
-        "left"  
-      ),
+      
 
       new DetailOfTips(
         "summary & print",
@@ -370,6 +443,15 @@ export const list_of_tips = [
 
   new TypeOfTips(
     "META-LEARN",
+      <div className="introduction">
+        <h2>Introduction</h2>
+        <p>
+        - This section will give you a lists 
+        of methods that you can do to help you <u>learn how to learn effectively</u>.
+        <br/>- Each method will have
+        different effort levels from easy, medium to hard.
+        </p>
+      </div>,
     [
       new DetailOfTips(
         "HEADER first",
@@ -425,11 +507,8 @@ export const list_of_tips = [
       new DetailOfTips(
         "Einstein framwork",
         <>
-          Don't remember anyformula but 
-          instead write them on a note and 
-          just do excercises, it allows for
-          your mind to focus on critical thinking
-          instead of small details
+          Albert Einstein used to say "don't memorize 
+          something that can be look up"
         </>,
         "Hiểu quả Einstein",
         <>
@@ -444,48 +523,53 @@ export const list_of_tips = [
       ),
 
       new DetailOfTips(
-        "Repetition",
-        "repeatition is mastery and learning how to do it helps a lot. There are 2 ways to do it, 1 spacial repeat ur knowledge at certain space and 2 mix the order up ",
-        "Ôn lại thông minh",
-        "Lặp lại là chìa khoá để nhớ lâu. Có hai cách mạnh: (1) Lặp lại theo khoảng cách thời gian (spaced repetition) – ôn lại sau 1 ngày, 3 ngày, 1 tuần…; (2) Trộn thứ tự khi ôn – không làm đúng một dạng bài mãi, mà xen kẽ nhiều dạng để não phải chủ động hơn."
-      ),
-
-      new DetailOfTips(
         "story telling",
         <>
-          story like`the oxygen concentration
-          we breath is heated by our body temperature,
-          passes to ur lungs suface area` is an ex of
-          using it to remember what influences gas exchange
+          for example story like Raging Martian 
+          invade Venus Using X-ray Gun
+          helps to remember components of light called electromagtic
+          spectrum thourgh ther first letter.<CITATE n="4" src="https://voljournals.utk.edu/cgi/viewcontent.cgi?article=3943&context=utk_graddiss"/>
         </>,
         "Kể chuyện kiến thức",
         <>
-          Bạn có thể biến kiến thức khô khan thành một câu chuyện.
-          Ví dụ: “Nồng độ oxy ta hít vào được sưởi ấm bởi nhiệt độ cơ thể,
-          đi qua bề mặt phổi rộng…” – câu chuyện này giúp bạn nhớ
-          các yếu tố ảnh hưởng đến trao đổi khí dễ hơn nhiều.
+         Để giúp bạn dễ nhớ các thành phần của phổ điện từ bằng tiếng Việt, 
+         chúng ta có thể chuyển đổi câu chuyện đó sang  dễ nhớ dựa trên chữ cái đầu 
+         của các thuật ngữ chuyên môn: Radio (R) → Rất; Microwave (Mi) → Mệt; Infrared 
+         (Hồng ngoại) → Hòng; Visible light (Anh sáng nhìn thấy) → Ăn;
+          Ultraviolet (Tử ngoại) → Thịt X-ray (X) → Xào; Gamma (G) → Gà
+          Câu thần chú tiếng Việt: "Rất Mệt Hòng Ăn Thịt <CITATE n="4" src="https://voljournals.utk.edu/cgi/viewcontent.cgi?article=3943&context=utk_graddiss"/>
         </>,
-        image_importor("storytelling"),
+        image_importor("alien"),
         "right"
       ),
 
       new DetailOfTips(
-        "FEYNMAN PRESENTATION",
+        "FEYNMAN Technique",
         <>
-          Telling & recalling what you have learnt to 
-          sonebody could be yourself, friends, allow u to 
-          organize your thoughts to explain clearly hence 
-          boost ur understanding abt it.
+          A 4-mental steps to understand a topic; Firstly
+          choose your topic, Secondly after learning
+          find a peer to explain it, Thirdly identify what you
+          didn't explain clearly, Lastly improve those gaps
+          from then. <CITATE n="5" src="https://www.adobe.com/acrobat/resources/feynman-technique.html#:~:text=This%20study%20method%20is%20named,and%20refining%20your%20understanding%20further."/>
         </>,
         "FEYNMAN/Trình bày",
         <>
-          Kể lại và trình bày những gì bạn đã học cho người khác
-          (hoặc chính bản thân mình, bạn bè) buộc não phải sắp xếp lại
-          ý cho rõ ràng. Quá trình đó giúp bạn hiểu sâu hơn nhiều
-          so với chỉ đọc lại.
+          Có 4 bước tư duy để hiểu một chủ đề.<CITATE n="5" src="https://www.adobe.com/acrobat/resources/feynman-technique.html#:~:text=This%20study%20method%20is%20named,and%20refining%20your%20understanding%20further."/>
+          Thứ nhất, hãy chọn chủ đề.
+          Thứ hai, sau khi học xong, hãy tìm một người bạn để giải thích lại cho họ.
+          Thứ ba, xác định những phần mà bạn chưa thể giải thích rõ ràng.
+          Cuối cùng, cải thiện những chỗ còn thiếu đó.
         </>,
         image_importor("PRESENTATION"),
-        "left"
+        "left",
+        <>
+        <p>
+          Albert einstein once said "If you can't explain it simply,
+           you don't understand it well enough." and that is very true when it comes
+          to explaining ideas to people.
+        </p>
+        <iframe src="https://www.youtube.com/embed/dRA_UW6ZfOQ?si=wc-jqgL__ub9Oxdd" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </>
       ),
 
       new DetailOfTips(
@@ -517,10 +601,19 @@ export const list_of_tips = [
 
   new TypeOfTips(
     "NOTE-TAKE",
+    <div className="introduction">
+        <h2>Introduction</h2>
+        <p>
+        - This section will give you a lists 
+        of methods that you can take note effectively so that you can <u>write the least and gain the most</u>.<br/>- Each method will have
+        different effort levels from easy, medium to hard.
+        </p>
+    </div>,
     [
       new DetailOfTips(
         "1 sentence",
         <>
+          inspired by feymen technique
           summerize every elements are needed 
           to understand into a sentence, this 
           forces you to choose between words which
@@ -528,6 +621,7 @@ export const list_of_tips = [
         </>,
         "1 câu",
         <>
+          Được lấy cảm hứng từ cách học Feyman
           Tóm tắt tất cả yếu tố cần để hiểu chủ đề
           vào <b>một câu</b>. Điều này buộc bạn phải chọn lọc
           từ ngữ, kích hoạt khả năng hiểu – không chỉ chép lại.
@@ -552,7 +646,7 @@ export const list_of_tips = [
         "left"
       ),
       new DetailOfTips(
-        "dedrive basics",
+        "derive basics",
         <>
           Equations/ formula made up
           by other basic formula, like 
@@ -563,13 +657,54 @@ export const list_of_tips = [
         </>,
         "học nền tảng",
         <>
-          Chia bài tập hoặc nội dung học thành các bước rõ ràng,
-          giống như cách Cambridge hướng dẫn:
-          Bước 1 làm gì, Bước 2 làm gì… Não sẽ dễ đi theo
-          hơn là nhìn một khối thông tin lớn.
+          với những công thức, ví dụ như "1/2cos(B).a.b" để
+          hiểu nó thì bạn cần phải hiểu tại sao có công thức 
+          mà bạn đang tim hiểu trong ví dụ là từ tỉ số lượng giác 
+          sin cos tan và công thức 1/2.cạnh đáy.đường cao
         </>,
         image_importor("dedrive"),
-        "right"
+      ),
+      new DetailOfTips(
+        "spaced learning",
+        <>
+          This method is about <b>spearding reviewing time</b>,
+          after you have learnt your lessons, you review it back tommorrow 
+          the next time is 2 days and 4 days and so on.<br/>
+          this allows for you to study with same time with more results. 
+          the more info section will help you plan your review time.
+        </>,
+        "",
+        <>
+
+        </>,
+        image_importor("dedrive"),
+      ),
+
+      new DetailOfTips(
+        "Leitner system",
+        <>
+          a deeper level of flash cards, where a group
+          of flash cards is arranged at 1 in an
+          arrangement of 3 boxes or more marked by 1,2,3,...
+          choose a card and test yourself after that if you got it
+          correct move the card to next box if not lower it to box 1 again.<CITATE src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12658577/" n="6"/>
+        </>,
+        "Hệ thống Leitner",
+        <>
+          phương pháp Leitner (Leitner System) hoạt động như sau
+          Bạn sắp xếp các thẻ thông tin (flashcards) vào các hộp
+          được đánh số 1, 2, 3... Nếu trả lời thẻ đúng, bạn 
+          chuyển nó sang hộp tiếp theo. Nếu trả lời sai, thẻ đó 
+          sẽ bị chuyển ngược về hộp số 1. <CITATE src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12658577/" n="6"/>
+        </>,
+        image_importor("Leitner"),
+        "left",
+        <>
+          <video controls><source src={image_importor("Leitner_vid").src} type="video/mp4"/></video>
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/kB-NuR6NTZw?si=BDrD5yloPbgS70l9" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </>,
+        image_importor("LEINTNER")
+
       ),
 
       new DetailOfTips(
@@ -628,19 +763,22 @@ export const list_of_tips = [
       new DetailOfTips(
         "CORNELL method",
         <>
-          the side rectangle writes the main idea 
-          main section retangle write the content details and
-          the footer lower squarerecap overall idea.
+          Cornell states that the side part is for writting
+          your questions and keyword, and the biggest is 
+          the note which are the details and the downward
+          square is used for summer<CITATE src="https://www.researchgate.net/publication/399574345_The_Influence_of_the_Cornell_Note-Taking_Method_on_Students'_Reading_Comprehension_of_Explanation_Text" n="7"/>
         </>,
         "Phương pháp Cornell",
         <>
-          Với Cornell, phần cạnh bên dùng để ghi ý chính,
+          Cornell nói rằng phần cạnh bên dùng để ghi ý chính,
           phần giữa ghi nội dung chi tiết, phần cuối trang
           dùng để tóm tắt lại toàn bộ. Một trang vừa là ghi chú,
-          vừa là bản tóm tắt.
+          vừa là bản tóm tắt.<CITATE src="https://www.researchgate.net/publication/399574345_The_Influence_of_the_Cornell_Note-Taking_Method_on_Students'_Reading_Comprehension_of_Explanation_Text" n="7"/>
         </>,
         image_importor("CORNELL"),
-        "right"
+        "right",
+        <iframe  src="https://www.youtube.com/embed/GKodBunEPuI?si=6ERiznbgXUVsTurE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>,
+        image_importor("Cornor")
       ),
 
       new DetailOfTips(
@@ -648,16 +786,20 @@ export const list_of_tips = [
         <>
           only do it after reading full topic
           and have summerized in your own words
+          but prefer using yelow hightlight because
+           it constract best with black letters <CITATE src="https://www.shiftelearning.com/blog/how-do-colors-influence-learning#:~:text=4)%20Yellow:%20The%20Powerhouse%20for,studying%20in%20neutrally%2Dcolored%20environments." n="8"/>
         </>,
         "Tô đậm hiệu quả",
         <>
           Chỉ nên highlight sau khi bạn đã đọc hết chủ đề
           và tóm tắt lại bằng lời của mình. Highlight những chỗ
-          thật sự là “then chốt”, không tô cả trang.
+          thật sự là “then chốt”, và cuối cùng hãy ưu tiên dùng 
+          màu vàng vì nó tương phản tốt nhất với chữ đen<CITATE src="https://www.shiftelearning.com/blog/how-do-colors-influence-learning#:~:text=4)%20Yellow:%20The%20Powerhouse%20for,studying%20in%20neutrally%2Dcolored%20environments." n="8"/> giúp bạn dễ nhớ hơn.
         </>,
         image_importor("highlight"),
         "left"
       ),
+    
 
       new DetailOfTips(
         "summary & print",

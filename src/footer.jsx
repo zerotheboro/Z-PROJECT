@@ -37,16 +37,16 @@ let divs_of_contacts = list_of_contact.map((source) => <div><a href={source.scr}
 function Footer(){
     return(
         <>
-        <div className='footer_border'></div>
+        <div className='border_footer section_border'></div>
         <footer id="FOOTER">
             <div id="contact">
                 {divs_of_contacts}
             </div>
-            <h1>YOUR OPINION MATTER</h1>
+            <h1>Your opinion matter so tell us in survey</h1>
             <a href='https://forms.gle/dfjrofp26qWphvJK7' target='_blank'><img src={SURVEY}></img></a>
-            <h1>YOUR PRIVACY POLICY MATTER</h1>
+            <h1>Your privacy policy matter so look thourgh</h1>
             <a href='/privacy-policy.html' target='_blank'><img src={SURVEY}></img></a>
-            <h1>YOUR DONATION means alot</h1>
+            <h1>Your donation means to us alot</h1>
             <a href='' target='_blank'><img src={DONATE}></img></a>
 
             <div>

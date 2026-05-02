@@ -1,17 +1,5 @@
 
 import VIDEO from "../image/Instruction.mp4";
-function Step(props){
-    return(
-        <>
-            <div className="step">
-                <h2>{props.head}</h2>
-                <p>{props.para}</p>
-            </div>
-        </>
-        
-    )
-
-}
 
 
 

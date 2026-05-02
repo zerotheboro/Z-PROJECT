@@ -11,10 +11,9 @@ function givedecison(e){
                             { name: "purple", hsla: "hsla(280, 100%, 60%, 1)" },
                             { name: "pink",   hsla: "hsla(330, 100%, 70%, 1)" },
                             { name: "gray",   hsla: "hsla(0, 0%, 50%, 1)" },
-                            { name: "white",  hsla: "hsla(0, 0%, 100%, 1)" },
+                            { name: "white",  hsla: "rgb(255, 255, 255)" },
                             { name: "black",  hsla: "hsla(0, 0%, 0%, 1)" },
                             { name: "crimson",      hsla: "hsla(348, 83%, 47%, 1)" },
-                            { name: "darkorange",   hsla: "hsla(33, 100%, 45%, 1)" },
                             { name: "gold",         hsla: "hsla(50, 100%, 50%, 1)" },
                             { name: "lime",         hsla: "hsla(120, 100%, 50%, 1)" },
                             { name: "cyan",         hsla: "hsla(180, 100%, 50%, 1)" },]
@@ -43,7 +42,7 @@ function givedecison(e){
 
 function BODY(){
     return(
-        <button className="asset" id="PROMPT" onClick={(e) => givedecison(e)}>COLOR!!!</button>   
+        <button className="asset" id="PROMPT" onClick={(e) => givedecison(e)}>press</button>
     );
         
 }

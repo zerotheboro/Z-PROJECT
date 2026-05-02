@@ -4,6 +4,9 @@ import Table from "./TABLE.jsx";
 import { list_of_tips } from "./info_every_tips.jsx";
 import animation_of_each_tip from "./SCROLL_function.jsx";
 import NAV from '../HEADER/header.jsx';
+import Daily from "./Day.jsx";
+import Hall_of_fame from "./HALL_of_fame.jsx";
+import Game from "./META.jsx";
 
 
 export default function Tips(props) {
@@ -24,8 +27,9 @@ export default function Tips(props) {
 
   function Renderassets(format, source){
     switch(format){
-      case "video": return <video autoPlay controls><source src={source} type="video/mp4"/></video>;
+      case "video": return <video className="not_extra" autoPlay controls><source src={source} type="video/mp4"/></video>;
       case "image": return <img src={source} alt="logo"/>;
+      case "audio": return <audio controls><source src={source}/></audio>;
       default : return <>{source}</>;
     }
 
@@ -34,16 +38,21 @@ export default function Tips(props) {
   /*these are props u use in the objects of info.jsx */
   const list_of_tips_JSX = list_of_tips.map((each_section) => 
     <section id={each_section.type} key={each_section.type} style={{display : show[each_section.type] ? "block" : "none"}}>
+      {each_section.introduction}
       {each_section.list.map((the_tip, idx) => (
+        <>
         <section className="TIP" key={`${each_section.type}-${idx}`}>
           <div className={the_tip.side}>
-              <h1>{idx + 1}.{" "}{(VNLanguage === false)? the_tip.header: the_tip.VNheader}</h1>
+              <h2>{idx + 1}.{" "}{(VNLanguage === false)? the_tip.header: the_tip.VNheader}</h2>
               <p>
+                {(the_tip.audio === false )? null :  Renderassets("audio", the_tip.audio.src)} 
                 {(VNLanguage === false)? the_tip.paragraph: the_tip.VNparagraph}
               </p>
               {Renderassets(the_tip.asset.format, the_tip.asset.src)}
+              {( the_tip.more_info === false)? null : <details><summary><h2>more info</h2></summary>{the_tip.more_info}</details>}
           </div> 
         </section>
+        </>
       ))}
     </section>
   );
@@ -66,8 +75,6 @@ function handleClickfor1(section_id){
     setTimeout(() => {
       animation_of_each_tip(section_id);
     }, 7)
-    console.log(section_id)
-
     return NewState;
 
   })
@@ -78,15 +85,20 @@ function handleClickfor1(section_id){
   return (
     <>
       <NAV language={handleClickforLanguage}/>
+      <Daily/>
       <section id="options_of_tips_to_choose">
-          <h1>group of ways</h1>
+          <h1>Library</h1>
+          <p>press each button to access</p>
           {list_of_tips.map((section) =>
           <button onClick={() => handleClickfor1(section._type)}>
               {section._type}
+            
           </button> )}
       </section>
-        {list_of_tips_JSX}
+      {list_of_tips_JSX}
+      <Game/>
       <Table/>
+      <Hall_of_fame/>
     </>
   );
 
