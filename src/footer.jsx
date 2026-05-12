@@ -3,7 +3,8 @@ import IG from './image/IG.png';
 import youtube from './image/youtube.svg';
 import gmail from './image/gmail.svg';
 import DONATE  from './image/QR_donation.png';
-import SURVEY from './image/SURVEY.png'
+import SURVEY from './image/survey.jpg'
+import PRIVATE from './image/privacy.jpg'
 import DIS from './image/discord.svg'
 
 const list_of_contact = [
@@ -39,15 +40,25 @@ function Footer(){
         <>
         <div className='border_footer section_border'></div>
         <footer id="FOOTER">
-            <div id="contact">
+            <div className="contact">
                 {divs_of_contacts}
             </div>
-            <h1>Your opinion matter so tell us in survey</h1>
-            <a href='https://forms.gle/dfjrofp26qWphvJK7' target='_blank'><img src={SURVEY}></img></a>
-            <h1>Your privacy policy matter so look thourgh</h1>
-            <a href='/privacy-policy.html' target='_blank'><img src={SURVEY}></img></a>
-            <h1>Your donation means to us alot</h1>
-            <a href='' target='_blank'><img src={DONATE}></img></a>
+            <div className='contact qr'>
+            <span>
+                <h1>Your opinion survey</h1>
+                <a href='https://forms.gle/dfjrofp26qWphvJK7' target='_blank'><img src={SURVEY}></img></a>
+            </span>
+            <span>
+                <h1>Your privacy policy</h1>
+                <a href='/privacy-policy.html' target='_blank'><img src={PRIVATE}></img></a>
+            </span>
+            <span>
+                <h1>Your donation matters</h1>
+                <a href='' target='_blank'><img src={DONATE}></img></a>
+            </span>
+            </div>
+           
+           
 
             <div>
                 <h1>phone number:<br/>0909528511</h1>

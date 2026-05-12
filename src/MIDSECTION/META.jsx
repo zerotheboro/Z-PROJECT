@@ -4,7 +4,7 @@ import { useState } from "react";
 class Question {
   constructor(question, ans1, ans2, ans3, ans4) {
     this._question = question;
-    this._ans1 = ans1;
+    this._ans1 = ans1; 
     this._ans2 = ans2;
     this._ans3 = ans3;
     this._ans4 = ans4;
@@ -63,8 +63,8 @@ class Question {
 }
 
 let questions = [
+   new Question("1+1=?", "2 (press the doward button to check)", "3 (press the doward button to check)", "7 (press the doward button to check)", "1 (press the doward button to check)"),
   new Question("why is cornell method useful?", "it arranges the main content, summery in scientific way that increase your comprehension,", "it only add in a summery section which let you get the main idea", "it only add in a side section which let you get the interest ideas, notes", "it involve using a deeper imporvement of flash card"),
-  new Question("1+1=?", "2", "3", "7", "1"),
   new Question("what is feyman technique?", "a 4-step mental model that involves explaining what you learnt to another person", "a 3-step mental model that involves explaining what you learnt to another person", "a 3-step mental model that involves repeating what you learnt to another person", "a 4-step mental model that involves repeating what you learnt to another person"),
   new Question("what is Leitner system?", "a system involves flash cards and number-labelled storing boxes", "a system involves flash cards and unlabelled storing boxes", "a system involves a note and unlabelled storing boxes", "a system include a big note and number-labelled storing boxes"),
   new Question("why is the Leitner system useful?", "the number-labelled storing box suggest the flash cards you remember and don't", "the number-labelled storing box organize the flash cards so you don't lose it", "the number-labelled storing box summerize every flash card", "the number-labelled storing box disorganize flash cards require" ),
@@ -81,7 +81,7 @@ function Game() {
   function handleClick(e) {
     if (selectedAns === questions[contin].real_ans) {
       e.target.style.backgroundColor = " #228B22"
-      e.target.textContent = "last question you got it correct! (press to check)"
+      e.target.textContent = "previous question you got it correct! (press to check)"
     }
     else if(selectedAns === null) {
       e.target.style.color = "whitesmoke"
@@ -90,7 +90,7 @@ function Game() {
     }
     else {
       e.target.style.backgroundColor = "red"
-      e.target.textContent = "last question you got it wrong! (press to check)"
+      e.target.textContent = "previous question you got it wrong! (press to check)"
     }
     setContin(prevContin => {
       if (prevContin + 1 >= questions.length) {
@@ -109,7 +109,7 @@ function Game() {
 
   return (
     <>
-      <h1>QUIZ</h1>
+      <h1>QUIZ ZONE</h1>
       <div className="quiz" id="quiz">
         {questions[contin].question}
         {questions[contin].ans(setSelectedAns, chosen_num[contin])}

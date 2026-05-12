@@ -22,6 +22,8 @@ function Clock(){
         setWorkornot(PrevWorkornot => PrevWorkornot += 1)
         setIsRunning(false);
         setElapsedTime(0)
+        document.title = "Edulience"
+
     }
     function StopandStart(){
         setIsRunning(PrevIsRunning => {
@@ -41,6 +43,10 @@ function Clock(){
 
         const minutes = Math.floor(remainingMs / (1000 * 60));
         const seconds = Math.floor((remainingMs / 1000) % 60);
+
+        if(minutes != 25){
+            document.title  = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+        }
         return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
     }
     return(

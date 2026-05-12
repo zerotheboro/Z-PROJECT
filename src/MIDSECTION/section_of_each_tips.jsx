@@ -38,15 +38,15 @@ export default function Tips(props) {
   /*these are props u use in the objects of info.jsx */
   const list_of_tips_JSX = list_of_tips.map((each_section) => 
     <section id={each_section.type} key={each_section.type} style={{display : show[each_section.type] ? "block" : "none"}}>
-      {each_section.introduction}
+      {(VNLanguage === false)? each_section.introduction.eng : each_section.introduction.vn }
       {each_section.list.map((the_tip, idx) => (
         <>
         <section className="TIP" key={`${each_section.type}-${idx}`}>
           <div className={the_tip.side}>
-              <h2>{idx + 1}.{" "}{(VNLanguage === false)? the_tip.header: the_tip.VNheader}</h2>
+              <h2>{idx + 1}.{" "}{(VNLanguage === false)? the_tip.header.eng : the_tip.header.vn}<img src={the_tip.header.src}/> </h2>
               <p>
                 {(the_tip.audio === false )? null :  Renderassets("audio", the_tip.audio.src)} 
-                {(VNLanguage === false)? the_tip.paragraph: the_tip.VNparagraph}
+                {(VNLanguage === false)? the_tip.paragraph.eng : the_tip.paragraph.vn}
               </p>
               {Renderassets(the_tip.asset.format, the_tip.asset.src)}
               {( the_tip.more_info === false)? null : <details><summary><h2>more info</h2></summary>{the_tip.more_info}</details>}
@@ -95,7 +95,7 @@ function handleClickfor1(section_id){
             
           </button> )}
       </section>
-      {list_of_tips_JSX}
+      {list_of_tips_JSX}     
       <Game/>
       <Table/>
       <Hall_of_fame/>
