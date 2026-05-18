@@ -54,6 +54,7 @@ export default function Tips(props) {
         </section>
         </>
       ))}
+      {each_section.additional_material}
     </section>
   );
 

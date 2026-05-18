@@ -15,7 +15,7 @@ const list_of_contact = [
     },
     {
         image : youtube,
-        scr: "https://www.youtube.com/@gunnychannel204"
+        scr: "https://www.youtube.com/@KINGSTON_ROCKY"
     },
     {
         image : gmail,

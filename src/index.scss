@@ -449,6 +449,7 @@ table img{
 }
 
 /* Mobile first TIP card */
+form,
 .introduction,
 .TIP > div{
   width: var(--container);
@@ -497,12 +498,31 @@ div.introduction{
   font-size: var(--fs-body);
   line-height: 1.65;
 }
-.TIP div textarea, .TIP div input{
+textarea, input{
   width: min(80%, 60ch);
-  height: 20vh;
+  height: min(8%, 6ch);
   font-size: var(--font-body);
   font-family: var(--font-body);
 }
+
+div.rado{
+  display: flex;
+  div{
+    display: flex;
+    align-items: center;
+    input[type="radio"]{
+    width: 4vw;
+    height: 4vw;
+    display: inline-block;
+    margin-right: 8px;
+    cursor: pointer;
+    };
+    label{
+    display: inline-block;
+    }
+  }
+}
+
 
 .TIP div img{
   width: min(280px, 70vw);
@@ -511,11 +531,22 @@ div.introduction{
 
 .TIP div button{
   width: fit-content;
-  margin: calc(var(--space-1)0.7);
+  margin: calc(var(--space-1)2);
+}
+button.x-button img{
+  height: 1vw;
+  width: 1vw;
+  margin: calc(var(--space-1)2);
+}
+button.x-button{
+  position: absolute;
+  bottom: -80px;
+  left: 0px;
 }
 .TIP div audio{
   display: block;
 }
+
 
 .TIP div .more_info{
   border-left: 0.5rem var(--tomato) solid;
@@ -528,6 +559,7 @@ div.introduction{
   height: calc(var(--wdth)*9/16);
   width: var(--wdth);
 }
+
 
 /* Desktop TIP layout */
 @media only screen and (min-width: 900px){

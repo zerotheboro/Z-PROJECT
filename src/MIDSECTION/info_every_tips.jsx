@@ -3,6 +3,7 @@ import Main from './COLOR_CHANGE.jsx';
 import Clock from "./Clock.jsx";
 import Timer from './Clock.jsx';
 import SpacePlan from "./Space_plan.jsx";
+import AddingMethods from "./Sugeston.jsx";
 
 export const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg,mp4,mp3}", { eager: true });
 /*return an object of file */
@@ -59,7 +60,7 @@ class TypeOfTips {
 }
 
 /*change img into asset */
-class DetailOfTips{
+export class DetailOfTips{
   constructor(header = "header", paragraph = "p", asset = image_importor("LOGO", "image"), side="right", more_info= false, audio = false){
     this._header = header;
     this._paragraph = paragraph;
@@ -119,8 +120,80 @@ function CITATE(props){
   )
 }
 
+let user_list
+let raw_object_user_list = [];
+
+try {
+  const parsed = JSON.parse(localStorage.getItem("user_lists") || "[]");
+  raw_object_user_list = Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+} catch {
+  raw_object_user_list = [];
+  localStorage.setItem("user_lists", "[]");
+}
+
+if(raw_object_user_list){
+  user_list = raw_object_user_list.map((object, index) => {
+
+    function deleteUserTip(){
+      const raw = JSON.parse(localStorage.getItem("user_lists") || "[]").filter(Boolean)
+
+      raw.splice(index, 1)
+
+      localStorage.setItem("user_lists", JSON.stringify(raw))
+
+      window.location.reload()
+    }
+
+    return new DetailOfTips(
+      object._header,
+      {
+        eng: (
+          <>
+            {object._paragraph.eng}
+            <button className="x-button" onClick={() => deleteUserTip(index)}><img src={image_importor("xaxon").src}></img></button>
+          </>
+        ),
+        vn: (
+          <>
+            {object._paragraph.vn}
+            <button className="x-button" onClick={() => deleteUserTip(index)}><img src={image_importor("xaxon").src}></img></button>
+          </>
+        ),
+      },
+      object._asset,
+      (index % 2=== 0)? "right" : "left",
+      false,
+      false
+    );
+  })}
+else{
+  user_list = [];
+}
+
+
 
 export const list_of_tips = [
+  new TypeOfTips(
+    "YOUR-METHOD",
+    {eng: <div className="introduction">
+        <h2>Introduction</h2>
+        <p>
+        - YOUR-METHOD is the section where you can add your methods and <u>use it with Edulience's methods</u><br/>
+        - Each method will have different effort levels from easy, medium to hard.<br/>
+        <img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/>
+        </p>
+      </div>,
+      vn: <div className="introduction">
+         <h2>Giới thiệu</h2> 
+          <p> 
+            - Phần YOUR-METHOD này cung cấp cho bạn có thể ghi lại những phương pháp học tập hiệu quả của bạn, giúp bạn<u>xem và kết hợp phương pháp học tập của bạn và Edulience</u><br/>
+            - Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.<br/>
+            <img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/> 
+          </p> 
+        </div>},
+        user_list,
+        <AddingMethods/>,
+  ),
   new TypeOfTips(
     "PRE-LEARN",
       {eng: <div className="introduction">
@@ -513,7 +586,8 @@ export const list_of_tips = [
           nghiên cứu từ Havard<CITATE src="https://www.health.harvard.edu/healthbeat/foods-linked-to-better-brainpower" n="2"></CITATE>
         </>},
         image_importor("chicken"),
-        "left"
+        "left",
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/btXIAqMSLaI?si=3kt0H28IhoPyIWlm" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
       ),
 
       
@@ -664,7 +738,7 @@ export const list_of_tips = [
           lần kế tiếp là sau 2 ngày, rồi 4 ngày, và cứ tiếp tục như vậy.
           Cách này giúp bạn đạt kết quả cao hơn dù tốn cùng một lượng thời gian học. 
           Phần 'thông tin thêm' sẽ giúp bạn lập kế hoạch cho thời gian ôn tập của mình."
-        </>
+        </> 
         },
         image_importor("space-learn"),
         "left",
