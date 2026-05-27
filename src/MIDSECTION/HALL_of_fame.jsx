@@ -15,23 +15,23 @@ function Member(props){
 export default function Hall_of_fame(){
     return(
     <>
-    <h1>Dedicating people</h1>
+    <h1>Dedicated team</h1>
     <div id="carasoul">
         <div className="team_member_wrapper">
             <Member img={"LOGO"} name="Kingston" role="managing, connecting ideas, coder"/>
             <Member img={"LOGO"} name="Ms. Giàu" role="content advisor"/>
+            <Member img={"LOGO"} name="Ms.Moray" role="proof reading"/>
             <Member img={"LOGO"} name="Rio" role="creative visionary"/>
-            <Member img={"LOGO"} name="Ryan" role="design advisor"/>
-           
+            <Member img={"LOGO"} name="Ryan" role="design advisor"/>  
             <Member img={"LOGO"} name="Ms. Nga" role="content / design advisor"/>
             <Member img={"LOGO"} name="Ms. Linh" role="content / design advisor"/>
         </div>
         <div className="team_member_wrapper" aria-hidden>
             <Member img={"LOGO"} name="Kingston" role="managing, connecting ideas, coder"/>
             <Member img={"LOGO"} name="Ms. Giàu" role="content advisor"/>
+            <Member img={"LOGO"} name="Ms.Moray" role="proof reading"/>
             <Member img={"LOGO"} name="Rio" role="creative visionary"/>
             <Member img={"LOGO"} name="Ryan" role="design advisor"/>
-         
             <Member img={"LOGO"} name="Ms. Nga" role="content / design advisor"/>
             <Member img={"LOGO"} name="Ms. Linh" role="content / design advisor"/>
         </div>

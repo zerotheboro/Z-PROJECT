@@ -2,7 +2,7 @@ import facebook from './image/facebook.svg';
 import IG from './image/IG.png';
 import youtube from './image/youtube.svg';
 import gmail from './image/gmail.svg';
-import DONATE  from './image/QR_donation.png';
+import DONATE  from './image/QR_donation.jpg';
 import SURVEY from './image/survey.jpg'
 import PRIVATE from './image/privacy.jpg'
 import DIS from './image/discord.svg'
@@ -39,7 +39,7 @@ function Footer(){
     return(
         <>
         <div className='border_footer section_border'></div>
-        <footer id="FOOTER">
+        <footer id="footer">
             <div className="contact">
                 {divs_of_contacts}
             </div>
@@ -56,13 +56,7 @@ function Footer(){
                 <h1>Your donation matters</h1>
                 <a href='' target='_blank'><img src={DONATE}></img></a>
             </span>
-            </div>
-           
-           
-
-            <div>
-                <h1>phone number:<br/>0909528511</h1>
-            </div>
+            </div>           
         </footer>
         </>
     )

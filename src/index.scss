@@ -554,7 +554,7 @@ button.x-button{
   padding-left: 1rem;
   color: var(--lightblue);
 }
-.TIP div iframe{
+.TIP div iframe, iframe{
   --wdth: clamp(0px ,70vw, 1300px);
   height: calc(var(--wdth)*9/16);
   width: var(--wdth);

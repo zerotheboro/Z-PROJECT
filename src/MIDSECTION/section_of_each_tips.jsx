@@ -98,8 +98,6 @@ function handleClickfor1(section_id){
       </section>
       {list_of_tips_JSX}     
       <Game/>
-      <Table/>
-      <Hall_of_fame/>
     </>
   );
 
