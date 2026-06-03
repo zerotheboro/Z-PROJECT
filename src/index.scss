@@ -273,11 +273,31 @@ div#BENEFIT button{
   border: var(--passion-orange) 4px solid;
 }
 
+.customize{
+  width: var(--container);
+  max-width: 1400px;
+  margin: 0 auto 12rem;
+  background-color: var(--notso-energetic-yellow);
+  padding: var(--space-2) var(--space-5) clamp(1.25rem, 4vw, 2.5rem) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-self: center;
+  gap: var(--space-2);
+  border-radius: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  img{
+    width: min(280px, 40%);
+  }
+}
+
 .quiz{
+  background-color: var(--energetic--yellow);
   justify-self: center;
   max-width: 1400px;
+  border-radius: 20px;
+  margin: 0 var(--space-1) 12rem; 
   display: grid;
-  margin: 0 0 var(--space-5) 0;
   grid-template:1fr 1fr 1fr/ 1fr 1fr;
   grid-template-areas: "question question"
                         "ans0 ans1"

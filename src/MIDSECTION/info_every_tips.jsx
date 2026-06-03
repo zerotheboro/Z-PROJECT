@@ -3,7 +3,8 @@ import Main from './COLOR_CHANGE.jsx';
 import Clock from "./Clock.jsx";
 import Timer from './Clock.jsx';
 import SpacePlan from "./Space_plan.jsx";
-import AddingMethods from "./Sugeston.jsx";
+import AddingMethods from "./Writing.jsx";
+import { useState, useEffect } from "react";
 
 export const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg,mp4,mp3}", { eager: true });
 /*return an object of file */
@@ -111,6 +112,17 @@ function CITATE(props){
     case "16": num = "¹⁶";break;
     case "17": num = "¹⁷";break;
     case "18": num = "¹⁸";break;
+    case "19": num = "¹⁹";break;
+    case "20": num = "²⁰";break;
+    case "21": num = "²¹";break;
+    case "22": num = "²²";break;
+    case "23": num = "²³";break;
+    case "24": num = "²⁴";break;
+    case "25": num = "²⁵";break;
+    case "26": num = "²⁶";break;
+    case "27": num = "²⁷";break;
+    case "28": num = "²⁸";break;
+    case "29": num = "²⁹";break;
 
     
     default : num = props.num;
@@ -201,7 +213,7 @@ const Prime_question = new DetailOfTips(
   image_importor("brain.svg"),
   "left",
   <>
-    <label for="prime-question">What question?</label>
+    <label for="prime-question">What question?</label><br/>
     <textarea name="prime-question" placeholder="What knowledge does this give me?, How much effort do I need to put in?, What is the hardest thing I need to learn?"></textarea>
   </>
 )
@@ -220,14 +232,14 @@ const Promodoro = new DetailOfTips(
     step 2: set a 25-minute timer<br/>
     step 3: focus on finishing the tasks<br/>
     step 4: after the focus timer runs out, take a 5 -minutes timed rest<br/>
-    step 5: repeat step1,2,3,4 four times then rest for 15-30 minutes and repeat the whole process..
+    step 5: repeat step1,2,3,4 four times then rest for 15-30 minutes and repeat the whole process..<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/>
     </>,
   vn: <>
     Bước 1: Chọn một công việc cần hoàn thành.
     Bước 2: Đặt đồng hồ trong 25 phút. <br/>
     Bước 3: Tập trung hoàn toàn vào công việc cho đến khi chuông reo.<br/>
     Bước 4: Nghỉ giải lao ngắn trong 5 phút.<br/>
-    Bước 5: Sau mỗi 4 lần nghỉ ngắn, hãy nghỉ một quãng dài từ 15–30 phút.
+    Bước 5: Sau mỗi 4 lần nghỉ ngắn, hãy nghỉ một quãng dài từ 15–30 phút.<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/>
   </>
   },
   image_importor(<Clock/>, ""),
@@ -374,24 +386,20 @@ const Strooper_effect = new DetailOfTips(
 
 const Break_not_distraction = new DetailOfTips(
   {
-    eng: "BREAK ≠ DISTRACTION",
-    vn: "Nghỉ ngơi ≠ Mất tập trung",
-    src : image_importor("whale").src
+    eng: "Incubation effect",
+    vn: "Suy nghĩ lúc nghỉ",
+    src : image_importor("fish").src
   },
-  {
-    eng:
-    <>
-    try to take  necessary breakS and don't 
-    surround yourself with distractions which
-    can derail your focus
+  {eng:
+  <>
+    a psychological phenomenon where stepping
+    away after trying to solve a difficult problem often by taking
+    a break or "sleeping on it" leads to a sudden,
+    creative solution<CITATE n="16" src="https://psycnet.apa.org/doiLanding?doi=10.1037%2Fa0014212"/>
   </>,
   vn:
   <>
-    Hãy cho mình những khoảng nghỉ cần thiết,
-    nhưng đừng bao vây bản thân bằng các thứ
-    gây xao nhãng (mạng xã hội, game, short video…).
-    Nghỉ để hồi năng lượng, không phải để trôi luôn
-    khỏi việc học.
+    
   </>},
   image_importor("relaxing_cat"),
   "right"
@@ -550,6 +558,25 @@ const Brain_diet = new DetailOfTips(
   <iframe src="https://www.youtube.com/embed/btXIAqMSLaI?si=3kt0H28IhoPyIWlm" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 )
 
+const Incubation_effect = new DetailOfTips(
+  {
+    eng: "Incubation effect",
+    vn: "Suy nghĩ lúc nghỉ",
+    src : image_importor("fish").src
+  },
+  {eng:
+  <>
+    a psychological phenomenon where stepping
+    away from tryin to solve a difficult problem—often by taking
+    a break or "sleeping on it"—leads to a sudden,
+    creative solution<CITATE n="16" src="https://psycnet.apa.org/doiLanding?doi=10.1037%2Fa0014212"/>
+  </>,
+  vn:
+  <>
+    
+  </>},
+)
+
 const Summary_and_print_pre = new DetailOfTips(
   {
     eng: "summary & print",
@@ -643,13 +670,13 @@ const Use_a_pointer = new DetailOfTips(
       Use your pointer finger or a ruler...
       to track your reading allowing continuity
       which saves time. In addition, there are 2 ways your fingers
-      can be used as a pointer in the "more-info" section.
+      can be used as a pointer in the "more-info" section. <CITATE n="13" src="https://rdcu.be/flj2r"/>
     </>,
     vn:
     <>
     Dùng ngón tay, bút hoặc thước để đi theo dòng chữ khi đọc.
     Điều này giúp mắt bám theo tốt hơn, hạn chế nhảy dòng,
-    giảm thời gian phải tìm lại chỗ đang đọc dở.
+    giảm thời gian phải tìm lại chỗ đang đọc dở. <CITATE n="13" src="https://rdcu.be/flj2r"/>
   </> 
   },
   
@@ -670,15 +697,15 @@ const Spaced_learning = new DetailOfTips(
     after you have learnt your lessons, you review it again the following day
     the next time is 2 days later and then 4 days later and so on.<br/>
     This allows you to study for the same amount of time with better results. 
-    The more info section will help you plan your review session.<CITATE n="9" src="https://www.cureus.com/articles/81442-evidence-of-the-spacing-effect-and-influences-on-perceptions-of-learning-and-science-curricula#!/"/>
+    The more info section will help you plan your review session.<CITATE n="9" src="https://www.cureus.com/articles/81442-evidence-of-the-spacing-effect-and-influences-on-perceptions-of-learning-and-science-curricula#!/"/> <CITATE n="12" src="https://files.eric.ed.gov/fulltext/EJ1313692.pdf"/>
   </>,
   vn: 
   <>
-    "Phương pháp này giúp giãn cách thời gian ôn tập. 
+    Phương pháp này giúp giãn cách thời gian ôn tập. 
     Sau khi học xong bài, bạn sẽ ôn lại vào ngày mai, 
     lần kế tiếp là sau 2 ngày, rồi 4 ngày, và cứ tiếp tục như vậy.
     Cách này giúp bạn đạt kết quả cao hơn dù tốn cùng một lượng thời gian học. 
-    Phần 'thông tin thêm' sẽ giúp bạn lập kế hoạch cho thời gian ôn tập của mình."
+    Phần 'thông tin thêm' sẽ giúp bạn lập kế hoạch cho thời gian ôn tập của mình.<CITATE n="9" src="https://www.cureus.com/articles/81442-evidence-of-the-spacing-effect-and-influences-on-perceptions-of-learning-and-science-curricula#!/"/> <CITATE n="12" src="https://files.eric.ed.gov/fulltext/EJ1313692.pdf"/>
   </> 
   },
   image_importor("space-learn"),
@@ -802,7 +829,35 @@ const FEYNMAN_technique = new DetailOfTips(
   <iframe src="https://www.youtube.com/embed/dRA_UW6ZfOQ?si=wc-jqgL__ub9Oxdd" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </>
 )
+const Memory_Palace = new DetailOfTips(
+  {
+    eng: "Memory palace",
+    vn: "Lâu đài Trí nhớ",
+    src: image_importor("whale").src
+  },
+  {
+    eng:
+    <>
+      A memory palace is a mnemonic technique where you mentally place vivid,
+       exaggerated images of information at specific locations inside a familiar
+        physical space to easily recall them later. This strategy transforms 
+        abstract facts into spatial data, allowing your brain to navigate its 
+        natural layout and retrieve the stored information sequentially.<CITATE n="17" src="https://www.zmescience.com/medicine/mind-and-brain/memory-palace/"/>
+    </>,
+    vn:
+    <>
+      một kỹ thuật ghi nhớ bằng cách đặt những hình ảnh sinh động,
+      cường điệu của thông tin vào các vị trí cụ thể trong một 
+      không gian quen thuộc để dễ dàng gợi nhớ lại sau này. Chiến 
+      lược này chuyển đổi các dữ liệu trừu tượng thành dữ liệu không
+      gian, giúp não bộ điều hướng theo sơ đồ tự nhiên và truy xuất
+      thông tin đã lưu trữ theo một trình tự rõ ràng.<CITATE n="17" src="https://www.zmescience.com/medicine/mind-and-brain/memory-palace/"/>
+    </>
+  },
+  image_importor("palace"),
+  "right",
 
+)
 const Summary_and_print_meta = new DetailOfTips(
   {
     eng: "summary & print",
@@ -1099,12 +1154,11 @@ const VARK_learners = new DetailOfTips(
   {eng:
     <>
       VARK is a popular framework that catagorizes 
-      four types of learning:<br/>
-      - Firstly is Visual, perphiral visions of pre-learn can train it<br/>
-      - Secondly is Aural can be seen in learning with friend, Feyman Technique<br/>
-      - Thirdly is Read/Write, methods in the Note-take section can improve it <br/>
-      - Lastly is Kinesthetic, this is for people who loves doing projects or hands-on learning.<CITATE src="https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1245&context=podimproveacad" n="12"/>
-    and in the more info section with few answers edulience can suggest you.
+      four types of learning: <u>Visual, Aural, Read/Write and Kinesthetic</u><br/>
+       Visual, can be trained with perphiral vision at pre-learn; 
+      Aural can be seen in learning with friend, Feyman Technique;
+      Read/Write, methods in the Note-take section can improve it;
+      Kinesthetic, this is for people who loves doing projects or hands-on learning.<CITATE src="https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1245&context=podimproveacad" n="15"/><br/>
     </>,
     vn:
     <>
@@ -1116,15 +1170,16 @@ const VARK_learners = new DetailOfTips(
       phương pháp có thể cải thiện bằng cách sử dụng các mẹo trong phần
       note-take. Cuối cùng là Vận động, phương pháp dành cho những người
       yêu thích làm dự án hoặc học tập qua trải nghiệm thực tế. 
-      Ngoài ra, trong phần thông tin thêm, người dùng sẽ nhận được
-      một vài gợi ý phù hợp.<CITATE src="https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1245&context=podimproveacad" n="12"/> giúp bạn dễ nhớ hơn.
+     <CITATE src="https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1245&context=podimproveacad" n="15"/> 
     </>
   }, 
+  image_importor("VARK"),
+  "right",
 )
 
 
 
-const preLearnTips = [
+export const preLearnTips = [
   Prime_question,
   Promodoro,
   Peripheral_vision,
@@ -1132,7 +1187,6 @@ const preLearnTips = [
   Auto_google,
   Water_ur_face_body,
   Strooper_effect,
-  Break_not_distraction,
   Short_workout,
   Long_term_workout,
   Structure_your_day,
@@ -1141,19 +1195,22 @@ const preLearnTips = [
   Summary_and_print_pre
 ]
 
-const metaLearnTips = [
+export const metaLearnTips = [
   Header_first,
   Use_a_pointer,
   Spaced_learning,
   Einstein_framework,
+  Break_not_distraction,
   Premacks_principle,
   Interleaved_practice,
   Story_telling,
   FEYNMAN_technique,
+  Memory_Palace,
   Summary_and_print_meta
+
 ]
 
-const noteTakeTips = [
+export const noteTakeTips = [
   One_sentence,
   Divide_steps,
   Derive_basics,
@@ -1171,6 +1228,120 @@ const yourMethods = [
 ]
 
 
+
+const question_options = [
+    {
+    question: "What is your biggest study problem?",
+    options: [
+      {
+        answer: "get distracted easily",
+        tips: [Promodoro, Break_not_distraction, Use_a_pointer]
+      },
+      {
+        answer: "don't know what to focus on",
+        tips: [Prime_question, Everything_in_1_place, Structure_your_day]
+      },
+      {
+        answer: "feel tired or low energy",
+        tips: [Water_ur_face_body, Short_workout, Brain_diet]
+      },
+      {
+        answer: "forget things too quickly",
+        tips: [Spaced_learning, Leitner_system, Memory_Palace]
+      }
+    ]
+  },
+
+  {
+    question: "What kind of material are you studying?",
+    options: [
+      {
+        answer: "Long textbook or article",
+        tips: [Header_first, CORNELL_method, HIGHLIGHT]
+      },
+      {
+        answer: "Difficult concept",
+        tips: [Einstein_framework, FEYNMAN_technique, Derive_basics]
+      },
+      {
+        answer: "Many facts or definitions",
+        tips: [Leitner_system, Memory_Palace, ABBREVIATION]
+      },
+      {
+        answer: "Problem-solving subject",
+        tips: [Divide_steps, Interleaved_practice, Track_progress]
+      }
+    ]
+  },
+
+  {
+    question: "What do you want help with most?",
+    options: [
+      {
+        answer: "Prepare before studying",
+        tips: [Prime_question, Peripheral_vision, Auto_google]
+      },
+      {
+        answer: "Understand better while learning",
+        tips: [Story_telling, FEYNMAN_technique, Einstein_framework]
+      },
+      {
+        answer: "Take better notes",
+        tips: [One_sentence, Note_taking_4x4, CORNELL_method]
+      },
+      {
+        answer: "Just remember ",
+        tips: [Summary_and_print_pre, Summary_and_print_meta, Summary_and_print_note]
+      }
+    ]
+  }
+]
+
+
+const customized_user_list = JSON.parse(localStorage.getItem("customize_user_list") || "[]").flat().filter(Boolean).map(header => [...metaLearnTips, ...preLearnTips, ...noteTakeTips].find(tip => tip.header.eng === header));  
+
+function Customize(){
+    const [questionindex, setQuestionindex ] = useState(0);
+
+    const [suggestedtips, setSuggestedtips] = useState([])
+    useEffect(() => {
+      if(questionindex >= question_options.length){
+      let adding_tips = JSON.stringify(suggestedtips)
+      localStorage.setItem("customize_user_list", adding_tips)
+    }
+
+    },[questionindex, suggestedtips]);
+
+
+    return(
+      (questionindex >= question_options.length)?
+        <div className="customize">
+          <img src={image_importor("customize").src}/>
+          <h2>You have finished customizing</h2>
+          <button onClick={() => {setQuestionindex(0); setSuggestedtips([])}}>customize again?</button>
+        </div>
+        :
+        <div className="quiz">
+            <h2 className="question">{question_options[questionindex].question}</h2>
+            {question_options[questionindex].options.map( (element, index) =>{
+                console.log(element.tips)
+                return(
+                <button 
+                    key={index}
+                    onClick={() =>{
+                        setQuestionindex(prev => prev + 1);
+                        setSuggestedtips(prev=> prev.concat(element.tips.map(tip => tip.header.eng)))
+                        console.log(element.tips)
+                      }}>
+                    <div className="answer">{element.answer}</div>
+                </button>
+                )
+            })}
+            <p>{questionindex + 1} out of 3 questions</p>
+        </div>
+    )}
+
+
 /*=======================================DATA BASE=================================================*/
 
 
@@ -1180,7 +1351,8 @@ export const list_of_tips = [
     {eng: <div className="introduction">
         <h2>Introduction</h2>
         <p>
-        - YOUR-METHOD is the section where you can add your methods and <u>use it with Edulience's methods</u><br/>
+        - YOUR-METHOD is the section where you write down your methods and <u>remember it with Edulience's methods</u><br/>
+        - YOUR-METHOD is also the section that connects you with the most suitable learning methods<br/>
         - Each method will have different effort levels from easy, medium to hard.<br/>
         <img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/>
         </p>
@@ -1188,13 +1360,17 @@ export const list_of_tips = [
       vn: <div className="introduction">
          <h2>Giới thiệu</h2> 
           <p> 
-            - Phần YOUR-METHOD này cung cấp cho bạn có thể ghi lại những phương pháp học tập hiệu quả của bạn, giúp bạn<u>xem và kết hợp phương pháp học tập của bạn và Edulience</u><br/>
+            - Phần YOUR-METHOD cho bạn có thể ghi lại những phương pháp học tập của bạn, giúp bạn.<u>xem phương pháp học tập của bạn và Edulience</u><br/>
+            - Phần VARK trong YOUR-METHOD sẽ kết nối bạn với những phương pháp có trên Edulience. 
             - Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.<br/>
             <img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/> 
           </p> 
         </div>},
-        user_list.concat(yourMethods),
-        <AddingMethods/>,
+        (user_list.concat(yourMethods)).concat(customized_user_list),
+        <>
+          <Customize/>
+          <AddingMethods/>
+        </>,
   ),
   new TypeOfTips(
     "PRE-LEARN",
