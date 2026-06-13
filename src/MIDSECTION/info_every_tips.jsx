@@ -658,7 +658,34 @@ const Peripheral_vision = new DetailOfTips(
   "left",
   <iframe src="https://www.youtube.com/embed/PdI3fJTzK3g?si=ZB17BI2g_3XT7zcT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 )
-
+const Doodle_effect = new DetailOfTips(
+  {
+    eng: "the Doodle effect",
+    vn: "hiệu ứng vẽ tự do",
+    src : image_importor("fish").src
+  },
+  {eng:
+    <>
+      a psychological and cognitive phenomenon where making spontaneous,
+      simple drawings while listening to information prevents your mind 
+      from wandering and enhances memory retention, but <u>only use when distracted, bored
+      and not when you're fully focused</u> to the study session 
+      <CITATE n="17" src="https://www.health.harvard.edu/blog/the-thinking-benefits-of-doodling-2016121510844"/><CITATE n="18" src="https://www.damiantgordon.com/Courses/PSIC/doodling.pdf"/>
+    </>,
+    vn:
+    <>
+    Dùng ngón tay, bút hoặc thước để đi theo dòng chữ khi đọc.
+    Điều này giúp mắt bám theo tốt hơn, hạn chế nhảy dòng,
+    giảm thời gian phải tìm lại chỗ đang đọc dở. nhưng <u>chỉ dùng
+    khi bạn đang không tập trung và chán học</u>
+    <CITATE n="17" src="https://www.health.harvard.edu/blog/the-thinking-benefits-of-doodling-2016121510844"/><CITATE n="18" src="https://www.damiantgordon.com/Courses/PSIC/doodling.pdf"/>
+  </> 
+  },
+  image_importor("DOODLE"),
+  "left",
+  <></>,
+  image_importor("Doodling")
+)
 const Use_a_pointer = new DetailOfTips(
   {
     eng: "Use a pointer",
@@ -741,6 +768,31 @@ const Einstein_framework = new DetailOfTips(
   "right"
 )
 
+const active_recall = new DetailOfTips(
+  {
+    eng: "Active_recall",
+    vn: "Khung Einstein",
+    src : image_importor("whale").src
+  },
+  {eng:
+    <>
+      Albert Einstein used to say "don't memorize 
+      something that can be looked up" and that could
+      be writing down your learning methods at the 
+      your-methods session.
+    </>,
+    vn:
+    <>
+    Đừng nhớ công thức khi làm bài 
+    tập mà hãy viết nó ra, việc đó
+    giải phóng bộ nhớ để tập trung
+    phát triển tư duy phản biện, giải
+    quyết nhiều bài khó hơn.
+  </>}, 
+  image_importor("einstein"),
+  "right"
+)
+
 const Interleaved_practice = new DetailOfTips(
   {
     eng: "Interleaved practice",
@@ -769,7 +821,9 @@ const Interleaved_practice = new DetailOfTips(
     tạo ra sự thử thách cần thiết giúp kiến thức được khắc sâu<CITATE n="11" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC8589969/"/>
   </>}, 
   image_importor("INTERLEAVE"),
-  "left"
+  "left",
+  <></>,
+  image_importor("Interleavingaudio")
 )
 
 const Story_telling = new DetailOfTips(
@@ -856,6 +910,8 @@ const Memory_Palace = new DetailOfTips(
   },
   image_importor("palace"),
   "right",
+  <></>,
+  image_importor("Palaceaudio")
 
 )
 const Summary_and_print_meta = new DetailOfTips(
@@ -1175,6 +1231,8 @@ const VARK_learners = new DetailOfTips(
   }, 
   image_importor("VARK"),
   "right",
+  <></>,
+  image_importor("VARKAUDIO")
 )
 
 
@@ -1200,6 +1258,7 @@ export const metaLearnTips = [
   Use_a_pointer,
   Spaced_learning,
   Einstein_framework,
+  Doodle_effect,
   Break_not_distraction,
   Premacks_principle,
   Interleaved_practice,
@@ -1207,7 +1266,6 @@ export const metaLearnTips = [
   FEYNMAN_technique,
   Memory_Palace,
   Summary_and_print_meta
-
 ]
 
 export const noteTakeTips = [
@@ -1235,7 +1293,7 @@ const question_options = [
     options: [
       {
         answer: "get distracted easily",
-        tips: [Promodoro, Break_not_distraction, Use_a_pointer]
+        tips: [Promodoro, Break_not_distraction, Use_a_pointer, Doodle_effect]
       },
       {
         answer: "don't know what to focus on",
@@ -1297,20 +1355,22 @@ const question_options = [
   }
 ]
 
+export function loadcustomized_user_list(){
+  return JSON.parse(localStorage.getItem("customize_user_list") || "[]").flat().filter(Boolean).map(header => [...metaLearnTips, ...preLearnTips, ...noteTakeTips].find(tip => tip.header.eng === header));  
+}
 
-const customized_user_list = JSON.parse(localStorage.getItem("customize_user_list") || "[]").flat().filter(Boolean).map(header => [...metaLearnTips, ...preLearnTips, ...noteTakeTips].find(tip => tip.header.eng === header));  
-
-function Customize(){
+export function Customize({ setCustomize_list }){
     const [questionindex, setQuestionindex ] = useState(0);
+    
+    const [suggestedtips, setSuggestedtips] = useState([]);
 
-    const [suggestedtips, setSuggestedtips] = useState([])
     useEffect(() => {
       if(questionindex >= question_options.length){
       let adding_tips = JSON.stringify(suggestedtips)
       localStorage.setItem("customize_user_list", adding_tips)
     }
 
-    },[questionindex, suggestedtips]);
+    },[questionindex >= question_options.length]);
 
 
     return(
@@ -1318,7 +1378,10 @@ function Customize(){
         <div className="customize">
           <img src={image_importor("customize").src}/>
           <h2>You have finished customizing</h2>
-          <button onClick={() => {setQuestionindex(0); setSuggestedtips([])}}>customize again?</button>
+          <div>
+            <button onClick={() => {setQuestionindex(0); setSuggestedtips([])}}>customize again?</button> <button onClick={() => {setCustomize_list(loadcustomized_user_list()); document.getElementById("YOUR-SYSTEM").scrollIntoView({behavior: "smooth"}) }}>see result!</button>
+          </div>
+          
         </div>
         :
         <div className="quiz">
@@ -1345,9 +1408,10 @@ function Customize(){
 /*=======================================DATA BASE=================================================*/
 
 
-export const list_of_tips = [
+export function get_list_of_tips(customize_list, setCustomize_list){
+  return [
   new TypeOfTips(
-    "YOUR-LEARN",
+    "YOUR-SYSTEM",
     {eng: <div className="introduction">
         <h2>Introduction</h2>
         <p>
@@ -1366,9 +1430,9 @@ export const list_of_tips = [
             <img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/> 
           </p> 
         </div>},
-        (user_list.concat(yourMethods)).concat(customized_user_list),
+        (customize_list.concat(yourMethods)).concat(user_list),
         <>
-          <Customize/>
+          <Customize setCustomize_list={setCustomize_list}/>
           <AddingMethods/>
         </>,
   ),
@@ -1434,7 +1498,5 @@ export const list_of_tips = [
       </div>},
     noteTakeTips
   ),
-];
+]} 
 // Named export above; no default export to avoid import ambiguity
-
-     

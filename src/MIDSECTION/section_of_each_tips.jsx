@@ -1,7 +1,7 @@
 
 import react, {useState, useEffect} from "react";
 import Table from "./TABLE.jsx";
-import { list_of_tips } from "./info_every_tips.jsx";
+import { get_list_of_tips, loadcustomized_user_list, Customize} from "./info_every_tips.jsx";
 import animation_of_each_tip from "./SCROLL_function.jsx";
 import NAV from '../HEADER/header.jsx';
 import Daily from "./Day.jsx";
@@ -12,8 +12,10 @@ import Game from "./META.jsx";
 export default function Tips(props) {
 /*HEY IF YOU'RE LOOKING ITS MECHANISM U SHOULD LOOK AT 1.info.jsx => 2.section_each_tips => 3.BOTTOM TO UPWARD */
   const [show, setShow] = useState({});
-
+  const [customize_list, setCustomize_list] = useState(loadcustomized_user_list())
   const [VNLanguage, setVNLanguage] = useState(false)
+
+  const list_of_tips = get_list_of_tips(customize_list, setCustomize_list);
 
   useEffect(() => {  
     const section_id = Object.keys(show).find(section => show[section] === true)
@@ -89,7 +91,7 @@ function handleClickfor1(section_id){
       <Daily/>
       <section id="options_of_tips_to_choose">
           <h1>Library</h1>
-          <p>press each button to access</p>
+          <p>each button give a list of learning methods</p>
           {list_of_tips.map((section) =>
           <button onClick={() => handleClickfor1(section._type)}>
               {section._type}

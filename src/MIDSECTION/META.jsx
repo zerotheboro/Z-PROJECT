@@ -93,7 +93,7 @@ function Game() {
       e.target.textContent = "previous question you got it wrong! (press to check)"
     }
     setContin(prevContin => {
-      if (prevContin + 1 > questions.length) {
+      if (prevContin + 1 >= questions.length) {
         return 0;
       } 
       else if (selectedAns === null){

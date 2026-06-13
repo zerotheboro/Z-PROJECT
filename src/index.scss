@@ -582,6 +582,7 @@ button.x-button{
 
 
 /* Desktop TIP layout */
+
 @media only screen and (min-width: 900px){
   div#BENEFIT{
     background-image: url(../public/strooper2.png);
@@ -661,8 +662,11 @@ summary::before, summary::after{
   max-width: 1300px;
   background-color: var(--darker-black);
 }
-
-
+@media only screen and (min-width: 1500px){
+  div#BENEFIT{
+    background-image: url(/public/strooper3.png);
+  }
+}
 /* Tablet/mobile nav */
 @media only screen and (max-width: 899px){
   #NAV{
@@ -691,6 +695,9 @@ summary::before, summary::after{
   }
 }
 @media only screen and (max-width: 500px){
+  #NAV a span{
+    font-size: 0px;
+  }
   .TIP div p, .introduction p, p{
     font-size: var(--fs-body-mobile);
   }
