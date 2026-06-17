@@ -160,15 +160,30 @@ p, li{
   }
 }
 
-section#overview > div{
-  display: flex;
-  width: 400vw;
-  height: auto;
-  img{
-    width: 24%;
-  }
+section#overview {
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
+section#overview > div {
+  display: flex;
+  width: 100vw;
+  height: auto;
+
+  animation-name: slide;
+  animation-timeline: view();
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(-20%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 .quick-summary {
   background: #f4f6f8;
   border-left: 5px solid #222;
@@ -205,4 +220,20 @@ section#overview > div{
   .method-page li {
     font-size: 16px;
   }
+}
+
+
+.spacer {
+  height: 100vh;
+}
+
+.test-box {
+  width: 240px;
+  height: 240px;
+  margin: 0 auto;
+  background: tomato;
+
+  animation: slide 1ms linear both;
+  animation-timeline: view();
+  animation-range: entry 10% cover 40%;
 }
