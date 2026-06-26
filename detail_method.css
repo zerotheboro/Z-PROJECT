@@ -1,3 +1,9 @@
+
+
+html, body {
+  margin: 0;
+}
+
 :root{
   --lightblue: #20b2aa;
   --energetic--yellow: #FFD63A;
@@ -98,7 +104,6 @@ p, li{
   max-width: 100ch;
   text-wrap: pretty;
 }
-
 .method-page {
   max-width: 1000px;
   margin: 0 auto;
@@ -107,7 +112,6 @@ p, li{
   color: var(--darker-black);
   font-family: Arial, sans-serif;
   background-color: var(--energetic--yellow);
-  overflow-x: hidden;
 }
 
 .method-page h1 {
@@ -165,25 +169,37 @@ section#overview {
   overflow-y: visible;
 }
 
-section#overview > div {
+section#overview img{
+  width: 50%;
+}
+
+section#overview > div.steps {
   display: flex;
-  width: 100vw;
+  position: sticky;
+  top: 0;
+  width: 400vw;
   height: auto;
 
-  animation-name: slide;
+  animation: slide 1ms linear both;
   animation-timeline: view();
+  animation-range: entry 0% cover 100%;
+}
+
+section#overview > div.spacer{
+  height: calc(var(--space-5)*30);
 }
 
 @keyframes slide {
   from {
-    transform: translateX(-20%);
-    opacity: 0;
+    transform: translateX(100vw);
   }
   to {
-    transform: translateX(0);
-    opacity: 1;
+    transform: translateX(-200vw);
   }
 }
+
+
+
 .quick-summary {
   background: #f4f6f8;
   border-left: 5px solid #222;
@@ -221,6 +237,3 @@ section#overview > div {
     font-size: 16px;
   }
 }
-
-
-
