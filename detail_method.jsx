@@ -1,1 +1,0 @@
-import './detail_method.css';
