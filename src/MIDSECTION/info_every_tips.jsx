@@ -2,8 +2,10 @@ import LOGO from "../image/LOGO.png";
 import Main from './COLOR_CHANGE.jsx';
 import Clock from "./Clock.jsx";
 import Timer from './Clock.jsx';
+import Daily from "./Day.jsx";
 import SpacePlan from "./Space_plan.jsx";
 import AddingMethods from "./Writing.jsx";
+import RSVP from "./RSVP.jsx";
 import { useState, useEffect } from "react";
 
 export const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg,mp4,mp3}", { eager: true });
@@ -244,7 +246,7 @@ const Promodoro = new DetailOfTips(
   },
   image_importor(<Clock/>, ""),
   "left",
-  <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 )
 
 const Everything_in_1_place = new DetailOfTips(
@@ -397,10 +399,12 @@ const Break_not_distraction = new DetailOfTips(
     a break or "sleeping on it" leads to a sudden,
     creative solution<CITATE n="16" src="https://psycnet.apa.org/doiLanding?doi=10.1037%2Fa0014212"/>
   </>,
-  vn:
-  <>
-    
-  </>},
+  vn: <>
+    mỗi lần bạn cố gằng giải quyết 1 câu hỏi 
+    khó mà không giải được, thì 1 trong những giải pháp là bạn cứ
+    nghĩ ngơi 1 lúc và làm những việc đơn giãn và đừng nghĩ về bài tập, việc đó
+    cho não xử lý vấn đề ở "background"<CITATE n="16" src="https://psycnet.apa.org/doiLanding?doi=10.1037%2Fa0014212"/></>
+  },
   image_importor("relaxing_cat"),
   "right"
 )
@@ -541,12 +545,14 @@ const Brain_diet = new DetailOfTips(
     src : image_importor("whale").src
   },
   {eng:<>
+    the food that helps the brain:<br/>
     + Omega-3 from fish Fatty fish (salmon, cod)<br/>
     + Leafty vegetables (kale, spinach and broccoli)<br/>
     + Berries (strawberries, blueberries)<br/>
     + Walnuts (Avocado,Walnuts)<br/> suggested from Havard<CITATE src="https://www.health.harvard.edu/healthbeat/foods-linked-to-better-brainpower" n="2"></CITATE>
   </>,
   vn:<>
+    những thức ăn mà giúp não:
     + Omega-3 từ cá, đặc biệt là các loại cá béo (cá hồi, cá tuyết) <br/>
     + Rau lá xanh (cải xoăn, rau bina và bông cải xanh)<br/>
     + Các loại quả mọng (dâu tây, việt quất)<br/>
@@ -674,10 +680,8 @@ const Doodle_effect = new DetailOfTips(
     </>,
     vn:
     <>
-    Dùng ngón tay, bút hoặc thước để đi theo dòng chữ khi đọc.
-    Điều này giúp mắt bám theo tốt hơn, hạn chế nhảy dòng,
-    giảm thời gian phải tìm lại chỗ đang đọc dở. nhưng <u>chỉ dùng
-    khi bạn đang không tập trung và chán học</u>
+      Khi mà bạn không tập trung, vào bài học thì bạn có thể "viết lách 
+      như hình bên cạnh khi bạn nghe giảng hoặc có thể khi đang làm bài 
     <CITATE n="17" src="https://www.health.harvard.edu/blog/the-thinking-benefits-of-doodling-2016121510844"/><CITATE n="18" src="https://www.damiantgordon.com/Courses/PSIC/doodling.pdf"/>
   </> 
   },
@@ -745,32 +749,31 @@ const Spaced_learning = new DetailOfTips(
 
 const Einstein_framework = new DetailOfTips(
   {
-    eng: "Einstein framework",
-    vn: "Khung Einstein",
+    eng: "Active recall/Blurting",
+    vn: "tự nhớ & ghi",
     src : image_importor("whale").src
   },
   {eng:
     <>
-      Albert Einstein used to say "don't memorize 
-      something that can be looked up" and that could
-      be writing down your learning methods at the 
-      your-methods session.
+      Active recall is a study methods that
+      require remembering and pulling it out and writing it down
+      or explain it to a person like the Feyman technique. Doing
+      this brings clarity in understanding what you know and not sure at.
     </>,
     vn:
     <>
-    Đừng nhớ công thức khi làm bài 
-    tập mà hãy viết nó ra, việc đó
-    giải phóng bộ nhớ để tập trung
-    phát triển tư duy phản biện, giải
-    quyết nhiều bài khó hơn.
+      Thay vì đọc sách thì bạn có thể bạn chủ động 
+      nhớ và viết nó lên tờ giấy hoặc giải thích nó cho người khác
+      như phương pháp Feyman và khi làm những thứ đó, bạn 
+      biết rõ ràng những thứ nào bạn biết và chưa chắc chắn.
   </>}, 
-  image_importor("einstein"),
+  image_importor("ACTIVE-RECALL"),
   "right"
 )
 
 const active_recall = new DetailOfTips(
   {
-    eng: "Active_recall",
+    eng: "Einstein framework",
     vn: "Khung Einstein",
     src : image_importor("whale").src
   },
@@ -880,7 +883,7 @@ const FEYNMAN_technique = new DetailOfTips(
      you don't understand it well enough." and that is very true when it comes
     to explaining ideas to people.
   </p>
-  <iframe src="https://www.youtube.com/embed/dRA_UW6ZfOQ?si=wc-jqgL__ub9Oxdd" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe src="https://www.youtube.com/embed/dRA_UW6ZfOQ?si=wc-jqgL__ub9Oxdd" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </>
 )
 const Memory_Palace = new DetailOfTips(
@@ -910,7 +913,7 @@ const Memory_Palace = new DetailOfTips(
   },
   image_importor("palace"),
   "right",
-  <></>,
+  <><iframe src="https://www.youtube.com/embed/C8r_HncpWrM?si=Jk_ht6v3_4TgtgaV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><h1>OR</h1><img src=""/></>,
   image_importor("Palaceaudio")
 
 )
@@ -1210,7 +1213,7 @@ const VARK_learners = new DetailOfTips(
   {eng:
     <>
       VARK is a popular framework that catagorizes 
-      four types of learning: <u>Visual, Aural, Read/Write and Kinesthetic</u><br/>
+      four types of learning: <u>Visual, Aural, Read/Write and Kinesthetic</u><br/><br/>
        Visual, can be trained with perphiral vision at pre-learn; 
       Aural can be seen in learning with friend, Feyman Technique;
       Read/Write, methods in the Note-take section can improve it;
@@ -1231,8 +1234,121 @@ const VARK_learners = new DetailOfTips(
   }, 
   image_importor("VARK"),
   "right",
-  <></>,
+  false,
   image_importor("VARKAUDIO")
+)
+
+const TWO_X_ILETS = new DetailOfTips(
+  {
+    eng: "2X video speed",
+    vn: "nhân 2 tốc độ",
+    src : image_importor("whale").src
+  },
+  {eng:
+    <>
+      the brain ~300 words per minute processing speed is roughly twice
+      as quick as the amount of word we teach and talk per minute, which is ~170 words
+      Therefore quicken the video speed around 2 or 1.75 times would matches your brain
+      natural processing speed. Alternatively, If you're training ILETS listening test
+      then quickening for a period until you get to the actual test then you would feel
+      it is extremly slow with more processing capacity.
+      <CITATE n="19" src="https://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf?utm_source=chatgpt.comhttps://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf?"/>
+      <CITATE n="20" src="https://pubmed.ncbi.nlm.nih.gov/34516216/"/>
+  </>,
+  vn:
+    <>
+      Tốc độ xử lý của não bộ khoảng ~300 từ mỗi phút, nhanh gấp 
+      đôi so với số lượng từ chúng ta dạy và nói trong một phút 
+      là ~170 từ. Do đó, việc tăng tốc độ video lên khoảng 2 hoặc
+       1.75 lần sẽ phù hợp với tốc độ xử lý tự nhiên của não bạn.
+      <CITATE n="19" src="https://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf?utm_source=chatgpt.comhttps://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf?"/>
+      <CITATE n="20" src="https://pubmed.ncbi.nlm.nih.gov/34516216/"/>
+  </>,
+  }, image_importor("2XILETS"),
+  "left",
+  <iframe src="https://www.youtube.com/embed/cyPd2mfnR2Y?si=cWIHwAStR8ZrtLTc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+)
+
+const words_in_1_spot = new DetailOfTips(
+  {
+    eng:"RVSP words in 1 space",
+    vn: "RVSP nhiều chữ 1 nơi",
+    src : image_importor("whale").src
+  },
+  {eng:
+    <>
+      a technique where words or images flash one by one
+      in a single spot on a screen at high speeds; eliminating 
+      the need for natural eye movements across a page, it forces
+      the brain to process information rapidly in a fixed location.
+      but should only be used when reviewing definition, history,...
+      because it  can reduce reader's overall comprehension and memory retention.<CITATE n="21" src="https://www.researchgate.net/publication/328925418_Rapid_serial_visual_presentation_Degradation_of_inferential_reading_comprehension_as_a_function_of_speed"/>
+    </>,
+  vn:
+    <>
+      Một kỹ thuật trong đó các từ hoặc hình ảnh xuất hiện nhấp nháy từng cái một
+      tại một vị trí cố định trên màn hình với tốc độ rất cao. Bằng cách loại bỏ 
+      nhu cầu chuyển động mắt tự nhiên trên trang giấy, nó buộc bộ não phải xử lý 
+      thông tin một cách nhanh chóng tại một điểm cố định. Tuy nhiên, kỹ thuật này
+      chỉ nên được sử dụng khi ôn tập định nghĩa, lịch sử,... bởi vì nó có thể làm
+      giảm khả năng hiểu tổng thể và mức độ ghi nhớ thông tin của người đọc.<CITATE n="21" src="https://www.researchgate.net/publication/328925418_Rapid_serial_visual_presentation_Degradation_of_inferential_reading_comprehension_as_a_function_of_speed"/>
+  </>},
+  image_importor("RSVP_DEFINITION"),
+  "left",
+  <>
+    <RSVP/>
+    <iframe src="https://www.youtube.com/embed/HzOpcQPdvh0?si=g-cySJjN3zKk01vq" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  </>
+
+)
+
+const twenty_eighty_rule = new DetailOfTips(
+  {
+    eng: "80/20 rule",
+    vn: "quy luật 80/20",
+    src : image_importor("whale").src
+  },
+  {eng:
+    <>
+      80% outcome comes from 20% of the effort
+      and in education it is 80% of the score is accounted by
+      the 20% of the content (main content). Although the ratio
+      can varies, the gist is that you should indentify the
+      main "20%" content you learn and focus on it initially.
+  </>,
+  vn:
+    <>
+    "80% kết quả đến từ 20% nỗ lực. Trong giáo dục, 80% điểm số 
+    được quyết định bởi 20% nội dung (nội dung cốt lõi). Dù tỉ lệ 
+    này có thể thay đổi, nhưng cốt lõi là bạn cần xác định được 20%
+    nội dung trọng tâm đó để tập trung học trước tiên."
+  </>}, image_importor("80and20")
+)
+
+const ten_minutes_wall = new DetailOfTips(
+  {
+    eng: "10 min wall stare",
+    vn: "nhìn tường 10 phút",
+    src : image_importor("fish").src
+  },
+  {eng:
+    <>
+      "Boring rests" in general including this simple action or doing nothing starve 
+      your brain of the constant, rapid-fire stimulation caused by digital media, moreover taking break
+      using digital media app, which feels like the most appealling ironically performs worse the "boring rests"
+      in terms of allowing your brain to continue cognitive tasks<CITATE n="22" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC7044622/#S5"/>
+  </>,
+  vn:
+    <>
+    "Nghỉ ngơi nhàm chán" nói chung – bao gồm cả hành động đơn giản này hoặc việc không làm gì cả
+     – sẽ bỏ đói bộ não của bạn khỏi sự kích thích liên tục, dồn dập do các phương tiện truyền
+      thông kỹ thuật số gây ra. Hơn nữa, việc giải lao bằng các ứng dụng kỹ thuật số, thứ trớ trêu
+      thay lại có vẻ hấp dẫn nhất, thực chất lại mang lại hiệu quả kém hơn so với những "khoảng 
+      nghỉ nhàm chán" trong việc giúp não bộ của bạn tiếp tục thực hiện các tác vụ nhận thức.<CITATE n="22" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC7044622/#S5"/>
+  </>}, 
+  image_importor("10_minutes_wall"),
+  "right",
+  "it pairs extremly well with the Incubation effect in Meta-learn"
 )
 
 
@@ -1244,6 +1360,7 @@ export const preLearnTips = [
   Everything_in_1_place,
   Auto_google,
   Water_ur_face_body,
+  ten_minutes_wall,
   Strooper_effect,
   Short_workout,
   Long_term_workout,
@@ -1260,12 +1377,17 @@ export const metaLearnTips = [
   Einstein_framework,
   Doodle_effect,
   Break_not_distraction,
+  active_recall,
+  TWO_X_ILETS,
+  words_in_1_spot,
   Premacks_principle,
   Interleaved_practice,
   Story_telling,
   FEYNMAN_technique,
   Memory_Palace,
+  twenty_eighty_rule,
   Summary_and_print_meta
+
 ]
 
 export const noteTakeTips = [
@@ -1355,8 +1477,17 @@ const question_options = [
   }
 ]
 
-export function loadcustomized_user_list(){
-  return JSON.parse(localStorage.getItem("customize_user_list") || "[]").flat().filter(Boolean).map(header => [...metaLearnTips, ...preLearnTips, ...noteTakeTips].find(tip => tip.header.eng === header));  
+export function loadcustomized_user_list() {
+  return JSON.parse(
+    localStorage.getItem("customize_user_list") || "[]"
+  )
+    .flat()
+    .filter(Boolean)
+    .map(header =>
+      [...metaLearnTips, ...preLearnTips, ...noteTakeTips]
+        .find(tip => tip.header.eng === header)
+    )
+    .filter(Boolean);
 }
 
 export function Customize({ setCustomize_list }){
@@ -1387,7 +1518,6 @@ export function Customize({ setCustomize_list }){
         <div className="quiz">
             <h2 className="question">{question_options[questionindex].question}</h2>
             {question_options[questionindex].options.map( (element, index) =>{
-                console.log(element.tips)
                 return(
                 <button 
                     key={index}
@@ -1404,7 +1534,21 @@ export function Customize({ setCustomize_list }){
         </div>
     )}
 
-
+function study_overview(list, language){
+  return(
+    <ol className="method-overview-list">
+      <h2>Overview:</h2>
+      {list.map((tip, index) => (
+        <>
+        <li key={tip.header.eng} className="method-overview-item">
+          <a href={"#" + tip.header.eng}>{index + 1 + ". "}{tip.header[language]}</a><img src={tip.header.src}/>
+        </li>
+        <hr/>
+        </>
+      ))}
+    </ol>
+  )
+}
 /*=======================================DATA BASE=================================================*/
 
 
@@ -1415,22 +1559,22 @@ export function get_list_of_tips(customize_list, setCustomize_list){
     {eng: <div className="introduction">
         <h2>Introduction</h2>
         <p>
-        - YOUR-METHOD is the section where you write down your methods and <u>remember it with Edulience's methods</u><br/>
-        - YOUR-METHOD is also the section that connects you with the most suitable learning methods<br/>
-        - Each method will have different effort levels from easy, medium to hard.<br/>
+        1. YOUR-METHOD is the section where you <u>write down your methods</u><br/>
+        2. YOUR-METHOD is also the section that <u>suggest the most suitable study hacks</u><br/>
+        3. Each method will have different effort levels from easy, medium to hard.<br/>
         <img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/>
         </p>
       </div>,
       vn: <div className="introduction">
          <h2>Giới thiệu</h2> 
           <p> 
-            - Phần YOUR-METHOD cho bạn có thể ghi lại những phương pháp học tập của bạn, giúp bạn.<u>xem phương pháp học tập của bạn và Edulience</u><br/>
-            - Phần VARK trong YOUR-METHOD sẽ kết nối bạn với những phương pháp có trên Edulience. 
-            - Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.<br/>
+            1. Phần YOUR-METHOD cho bạn có thể ghi lại những phương pháp học tập của bạn, giúp bạn.<u>xem phương pháp học tập của bạn và Edulience</u><br/>
+            2. Phần VARK trong YOUR-METHOD sẽ kết nối bạ với những phương pháp có trên Edulience.<br/>
+            3. Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.<br/>
             <img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/> 
           </p> 
         </div>},
-        (customize_list.concat(yourMethods)).concat(user_list),
+        (customize_list.concat(yourMethods.concat(user_list))),
         <>
           <Customize setCustomize_list={setCustomize_list}/>
           <AddingMethods/>
@@ -1440,17 +1584,20 @@ export function get_list_of_tips(customize_list, setCustomize_list){
     "PRE-LEARN",
       {eng: <div className="introduction">
         <h2>Introduction</h2>
+        <div>
         <p>
-        - PRE-LEARN gives you a list of methods you can use before studying to <u>get in the right mindset to
-        to learn</u><br/>- Each method will have
+        1. PRE-LEARN gives you a list of methods <u>give you the right mindset to learn</u><br/>
+        2. Each method will have
         different effort levels: easy, medium and hard.<br/><img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/>
         </p>
+        {study_overview(preLearnTips, "eng")}
+        </div>
       </div>,
       vn: <div className="introduction">
          <h2>Giới thiệu</h2> 
           <p> 
-            - Phần PRE-LEARN này cung cấp cho bạn danh sách các phương pháp mới để thực hiện trước khi bắt đầu học, giúp bạn <u>sẵn sàng tiếp thu kiến thức</u><br/>
-            - Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.<br/>
+            1. Phần PRE-LEARN này cung cấp cho bạn danh sách các phương pháp mới để thực hiện trước khi bắt đầu học, giúp bạn <u>sẵn sàng tiếp thu kiến thức</u><br/>
+            2. Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.<br/>
             <img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/> 
           </p> 
         </div>},
@@ -1460,18 +1607,21 @@ export function get_list_of_tips(customize_list, setCustomize_list){
     "META-LEARN",
       {eng:<div className="introduction">
         <h2>Introduction</h2>
+        <div>
         <p>
-        - META-LEARN gives you a lists 
-        of methods that you can use to help you <u>learn how to study effectively</u>.
-        <br/>- Each method will have
+        1. META-LEARN gives you a lists of methods that help you <u>learn how to study effectively</u>.
+        <br/>
+        2. Each method will have
         different effort levels: easy, medium and hard<br/><img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/>
         </p>
+        {study_overview(metaLearnTips, "eng")}
+        </div>
       </div>,
       vn: <div className="introduction">
         <h2>Giới thiệu</h2>
         <p>
-        - Phần META-LEARN này cung cấp danh sách các phương pháp gợi ý giúp bạn <u>học cách học hiệu quả</u>.
-        <br/>- Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.
+        1. Phần META-LEARN này cung cấp danh sách các phương pháp gợi ý giúp bạn <u>học cách học hiệu quả</u>.
+        <br/>2. Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.
         <br/><img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/>
         </p>
       </div>},
@@ -1481,18 +1631,24 @@ export function get_list_of_tips(customize_list, setCustomize_list){
     "NOTE-TAKE",
     {eng:<div className="introduction">
         <h2>Introduction</h2>
+        <div>
         <p>
-        - NOTE-TAKING gives you methods that will allow you to takes 
-        note more effectively so that you can <u>write the least and gain the most</u>.
-        <br/>- Each method will have
+        1. NOTE-TAKING gives methods to takes 
+        note more effectively so you can <u>write the least and gain the most</u>.
+        <br/>
+        2. Each method will have
         different effort levels: easy, medium and hard.<br/><img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/>
         </p>
+        {study_overview(noteTakeTips, "eng")}
+        </div>
+
     </div>,
     vn: <div className="introduction">
         <h2>Giới thiệu</h2>
         <p>
-        - Phần NOTE-TAKE này cung cấp danh sách các phương pháp gợi ý giúp bạn ghi chú hiệu quả để có thể <u>viết ít nhất nhưng thu nhận được nhiều nhất</u>.
-        <br/>- Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.
+        1. Phần NOTE-TAKE này cung cấp danh sách các phương pháp gợi ý giúp bạn ghi chú hiệu quả để có thể <u>viết ít nhất nhưng thu nhận được nhiều nhất</u>.
+        <br/>
+        2.Mỗi phương pháp sẽ có các mức độ nỗ lực khác nhau từ dễ, trung bình đến khó.
         <br/><img src={image_importor("fish").src}/><img src={image_importor("whale").src}/><img src={image_importor("sharky").src}/>
         </p>
       </div>},

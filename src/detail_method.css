@@ -1,3 +1,9 @@
+
+
+html, body {
+  margin: 0;
+}
+
 :root{
   --lightblue: #20b2aa;
   --energetic--yellow: #FFD63A;
@@ -14,7 +20,7 @@
 
   /* Responsive type */
   --fs-display: clamp(2.8rem, 7vw, 6rem);
-  --fs-h1: clamp(2.5rem, 5vw, 5rem);
+  --fs-h1: clamp(2.5rem, 4.5vw, 5rem);
   --fs-h2: clamp(2rem, 3vw, 4rem);
   --fs-body: clamp(1rem, 0.2vw + 1.5rem, 2.5rem);
   --fs-body-mobile : clamp(1rem, 0.3vw + 0.7rem, 2.5rem);
@@ -80,6 +86,7 @@ h1, h2{
   background-position: center center;
   background-size: cover;
   text-align: center;
+  border-bottom: 8px var(--font-color) solid;
 }
 
 p,
@@ -97,14 +104,14 @@ p, li{
   max-width: 100ch;
   text-wrap: pretty;
 }
-
 .method-page {
   max-width: 1000px;
   margin: 0 auto;
   padding: 32px 20px;
   line-height: 1.7;
-  color: #222;
+  color: var(--darker-black);
   font-family: Arial, sans-serif;
+  background-color: var(--energetic--yellow);
 }
 
 .method-page h1 {
@@ -151,14 +158,121 @@ p, li{
 
 .best_avoid{
   display: grid;
-  grid-template: auto auto / 50% 50% ;
-  gap: 3px;
-  border: 3px var(--energetic--yellow) solid;
-  background-color: var(--energetic--yellow);
+  grid-template: auto auto / 49% 49% ;
   > *{
-    background-color: var(--lightblue);
+    border: 3px var(--energetic--yellow) ;
   }
 }
+
+section#overview {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+section#overview img{
+  width: 50%;
+}
+
+section#overview > div.steps {
+  display: flex;
+  position: sticky;
+  top: 0;
+  width: 400vw;
+  height: auto;
+
+  animation: slide 1ms linear both;
+  animation-timeline: view();
+  animation-range: entry 0% cover 100%;
+}
+
+section#overview > div.spacer{
+  height: calc(var(--space-5)*30);
+}
+.test-box{
+  > h1{
+     font-size: 0;
+  }  
+}
+
+.quiz{
+  background-color: var(--energetic--yellow);
+  justify-self: center;
+  max-width: 1400px;
+  border-radius: 20px;
+  display: grid;
+  grid-template:1fr 1fr 1fr/ 1fr 1fr;
+  grid-template-areas: "question question"
+                        "ans0 ans1"
+                        "ans0 ans1"
+                        "ans2 ans3"
+                        "ans2 ans3"
+                        "check check";
+  gap: var(--space-1); 
+  margin: var(--space-5) 0;
+  .question{
+    background-color: var(--energetic--yellow);
+    align-self: center;
+    grid-area: question;
+    padding: var(--space-2) 0
+  };
+  .ans0{
+    grid-area:  ans0;
+  };
+  .ans1{
+    grid-area:  ans1;
+  };
+  .ans2{
+    grid-area:  ans2;
+  };
+  .ans3{
+    grid-area:  ans3;
+  };
+
+  .check-button{
+    grid-area: check;
+    background-color: var(--notso-energetic-yellow)
+  };
+  button{
+    box-shadow: var(--shadow);
+    transition: transform 150ms ease, box-shadow 150ms ease, background-color 200ms ease, color 200ms ease;
+    font-size: var(--fs-button);
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    padding: 0.85rem 1.2rem;
+    background-color: var(--font-color);
+    color: var(--darker-black);
+    font-weight: 700;
+  }  
+  button:hover{
+  background-color: var(--passion-orange);
+  color: white;
+}
+
+button:active{
+  transform: translateY(7px);
+  box-shadow: 0 0 0 black;
+  background-color: #C0D6DF;
+  color: #ffffff;
+}
+  
+
+
+  div.answer:focus{
+    background-color: var(--passion-orange);
+  }
+}
+
+@keyframes slide {
+  0%{
+    transform: translateX(100vw);
+  }
+  100%{
+    transform: translateX(-200vw);
+  }
+}
+
+
 
 .quick-summary {
   background: #f4f6f8;
@@ -196,4 +310,13 @@ p, li{
   .method-page li {
     font-size: 16px;
   }
+  .quiz{
+    grid-template:1fr 1fr 1fr 1fr 1fr 1fr/ 1fr;
+  grid-template-areas: "question "
+                        "ans0 "
+                        "ans1 "
+                        "ans2 "
+                        "ans3 "
+                        "check";
+  } 
 }

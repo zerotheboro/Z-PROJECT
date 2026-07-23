@@ -195,29 +195,36 @@ section:first-of-type{
 }
 
 /* OPTION BUTTONS */
-section#options_of_tips_to_choose{
-  min-height: 60svh;
+section.options_of_tips_to_choose{
+  min-height: 64svh;
   max-height: 1000px;
   width: 100%;
   background-color: var(--lightblue);
   text-align: center;
   padding: var(--space-5) 1rem var(--space-4);
-  margin: var(--space-5) 0 ;
+  margin: 0 0 var(--space-5) 0 ;
   gap: var(--space-2);
-  ul{
-    list-style-type: square;
-  }
-  p{
+  div{
+    display: inline-block;
+    padding: var(--space-1);
+    video{
+    width: calc(var(--space-5)*7);
+    margin: 0 auto var(--space-5) auto;
+    border-radius: 16px;
+    border: var(--passion-orange) 4px solid;
+    }
+    p{
     margin-left: auto;
     margin-right: auto;
+    }
   }
 }
 
-section#options_of_tips_to_choose button{
+section.options_of_tips_to_choose button{
   font-family: var(--font-heading);
   font-size: clamp(1.4rem, 1.2vw + 1rem, 2rem);
   min-height: 180px;
-  width: min(100%, 240px);
+  width: min(78%, 240px);
   max-width: 100%;
   margin: 0;
   padding: 1.2rem;
@@ -225,7 +232,7 @@ section#options_of_tips_to_choose button{
   margin: var(--space-1);
   background-color: var(--notso-energetic-yellow);
 }
-section#options_of_tips_to_choose button:hover{
+section.options_of_tips_to_choose button:hover{
   background-color: var(--passion-orange);
 }
 
@@ -290,6 +297,7 @@ div#BENEFIT button{
     width: min(280px, 40%);
   }
 }
+
 
 .quiz{
   background-color: var(--energetic--yellow);
@@ -496,7 +504,31 @@ div.introduction{
   display: inline-block;
   margin-left: var(--space-2);
   }
+  div{
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-2);
+    ol{
+      height: calc(var(--space-5)*5);
+      width: calc(var(--space-5)*5);
+      overflow-y: scroll;
+      border-left: solid 3px var(--passion-orange);
+      padding: var(--space-1);
+      list-style: none;
+    }
+   
+    li{
+    font-size: var(--fs-body-mobile);
+    color: var(--lightblue);
+      img{
+        height: var(--space-3);
+        width: var(--space-3);
+      }
+    }
+  }
 }
+
+
  
 
 .TIP div h2{
@@ -692,6 +724,10 @@ summary::before, summary::after{
   .TIP div{
     padding: var(--space-2) var(--space-1) clamp(1.25rem, 4vw, 2.5rem) var(--space-1);
     text-align: justify;
+  }
+
+  div.introduction ol{
+    display: none;
   }
 }
 @media only screen and (max-width: 500px){

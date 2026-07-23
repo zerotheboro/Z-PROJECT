@@ -19,7 +19,6 @@ export default function Hall_of_fame(){
     <div id="carasoul">
         <div className="team_member_wrapper">
             <Member img={"LOGO"} name="Kingston" role="managing, connecting ideas, coder"/>
-            <Member img={"LOGO"} name="Ms. Giàu" role="content advisor"/>
             <Member img={"LOGO"} name="Ms.Moray" role="proof reading"/>
             <Member img={"LOGO"} name="Rio" role="creative visionary"/>
             <Member img={"LOGO"} name="Ryan" role="design advisor"/>  
@@ -28,7 +27,6 @@ export default function Hall_of_fame(){
         </div>
         <div className="team_member_wrapper" aria-hidden>
             <Member img={"LOGO"} name="Kingston" role="managing, connecting ideas, coder"/>
-            <Member img={"LOGO"} name="Ms. Giàu" role="content advisor"/>
             <Member img={"LOGO"} name="Ms.Moray" role="proof reading"/>
             <Member img={"LOGO"} name="Rio" role="creative visionary"/>
             <Member img={"LOGO"} name="Ryan" role="design advisor"/>

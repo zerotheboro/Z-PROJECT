@@ -11,7 +11,6 @@ function Clock(){
         if(isRunning){
             intervalIdRef.current = setInterval(() => {
                 setElapsedTime(Date.now() - startTimeRef.current)
-                console.log(Date.now)
             }, 10)
         }
         return () => {

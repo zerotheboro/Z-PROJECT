@@ -7,6 +7,9 @@ import NAV from '../HEADER/header.jsx';
 import Daily from "./Day.jsx";
 import Hall_of_fame from "./HALL_of_fame.jsx";
 import Game from "./META.jsx";
+import firstway from "../../public/your_system.mp4"
+import secondway from "../../public/meta_note_pre.mp4"
+import AIRecommendation from "./AIRecomendation.jsx";
 
 
 export default function Tips(props) {
@@ -44,7 +47,7 @@ export default function Tips(props) {
       {each_section.list.map((the_tip, idx) => (
         <>
         <section className="TIP" key={`${each_section.type}-${idx}`}>
-          <div className={the_tip.side}>
+          <div className={the_tip.side} id={the_tip.header.eng} >
               <h2>{idx + 1}.{" "}{(VNLanguage === false)? the_tip.header.eng : the_tip.header.vn}<img src={the_tip.header.src}/> </h2>
               <p>
                 {(the_tip.audio === false )? null :  Renderassets("audio", the_tip.audio.src)} 
@@ -88,10 +91,24 @@ function handleClickfor1(section_id){
   return (
     <>
       <NAV language={handleClickforLanguage}/>
-      <Daily/>
-      <section id="options_of_tips_to_choose">
+      <section className="options_of_tips_to_choose" id="ways_to_find">
+        <h1>2 ways to find your study hacks:</h1>
+          <div>
+            <p>1st: answer questions in your-system</p>
+            <video autoPlay controls loop>
+              <source src={firstway} type="video/mp4"/>
+            </video>
+          </div>
+          <div>
+            <p>2nd: discover, compare every methods</p>
+            <video autoPlay controls loop>
+              <source src={secondway} type="video/mp4"/>
+            </video>
+          </div> 
+      </section>
+      <AIRecommendation/>
+      <section className="options_of_tips_to_choose">
           <h1>Library</h1>
-          <p>each button give a list of learning methods</p>
           {list_of_tips.map((section) =>
           <button onClick={() => handleClickfor1(section._type)}>
               {section._type}
