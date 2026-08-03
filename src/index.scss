@@ -196,8 +196,7 @@ section:first-of-type{
 
 /* OPTION BUTTONS */
 section.options_of_tips_to_choose{
-  min-height: 64svh;
-  max-height: 1000px;
+  height: clamp(700px, 64svh, 800px);
   width: 100%;
   background-color: var(--lightblue);
   text-align: center;
@@ -264,21 +263,6 @@ div#BENEFIT button{
 
 
 
-/* Instructions */
-.Instructions{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0 1rem var(--space-4);
-  background-color: var(--energetic--yellow);
-}
-
-.Instructions video{
-  width: min(960px, 100%);
-  border-radius: 16px;
-  border: var(--passion-orange) 4px solid;
-}
 
 .customize{
   width: var(--container);
@@ -423,8 +407,8 @@ table img{
   align-items: center;
   > span{
     font-family: var(--font-heading);
-    font-size: var(--fs-h1);
-    line-height: calc(var(--space-4)*1.1);
+    font-size: calc(var(--fs-h1)*1.6);
+    line-height: calc(var(--space-4)*1.6);
   }
   > .controls{
     margin-top: var(--space-1);
@@ -434,20 +418,6 @@ table img{
       background-color: var(--font-color);
     }
   }
-}
-.daily_challenge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-2);
-  background-color: #f4f4f9;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  max-width: 760px;
-  width: auto;
-  margin: 20px auto;
 }
 
 /* TIP content */
@@ -477,25 +447,6 @@ table img{
 }
 
 /* Mobile first TIP card */
-form,
-.introduction,
-.TIP > div{
-  width: var(--container);
-  max-width: 1400px;
-  margin: 0 auto 12rem;
-  background-color: var(--notso-energetic-yellow);
-  padding: var(--space-2) var(--space-5) clamp(1.25rem, 4vw, 2.5rem) var(--space-5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-self: center;
-  gap: var(--space-2);
-  border-radius: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  .cite{
-    color: var(--lightblue);
-  }
-}
 div.introduction{
   margin: 0 auto 2rem;
   img{
@@ -528,58 +479,6 @@ div.introduction{
   }
 }
 
-
- 
-
-.TIP div h2{
-  text-align: center;
-  font-size: var(--fs-h2);
-  margin-bottom: 0.25rem;
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  > img{
-    display: inline-block;
-    height: var(--space-5);
-    width: var(--space-5);
-  }
-}
-
-.TIP div p{
-  width: min(100%, 68ch);
-  font-size: var(--fs-body);
-  line-height: 1.65;
-}
-textarea, input{
-  width: min(80%, 60ch);
-  height: min(8%, 6ch);
-  font-size: var(--font-body);
-  font-family: var(--font-body);
-}
-
-div.rado{
-  display: flex;
-  div{
-    display: flex;
-    align-items: center;
-    input[type="radio"]{
-    width: 4vw;
-    height: 4vw;
-    display: inline-block;
-    margin-right: 8px;
-    cursor: pointer;
-    };
-    label{
-    display: inline-block;
-    }
-  }
-}
-
-
-.TIP div img{
-  width: min(280px, 70vw);
-  height: auto;
-}
 
 .TIP div button{
   width: fit-content;
@@ -641,19 +540,6 @@ button.x-button{
     justify-items: center;
   }
 
-  .TIP div h2{
-    grid-area: h1;
-    justify-self: start;
-    align-self: flex-end;
-    text-align: left;
-  }
-
-  .TIP div p{
-    align-self: flex-start;
-    grid-area: p;
-  }
-
-  .TIP div img,
   .TIP div .asset{
     grid-area: img;
     width: 92%;

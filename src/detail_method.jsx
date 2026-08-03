@@ -5,6 +5,106 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom';
 
+
+ gsap.registerPlugin(ScrollTrigger);
+
+  function createStepGuide() {
+    const guide = document.querySelector(".step-guide");
+    const track = document.querySelector(".steps-track");
+    const steps = gsap.utils.toArray(".step");
+    const progressBar = document.querySelector(".step-progress__bar");
+
+    if (!guide || !track || steps.length === 0) return;
+
+    // Kill the previous animation if this function runs again.
+    ScrollTrigger.getById("step-guide-scroll")?.kill();
+
+    const getScrollDistance = () => {
+      return Math.max(
+        0,
+        track.scrollWidth - window.innerWidth
+      );
+    };
+
+    const setSectionHeight = () => {
+      const distance = getScrollDistance();
+
+      /*
+       * 100vh keeps the sticky area visible.
+       * The remaining height creates the vertical scroll distance.
+       */
+      guide.style.height =
+        `${window.innerHeight + distance}px`;
+    };
+
+    setSectionHeight();
+
+    const horizontalAnimation = gsap.to(track, {
+      x: () => -getScrollDistance(),
+      ease: "none",
+
+      scrollTrigger: {
+        id: "step-guide-scroll",
+
+        trigger: guide,
+        start: "top top",
+
+        end: () => `+=${getScrollDistance()}`,
+
+        scrub: 0.8,
+
+        invalidateOnRefresh: true,
+
+        onUpdate(self) {
+          if (progressBar) {
+            gsap.set(progressBar, {
+              scaleX: self.progress
+            });
+          }
+        },
+
+        /*
+         * Remove this entire snap block if you want
+         * completely free scrolling without snapping.
+         */
+        snap: steps.length > 1
+          ? {
+              snapTo: 1 / (steps.length - 1),
+
+              // Wait briefly before deciding to snap.
+              delay: 0.15,
+
+              duration: {
+                min: 0.2,
+                max: 0.55
+              },
+
+              ease: "power2.out",
+
+              // Snap in the direction of the user's scroll.
+              directional: true,
+
+              // Stronger scroll movements travel naturally.
+              inertia: true
+            }
+          : false
+      }
+    });
+
+    window.addEventListener(
+      "resize",
+      () => {
+        setSectionHeight();
+        ScrollTrigger.refresh();
+      },
+      { passive: true }
+    );
+
+    return horizontalAnimation;
+  }
+
+window.addEventListener("load", createStepGuide);
+
 let interleavingQuestions = [
 new Question(
   "What is the core underlying principle of the Memory Palace technique?", 

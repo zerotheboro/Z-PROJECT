@@ -16,6 +16,7 @@ export class Question {
   ans(chosen_num) {
 
     (chosen_num % 2 > 0)? null : this._anslist.reverse();
+    gsap.utils.shuffle(this._anslist);
 
     return (
       <>

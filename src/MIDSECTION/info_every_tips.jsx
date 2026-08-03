@@ -229,12 +229,12 @@ const Promodoro = new DetailOfTips(
   {
   eng: <>
     This is a time management tool that helps you
-    manage your task, <br/>
-    step 1: identify the tasks that need to be done<br/>
-    step 2: set a 25-minute timer<br/>
-    step 3: focus on finishing the tasks<br/>
-    step 4: after the focus timer runs out, take a 5 -minutes timed rest<br/>
-    step 5: repeat step1,2,3,4 four times then rest for 15-30 minutes and repeat the whole process..<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/>
+    manage your task, here are the 5 steps:<br/>
+    1.identify the tasks that need to be done<br/>
+    2.set a 25-minute timer<br/>
+    3.focus on finishing the tasks<br/>
+    4.after the focus timer runs out, take a 5 -minutes timed rest<br/>
+    5.repeat step1,2,3,4 four times then rest for 15-30 minutes and repeat the whole process..<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/>
     </>,
   vn: <>
     Bước 1: Chọn một công việc cần hoàn thành.
@@ -244,7 +244,10 @@ const Promodoro = new DetailOfTips(
     Bước 5: Sau mỗi 4 lần nghỉ ngắn, hãy nghỉ một quãng dài từ 15–30 phút.<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/>
   </>
   },
-  image_importor(<Clock/>, ""),
+  {
+    src: <Clock/>,
+    format: "component"
+  },
   "left",
   <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 )
@@ -380,7 +383,10 @@ const Strooper_effect = new DetailOfTips(
     bước 2: đọc cái màu của chữ
   </>
   },
-  image_importor(<Main/>, ""),
+  {
+    format: "component",
+    src: <Main/>
+  },
   "left", 
   false,
   image_importor("strooper_audio")
@@ -525,13 +531,15 @@ const Track_progress = new DetailOfTips(
   {
     eng:
     <>
-      This will motivate you and remind you how much progress you have made.
+      Tracking progress motivate you and remind you how much
+       progress you have made especially when the progress is
+        physically written and shown(could be tik tok streak number)<CITATE n="23" src="https://www.apa.org/news/press/releases/2015/10/progress-goals"/>
     </>,
     vn:
     <>
       Ghi lại bạn đã học được gì, bao nhiêu, trong bao lâu.
     Điều này vừa tạo động lực (thấy mình đi được khá xa),
-    vừa giúp bạn biết chỗ nào cần điều chỉnh.
+    vừa giúp bạn biết chỗ nào cần điều chỉnh.<CITATE n="23" src="https://www.apa.org/news/press/releases/2015/10/progress-goals"/>
     </>
   },
   image_importor("checkbox"),
@@ -749,7 +757,7 @@ const Spaced_learning = new DetailOfTips(
 
 const Einstein_framework = new DetailOfTips(
   {
-    eng: "Active recall/Blurting",
+    eng: "Active Blurting",
     vn: "tự nhớ & ghi",
     src : image_importor("whale").src
   },
@@ -913,7 +921,7 @@ const Memory_Palace = new DetailOfTips(
   },
   image_importor("palace"),
   "right",
-  <><iframe src="https://www.youtube.com/embed/C8r_HncpWrM?si=Jk_ht6v3_4TgtgaV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><h1>OR</h1><img src=""/></>,
+  <><iframe src="https://www.youtube.com/embed/C8r_HncpWrM?si=Jk_ht6v3_4TgtgaV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><h1>OR</h1><a href="../../Memory_palace.html"><img src={image_importor("more-info").src} className="more-info"/></a></>,
   image_importor("Palaceaudio")
 
 )

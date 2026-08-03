@@ -47,7 +47,7 @@ function NAV(props){
             <section id="NAV">
                 <span className="logo"><img src={img_source}/>EDULIENCE</span>
                 <a onClick={props.language}><span><img src={language}/>library language</span></a>
-                <a href="#options_of_tips_to_choose"><span><img src={wayofgroups}/>library</span></a>
+                <a href="#Library"><span><img src={wayofgroups}/>library</span></a>
                 <a href="#quiz"><span><img src={quiz}/>quiz</span></a>
                 <a href="#footer"><span><img src={contact}/>contact</span></a>
                 <a href="#carasoul"><span><img src={team}/>about us</span></a>

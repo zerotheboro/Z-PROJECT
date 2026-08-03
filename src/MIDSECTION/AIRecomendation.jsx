@@ -1,5 +1,11 @@
 import { useState } from "react";
 import './AISTYLE.scss';
+
+
+let AI_credit = JSON.parse(localStorage.getItem("AI_credits"));
+
+if(AI_credit === null){ localStorage.setItem("AI_credits", "2");  AI_credit = 2; console.log(AI_credit)};
+
 export default function AIRecommendation() {
   const [step, setStep] = useState(0);
 
@@ -12,12 +18,14 @@ export default function AIRecommendation() {
   const [error, setError] = useState("");
 
   async function handleAskAI() {
+    AI_credit -= 1;
+    localStorage.setItem("AI_credits", JSON.stringify(AI_credit));
     try {
       setLoading(true);
       setError("");
 
       const response = await fetch(
-        "http://localhost:3001/api/recommend",
+        "https://z-project-ba3t.onrender.com/api/recommend",
         {
           method: "POST",
           headers: {
@@ -38,7 +46,7 @@ export default function AIRecommendation() {
       const data = await response.json();
 
       setResult(data);
-      setStep(3);
+      setStep(4);
     } catch (err) {
       console.error(err);
       setError("Could not get an AI recommendation.");
@@ -63,17 +71,42 @@ export default function AIRecommendation() {
 
         {!result && (
           <div className="progress">
-            <span className={step >= 0 ? "active" : ""}></span>
             <span className={step >= 1 ? "active" : ""}></span>
             <span className={step >= 2 ? "active" : ""}></span>
+            <span className={step >= 3 ? "active" : ""}></span>
           </div>
         )}
 
         <div className="ai-card">
 
+          {step === 0 && (
+            <div className="question">
+              <span className="question-number">
+                  Introduction
+              </span>
+
+              <h2>
+                Explore your top 3 Edulience's SSS  
+              </h2>
+              <p>
+                Receive 3 "SSS" or Suitable Study Strategies and a study plan only after 1-2 minutes submiting your answers for every day you log in the website
+              </p>
+
+              <div className="button-area">
+                <button
+                  className="primary-button"
+                  onClick={() => setStep(1)}
+                >
+                  Start →
+                </button>
+              </div>
+            </div>
+          )}
+
+
           {/* QUESTION 1 */}
 
-          {step === 0 && (
+          {step === 1 && (
             <div className="question">
               <span className="question-number">
                 Question 1 of 3
@@ -85,8 +118,6 @@ export default function AIRecommendation() {
 
               <textarea
                 value={biggestProblem}
-                minLength="10" 
-                maxLength="300" 
                 onChange={(e) =>
                   setBiggestProblem(e.target.value)
                 }
@@ -95,9 +126,16 @@ export default function AIRecommendation() {
 
               <div className="button-area">
                 <button
+                  className="secondary-button"
+                  onClick={() => setStep(0)}
+                >
+                  ← Back
+                </button>
+
+                <button
                   className="primary-button"
-                  disabled={!biggestProblem.trim()}
-                  onClick={() => setStep(1)}
+                  disabled={!biggestProblem.trim() || biggestProblem.length < 16 || biggestProblem.length > 300}
+                  onClick={() => setStep(2)}
                 >
                   Continue →
                 </button>
@@ -108,14 +146,14 @@ export default function AIRecommendation() {
 
           {/* QUESTION 2 */}
 
-          {step === 1 && (
+          {step === 2 && (
             <div className="question">
               <span className="question-number">
                 Question 2 of 3
               </span>
 
               <h2>
-                Do you have questions about Edulience's SSS?
+                What do you need from Edulience's SSS or study hack?
               </h2>
 
               <textarea
@@ -131,15 +169,15 @@ export default function AIRecommendation() {
               <div className="button-area">
                 <button
                   className="secondary-button"
-                  onClick={() => setStep(0)}
+                  onClick={() => setStep(1)}
                 >
                   ← Back
                 </button>
 
                 <button
                   className="primary-button"
-                  disabled={!methodQuestion.trim()}
-                  onClick={() => setStep(2)}
+                  disabled={!methodQuestion.trim() || methodQuestion.length < 16 || methodQuestion.length > 300}
+                  onClick={() => setStep(3)}
                 >
                   Continue →
                 </button>
@@ -150,7 +188,7 @@ export default function AIRecommendation() {
 
           {/* QUESTION 3 */}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="question">
               <span className="question-number">
                 Question 3 of 3
@@ -161,8 +199,7 @@ export default function AIRecommendation() {
               </h2>
 
               <textarea
-                minLength="10" 
-                maxLength="300" 
+            
                 value={extraContext}
                 onChange={(e) =>
                   setExtraContext(e.target.value)
@@ -173,7 +210,7 @@ export default function AIRecommendation() {
               <div className="button-area">
                 <button
                   className="secondary-button"
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(2)}
                 >
                   ← Back
                 </button>
@@ -181,7 +218,7 @@ export default function AIRecommendation() {
                 <button
                   className="primary-button ai-submit"
                   onClick={handleAskAI}
-                  disabled={loading}
+                  disabled={loading || AI_credit === 0}
                 >
                   {loading
                     ? "Finding your methods..."
@@ -203,7 +240,7 @@ export default function AIRecommendation() {
 
           {/* AI RESULT */}
 
-          {step === 3 && result && (
+          {step === 4 && result && (
             <div className="ai-results">
 
               <span className="result-label">

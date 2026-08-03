@@ -3,7 +3,7 @@ import LOGO from "../image/LOGO.png"
 function Table(){
     return(
         <div className="table-wrapper">
-        <h2>Edulience vs. other learning programs</h2>
+        <h2>How Edulience makes study easier</h2>
         <table>
             <thead>
                 <tr>
@@ -13,28 +13,28 @@ function Table(){
                         <img src={LOGO} alt="" />
                     </th>
                     <th>
-                        OTHERS
+                        School
                     </th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>ROYAL students focus</td>
+                    <td>Focus on how to learn</td>
                     <YesorNo yesorno="yes" ownership="inspire"/>
                     <YesorNo yesorno="no" ownership="them"/>
                 </tr>
                 <tr>
-                    <td>Offer useful knowledges</td>
+                    <td>Offer  knowledges</td>
                     <YesorNo yesorno="yes" ownership="inspire"/>
                     <YesorNo yesorno="yes" ownership="them"/>
                 </tr>
                 <tr>
-                    <td>Update 1/2 weeks</td>
+                    <td>Loves learners</td>
                     <YesorNo yesorno="yes" ownership="inspire"/>
                     <YesorNo yesorno="yes" ownership="them"/>
                 </tr>
                 <tr>
-                    <td>Give bonuses to ROYAL students</td>
+                    <td>Free to use</td>
                     <YesorNo yesorno="yes" ownership="inspire"/>
                     <YesorNo yesorno="no" ownership="them"/>
                 </tr>
