@@ -14,21 +14,21 @@
   <title>Memory palace|Edulience</title>
   <link rel="icon" type="image/svg+xml" href="/assets/LOGO-cxamDjmc.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="module" crossorigin src="/assets/memory_palace-W54Wgobr.js"></script>
+    <script type="module" crossorigin src="/assets/memory_palace-CugsCykb.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/META-DlZJfBan.js">
-    <link rel="stylesheet" crossorigin href="/assets/memory_palace-D26n-xT9.css">
+    <link rel="stylesheet" crossorigin href="/assets/memory_palace-BmNs4dkv.css">
   </head>
   <h1 id="memory_palace_header">Memory Palace, a way to remember facts like your neighborhood</h1>
   <article class="method-page">
-  <section class="quick-summary">
-    <h2>table of content</h2>
-    <ol>
-      <li><a href="#what">What is it?</a></li>
-      <li><a href="#how">How it works?</a></li>
-      <li><a href="#when">When to use?</a></li>
-      <li><a href="#overview">step-by-step (best part)</a></li>
-      <li><a href="#summery">Summery</a></li>
-    </ol>
+  <section class="quick-summary"> 
+    <h2>table of content</h2> 
+    <ol> 
+      <li><a href="#what">What is it?</a></li> 
+      <li><a href="#how">How it works?</a></li> 
+      <li><a href="#when">When to use?</a></li> 
+      <li><a href="#overview">step-by-step (best part)</a></li> 
+      <li><a href="#summery">Summery</a></li> 
+    </ol> 
   </section>
   <section id="what">
     <h2>What is the Memory Palace Method?</h2>
@@ -71,17 +71,100 @@
     </div>
   </section>
   
-  <section id="overview">
-    <h2>Step-by-Step Guide</h2>
-    <div class="steps">
-      <div><h3>Pick clear locations inside a familiar place</h3><img src="./public/memory_palace_step_1.png "></div>
-      <div><h3>Turn each piece of information into a vivid image</h3></div>
-      <div><h3>Place each image at one location</h3></div>
-      <div><h3>Mentally walk through the place and recall each image</h3></div>
-      <div><h3>Repeat the journey until the information becomes easy to remember</h3></div>
+  <section id="overview" class="step-guide">
+  <div class="step-guide__sticky">
+    <header class="step-guide__header">
+      <span>Step-by-step guide</span>
+      <h2>How to use the Memory Palace</h2>
+    </header>
+
+    <div class="steps-track">
+      <article class="step">
+        <div class="step__content">
+          <span class="step__number">01</span>
+          <h3>Choose a familiar location</h3>
+          <p>
+            Choose somewhere you know clearly, such as your bedroom,
+            house, school or usual walking route.
+          </p>
+        </div>
+
+        <img
+          src="../src/image/palace.svg"
+          alt="A familiar place used as a memory palace"
+        />
+      </article>
+
+      <article class="step">
+        <div class="step__content">
+          <span class="step__number">02</span>
+          <h3>Create vivid images</h3>
+          <p>
+            Turn each piece of information into an unusual, exaggerated
+            or memorable image.
+          </p>
+        </div>
+
+        <img
+          src="../src/image/memory-image.svg"
+          alt="Information transformed into a vivid image"
+        />
+      </article>
+
+      <article class="step">
+        <div class="step__content">
+          <span class="step__number">03</span>
+          <h3>Place each image</h3>
+          <p>
+            Attach every image to a specific location inside your chosen
+            place.
+          </p>
+        </div>
+
+        <img
+          src="../src/image/place-image.svg"
+          alt="Images placed inside a familiar location"
+        />
+      </article>
+
+      <article class="step">
+        <div class="step__content">
+          <span class="step__number">04</span>
+          <h3>Walk through the palace</h3>
+          <p>
+            Mentally follow the same route and retrieve each image in
+            order.
+          </p>
+        </div>
+
+        <img
+          src="../src/image/walk-through.svg"
+          alt="Walking through the memory palace"
+        />
+      </article>
+
+      <article class="step">
+        <div class="step__content">
+          <span class="step__number">05</span>
+          <h3>Repeat the journey</h3>
+          <p>
+            Repeat the mental journey until the information becomes
+            easy to retrieve.
+          </p>
+        </div>
+
+        <img
+          src="../src/image/repeat.svg"
+          alt="Repeating the memory palace journey"
+        />
+      </article>
     </div>
-    <div class="spacer"></div>
-  </section>
+
+    <div class="step-progress" aria-hidden="true">
+      <div class="step-progress__bar"></div>
+    </div>
+  </div>
+</section>
   <div id="Interleaving-test" class="test-box"></div>
   <section>
     <h2>Examples of Memory Palace</h2>
@@ -116,5 +199,7 @@
     <p><strong>Difficulty:</strong> Medium</p>
     <p><strong>Use when:</strong> You need to remember many pieces of information clearly</p>
   </section>
-</article>
+</article>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 </html>
