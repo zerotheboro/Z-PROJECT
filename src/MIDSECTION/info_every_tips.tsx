@@ -1426,7 +1426,7 @@ const capture_create = new DetailOfTips(
         <li>khi nào dùng?</li>
       </ul>
   </>}, 
-  image_importor("capture&create"),
+  image_importor("10_minutes_wall"),
   "left",
   "it is inspired by the cornell note-taking methods"
 )
@@ -1917,32 +1917,15 @@ export function loadcustomized_user_list() {
     .filter(Boolean);
 }
 
-function rankSuggestedTips(tips, limit = 8) {
-  const scores = {};
-
-  tips.forEach(tip => {
-    scores[tip] = (scores[tip] || 0) + 1;
-  });
-
-  return Object.entries(scores)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([tip]) => tip);
-} //THIS FUNCTION RANKS THE METHOD IN THE QUICK CUSTOMIZATION
-
 export function Customize({ setCustomize_list }){
     const [questionindex, setQuestionindex ] = useState(0);
     
     const [suggestedtips, setSuggestedtips] = useState([]);
 
     useEffect(() => {
-
-  if (questionindex >= question_options.length) {
-
-    const rankedTips = rankSuggestedTips(suggestedtips,8);
-
-    localStorage.setItem("customize_user_list", JSON.stringify(rankedTips));
-
+      if(questionindex >= question_options.length){
+      let adding_tips = JSON.stringify(suggestedtips)
+      localStorage.setItem("customize_user_list", adding_tips)
     }
 
     },[questionindex >= question_options.length]);

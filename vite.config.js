@@ -19,6 +19,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         memory_palace: resolve(__dirname, "Memory_palace.html"),
+        interleaving: resolve(__dirname, "Interleaving.html"),
       },
     },
   },

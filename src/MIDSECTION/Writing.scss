@@ -1,0 +1,622 @@
+.add-method-section {
+  width: min(1250px, 92%);
+  margin:
+    clamp(4rem, 8vw, 8rem)
+    auto;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(260px, 0.75fr)
+    minmax(0, 1.25fr);
+
+  gap: clamp(2rem, 6vw, 6rem);
+
+  padding:
+    clamp(2rem, 5vw, 5rem);
+
+  background:
+    var(--energetic--yellow);
+
+  color:
+    var(--darker-black);
+
+  border:
+    3px solid var(--darker-black);
+
+  border-radius: 30px;
+
+  box-shadow:
+    10px 10px 0
+    var(--darker-black);
+}
+
+
+
+/* =========================================
+   LEFT INTRO
+========================================= */
+
+.add-method-intro {
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: flex-start;
+
+
+  h2 {
+    margin:
+      var(--space-1)
+      0
+      var(--space-2);
+
+    font-size:
+      clamp(2.8rem, 5vw, 5.5rem);
+
+    line-height: 0.92;
+
+    letter-spacing: -0.04em;
+
+
+    span {
+      color:
+        var(--passion-orange);
+    }
+  }
+
+
+  p {
+    max-width: 38ch;
+
+    margin: 0;
+
+    font-size:
+      clamp(
+        1rem,
+        0.4vw + 0.9rem,
+        1.25rem
+      );
+
+    line-height: 1.65;
+
+    opacity: 0.8;
+  }
+}
+
+
+
+.add-method-tag {
+  display: inline-flex;
+
+  padding:
+    0.45rem
+    0.85rem;
+
+  background:
+    var(--darker-black);
+
+  color:
+    var(--font-color);
+
+  border-radius: 100px;
+
+  font-size: 0.75rem;
+
+  font-weight: 800;
+
+  letter-spacing: 0.15em;
+
+  text-transform: uppercase;
+}
+
+
+
+/* =========================================
+   FORM CARD
+========================================= */
+
+.add-method-form {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap:
+    clamp(
+      1.2rem,
+      2vw,
+      2rem
+    );
+
+  padding:
+    clamp(
+      1.5rem,
+      3vw,
+      3rem
+    );
+
+  background:
+    var(--font-color);
+
+  border:
+    3px solid
+    var(--darker-black);
+
+  border-radius: 24px;
+
+  box-shadow:
+    6px 6px 0
+    rgba(0, 0, 0, 0.15);
+}
+
+
+
+/* =========================================
+   INPUT FIELD
+========================================= */
+
+.form-field {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.7rem;
+
+
+  label {
+    font-size: 0.9rem;
+
+    font-weight: 800;
+  }
+
+
+  input,
+  textarea {
+    width: 100%;
+
+    padding:
+      1rem
+      1.1rem;
+
+    font:
+      inherit;
+
+    color:
+      var(--darker-black);
+
+    background:
+      #fff;
+
+    border:
+      2px solid
+      var(--darker-black);
+
+    border-radius: 12px;
+
+    transition:
+      transform 150ms ease,
+      box-shadow 150ms ease,
+      border-color 150ms ease;
+  }
+
+
+  input {
+    min-height: 55px;
+  }
+
+
+  textarea {
+    min-height: 170px;
+
+    resize: vertical;
+
+    line-height: 1.6;
+  }
+
+
+  input::placeholder,
+  textarea::placeholder {
+    color:
+      rgba(
+        26,
+        38,
+        52,
+        0.45
+      );
+  }
+
+
+  input:focus,
+  textarea:focus {
+    outline: none;
+
+    transform:
+      translate(
+        -3px,
+        -3px
+      );
+
+    box-shadow:
+      5px
+      5px
+      0
+      var(--passion-orange);
+  }
+}
+
+
+
+.form-field--large {
+  grid-column:
+    1 / -1;
+}
+
+
+
+/* =========================================
+   EFFORT
+========================================= */
+
+.effort-selector {
+  grid-column:
+    1 / -1;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: var(--space-1);
+
+  margin: 0;
+
+  padding: 0;
+
+  border: none;
+
+
+  legend {
+    width: 100%;
+
+    margin-bottom:
+      var(--space-1);
+
+    font-size: 0.9rem;
+
+    font-weight: 800;
+  }
+}
+
+
+
+.effort-option {
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.4rem;
+
+  min-height: 95px;
+
+  padding:0.7rem;
+
+  background:
+    #fff;
+
+  border:
+    2px solid
+    var(--darker-black);
+
+  border-radius:
+    15px;
+
+  cursor: pointer;
+
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+
+
+  input {
+    position: absolute;
+
+    opacity: 0;
+
+    pointer-events: none;
+  }
+
+
+  img {
+    width: 55px;
+
+    height: 55px;
+
+    object-fit:
+      contain;
+  }
+
+
+  div {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 0.2rem;
+  }
+
+
+  strong {
+    font-size:
+      1.05rem;
+  }
+
+
+  span {
+    font-size:
+      0.78rem;
+
+    opacity: 0.6;
+  }
+
+
+  &:hover {
+    transform:
+      translateY(-4px);
+
+    box-shadow:
+      0
+      6px
+      0
+      var(--darker-black);
+  }
+}
+
+
+
+/* SELECTED RADIO */
+
+.effort-option.selected {
+  background:
+    var(--notso-energetic-yellow);
+
+  transform:
+    translate(
+      -3px,
+      -3px
+    );
+
+  box-shadow:
+    5px
+    5px
+    0
+    var(--darker-black);
+}
+
+
+
+/* Give each difficulty a little personality */
+
+.effort-option:nth-of-type(1).selected {
+  background:
+    var(--lightblue);
+}
+
+.effort-option:nth-of-type(2).selected {
+  background:
+    var(--energetic--yellow);
+}
+
+.effort-option:nth-of-type(3).selected {
+  background:
+    var(--passion-orange);
+
+  color: white;
+}
+
+
+
+/* =========================================
+   BUTTON
+========================================= */
+
+.add-method-button {
+  grid-column:
+    1 / -1;
+
+  min-height: 65px;
+
+  display: flex;
+
+  justify-content:
+    center;
+
+  align-items:
+    center;
+
+  gap: 0.75rem;
+
+  padding:
+    1rem
+    1.5rem;
+
+  background:
+    var(--darker-black);
+
+  color:
+    var(--font-color);
+
+  border:
+    3px solid
+    var(--darker-black);
+
+  border-radius:
+    14px;
+
+  font-size:
+    var(--fs-button);
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    5px
+    5px
+    0
+    var(--passion-orange);
+
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+
+
+  span {
+    display: grid;
+
+    place-items: center;
+
+    width: 30px;
+
+    height: 30px;
+
+    background:
+      var(--energetic--yellow);
+
+    color:
+      var(--darker-black);
+
+    border-radius: 50%;
+
+    font-size: 1.5rem;
+
+    line-height: 1;
+  }
+
+
+  &:hover {
+    background:
+      var(--passion-orange);
+
+    transform:
+      translate(
+        -3px,
+        -3px
+      );
+
+    box-shadow:
+      8px
+      8px
+      0
+      var(--darker-black);
+  }
+
+
+  &:active {
+    transform:
+      translate(
+        5px,
+        5px
+      );
+
+    box-shadow: none;
+  }
+}
+
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media only screen and (max-width: 950px) {
+
+  .add-method-section {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .add-method-intro {
+    max-width: 700px;
+  }
+}
+
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media only screen and (max-width: 650px) {
+
+  .add-method-section {
+    width: 94%;
+
+    padding:
+      1.25rem;
+
+    border-radius:
+      20px;
+
+    box-shadow:
+      6px
+      6px
+      0
+      var(--darker-black);
+  }
+
+
+  .add-method-form {
+    grid-template-columns:
+      1fr;
+
+    padding:
+      1.2rem;
+  }
+
+
+  .form-field,
+  .form-field--large,
+  .effort-selector,
+  .add-method-button {
+    grid-column:
+      1;
+  }
+
+
+  .effort-selector {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .effort-option {
+    min-height: 80px;
+  }
+
+
+  .add-method-intro {
+
+    h2 {
+      font-size:
+        clamp(
+          2.5rem,
+          13vw,
+          4rem
+        );
+    }
+  }
+}

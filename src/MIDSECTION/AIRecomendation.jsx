@@ -4,7 +4,9 @@ import './AISTYLE.scss';
 
 let AI_credit = JSON.parse(localStorage.getItem("AI_credits"));
 
-if(AI_credit === null){ localStorage.setItem("AI_credits", "2");  AI_credit = 2; console.log(AI_credit)};
+if(AI_credit === null){ localStorage.setItem("AI_credits", "2");  AI_credit = 2};
+
+
 
 export default function AIRecommendation() {
   const [step, setStep] = useState(0);

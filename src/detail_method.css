@@ -105,9 +105,7 @@ p, li{
   text-wrap: pretty;
 }
 .method-page {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 32px 20px;
+  padding: var(--space-1) var(--space-5);
   line-height: 1.7;
   color: var(--darker-black);
   font-family: Arial, sans-serif;
@@ -141,7 +139,7 @@ p, li{
   margin-bottom: 34px;
   display: flex;
   justify-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex-direction: column;
 }
 
@@ -175,13 +173,7 @@ p, li{
 /*======AI======*/
 
 section#overview{
-
-    width:min(1000px,95vw);
-
-    margin:auto;
-
-    margin-top:8rem;
-
+    width:min(100%,100vw);
 }
 
 .overview-header{
@@ -211,7 +203,7 @@ section#overview{
   height: 100vh;
 
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: 4rem 1fr 4rem;
 
   overflow: hidden;
 

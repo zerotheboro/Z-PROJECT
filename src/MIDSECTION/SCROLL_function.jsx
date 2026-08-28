@@ -2,7 +2,7 @@ import { the_animation_obj } from "../HEADER/ANIMATION";
 
 export default function animation_of_each_tip(section){
 
-    let array_of_tips_component = document.querySelectorAll(`#${section} .TIP h2,#${section} .TIP img,#${section} .TIP p,#${section} .TIP video,#MAIN_CONTENT button`)
+    let array_of_tips_component = document.querySelectorAll()
 
 
     const observer = new IntersectionObserver((components) => {

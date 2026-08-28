@@ -1,6 +1,6 @@
 .ai-adviser {
-  height: clamp(940px ,100vh, 1200px);
-  padding: var(--space-5) var(--space-2);
+  height: auto;
+  padding: calc(var(--space-5)*2) var(--space-2);
 
   background:linear-gradient(var(--lightblue), var(--darker-black), var(--darker-black), var(--darker-black), var(--darker-black),  var(--darker-black), var(--darker-black), var(--darker-black), var(--darker-black), var(--darker-black), var(--darker-black), var(--lightblue) );
 
@@ -569,7 +569,7 @@
 
 @media (max-width: 768px) {
   .ai-adviser {
-    padding: var(--space-4) var(--space-1);
+    padding: calc(var(--space-5)*1.6) var(--space-1);
 
     .ai-container {
       width: 100%;

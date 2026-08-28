@@ -16,6 +16,7 @@ import "./Library.scss" ;
 export default function Tips(props) {
 /*HEY IF YOU'RE LOOKING ITS MECHANISM U SHOULD LOOK AT 1.info.jsx => 2.section_each_tips => 3.BOTTOM TO UPWARD */
   const [show, setShow] = useState({});
+
   const [customize_list, setCustomize_list] = useState(loadcustomized_user_list())
   const [VNLanguage, setVNLanguage] = useState(false)
 
@@ -24,7 +25,7 @@ export default function Tips(props) {
   useEffect(() => {  
     const section_id = Object.keys(show).find(section => show[section] === true)
 
-    const section = document.getElementById(section_id);
+    const section = document.getElementById(section_id);    
 
     if(section){
       section.scrollIntoView({behavior: "smooth"})
@@ -262,6 +263,7 @@ function handleClickfor1(section_id){
               <source src={secondway} type="video/mp4"/>
             </video>
           </div>  
+          <h1>OR</h1>
       </section>
       <AIRecommendation/>
       <section className="sss-library" id="Library">
