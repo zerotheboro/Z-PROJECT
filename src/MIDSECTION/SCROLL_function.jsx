@@ -1,4 +1,4 @@
-import { the_animation_obj } from "../HEADER/ANIMATION";
+
 
 export default function animation_of_each_tip(section){
 

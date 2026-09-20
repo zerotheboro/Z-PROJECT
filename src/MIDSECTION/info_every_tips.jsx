@@ -262,6 +262,38 @@ const Promodoro = new DetailOfTips(
   <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 )
 
+const Flowtime_technique = new DetailOfTips(
+  {
+    eng: "Flowtime technique",
+    vn: "Kỹ thuật Flowtime",
+    src : image_importor("fish").src
+  },
+  {
+  eng: <>
+    This is a time management tool that helps you
+    manage your task, here are the 5 steps:<br/>
+    1.identify the tasks that need to be done<br/>
+    2.set a 25-minute timer<br/>
+    3.focus on finishing the tasks<br/>
+    4.after the focus timer runs out, take a 5 -minutes timed rest<br/>
+    5.repeat step1,2,3,4 four times then rest for 15-30 minutes and repeat the whole process..<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/>
+    </>,
+  vn: <>
+    Bước 1: Chọn một công việc cần hoàn thành.
+    Bước 2: Đặt đồng hồ trong 25 phút. <br/>
+    Bước 3: Tập trung hoàn toàn vào công việc cho đến khi chuông reo.<br/>
+    Bước 4: Nghỉ giải lao ngắn trong 5 phút.<br/>
+    Bước 5: Sau mỗi 4 lần nghỉ ngắn, hãy nghỉ một quãng dài từ 15–30 phút.<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/>
+  </>
+  },
+  {
+    src: <Clock/>,
+    format: "component"
+  },
+  "left",
+  <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+)
+
 const Everything_in_1_place = new DetailOfTips(
   {
     eng: "Everything in 1 place",
@@ -1474,17 +1506,17 @@ const point_call = new DetailOfTips(
         <li>hear & verify your own explaination </li>
       </ol>
       Lastly, point & call should not be used as a study methods and only for checking answers.<CITATE n="28" src="https://www.researchgate.net/publication/233927842_The_effects_of_finger_pointing_and_calling_on_cognitive_control_processes_in_the_task-switching_paradigm"/>
-       <ol>
-        <li>Nhìn & chỉ tay vào đề bài</li>
-        <li>Nói lớn & tự giải thích cho chính mình cách bạn tìm ra đáp án</li>
-        <li>Lắng nghe & xác thực lại lời giải thích của chính mình</li>
-      </ol>
   </>,
   vn:
     <>
     <p>
       Một kỹ thuật an toàn lao động cực kỳ thành công được các công nhân đường sắt Nhật Bản
        sử dụng để giảm thiểu sai sót do con người và loại bỏ chế độ "tự động" (làm theo bản năng). Vì vậy, phương pháp này nên được áp dụng chủ yếu cho việc kiểm tra lại đáp án theo các bước sau:<br/>
+       <ol>
+        <li>Nhìn & chỉ tay vào đề bài</li>
+        <li>Nói lớn & tự giải thích cho chính mình cách bạn tìm ra đáp án</li>
+        <li>Lắng nghe & xác thực lại lời giải thích của chính mình</li>
+      </ol>
     </p>
   </>}, 
   image_importor("point-call"),
@@ -1521,15 +1553,15 @@ const describe_problems = new DetailOfTips(
   </>}, 
   image_importor("KIDLIN"),
   "left",
-  <p>
-      to write problem clearly then you can try a universal adaptation of the Externalization Framework
+  <>
+  <p>to write problem clearly then you can try a universal adaptation of the Externalization Framework</p>
     <ol>
       <li><strong>Case Definition:</strong> Define clear boundaries, uniform parameters, and the exact sample group exhibiting the problem.</li>
       <li><strong>Case Deconstruction:</strong> Separate the data into two independent categories: observable behaviors versus environmental contexts.</li>
       <li><strong>Similarity Calculation:</strong> Calculate similarities across cases by grouping matching behavioral patterns and contextual traits independently.</li>
       <li><strong>Matrix Correlation:</strong> Cross-reference the behavioral data with the environmental context to pinpoint the exact root cause.</li><CITATE n="33" src="https://www.researchgate.net/publication/336091750_A_Conceptual_Framework_for_the_Externalization_of_Ecological_Wisdom_The_Case_of_Traditional_Korean_Gardens"/>
     </ol>
-  </p>
+  </>
 )
 
 

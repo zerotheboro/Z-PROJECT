@@ -4,9 +4,6 @@ import Table from "./TABLE.jsx";
 import { get_list_of_tips, loadcustomized_user_list, Customize} from "./info_every_tips.jsx";
 import animation_of_each_tip from "./SCROLL_function.jsx";
 import NAV from '../HEADER/header.jsx';
-import Daily from "./Day.jsx";
-import Hall_of_fame from "./HALL_of_fame.jsx";
-import Game from "./META.jsx";
 import firstway from "../../public/your_system.mp4"
 import secondway from "../../public/meta_note_pre.mp4"
 import AIRecommendation from "./AIRecomendation.jsx";
@@ -380,7 +377,6 @@ function handleClickfor1(section_id){
   </p>
 </section>
       {list_of_tips_JSX}     
-      <Game/>
     </>
   );
 

@@ -1,4 +1,3 @@
-import LOGO from "../image/LOGO.png";
 import Main from './COLOR_CHANGE.jsx';
 import Clock from "./Clock.jsx";
 import Timer from './Clock.jsx';

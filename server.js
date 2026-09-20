@@ -115,6 +115,7 @@ app.post("/api/recommend", async (req, res) => {
       model: "gpt-5.4-mini",
       instructions: SYSTEM_PROMPT,
       input: userPrompt,
+      store: true,
       text: {
         format: {
           type: "json_schema",

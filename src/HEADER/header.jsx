@@ -1,57 +1,222 @@
-
 import LOGO from "../image/LOGO.png";
-import Benifit from "./BENEFIT";
-import Instruction from "./instructions";
-import language from "../image/languages.svg"
-import quiz from "../image/quiz.svg"
-import team from "../image/team.svg"
-import contact from "../image/contact.svg"
-import wayofgroups from "../image/ways of groups.svg"
-import { the_animation_obj } from "./ANIMATION";
-import { useEffect, useRef } from "react";
+import language from "../image/languages.svg";
+import wayofgroups from "../image/ways of groups.svg";
+import contact from "../image/contact.svg";
+import quiz from "../image/quiz.svg";
+
+import {
+    NavLink,
+    Link,
+    useLocation
+} from "react-router-dom";
+
+import {
+    loginWithGoogle
+} from "../services/auth";
+
+import {
+    the_animation_obj
+} from "./ANIMATION";
+
+import {
+    useEffect,
+    useRef
+} from "react";
 
 
+function NAV(props) {
+
+    const old_Y_value =
+        useRef(window.scrollY);
+
+    const location =
+        useLocation();
 
 
+    useEffect(() => {
 
-function NAV(props){
-    let old_Y_value = useRef(window.scrollY);
+        const nav =
+            document.getElementById("NAV");
 
-    useEffect(()=>{
-        const nav = document.getElementById("NAV");
-        if(!nav) return;
+        if (!nav) return;
 
-        let nav_height =2*nav.offsetHeight;
+        const nav_height =
+            2 * nav.offsetHeight;
 
-        function nav_contract(){
 
-            let current_Y_value = window.scrollY;
+        function nav_contract() {
 
-            (current_Y_value > old_Y_value.current) ? the_animation_obj.the_nav_anime(nav, nav_height*-2) : the_animation_obj.the_nav_anime(nav, 0);
+            const current_Y_value =
+                window.scrollY;
 
-            old_Y_value.current = current_Y_value
+            if (
+                current_Y_value >
+                old_Y_value.current
+            ) {
+
+                the_animation_obj
+                    .the_nav_anime(
+                        nav,
+                        nav_height * -2
+                    );
+
+            } else {
+
+                the_animation_obj
+                    .the_nav_anime(
+                        nav,
+                        0
+                    );
+            }
+
+            old_Y_value.current =
+                current_Y_value;
         }
 
-        window.addEventListener("scroll", nav_contract, {passive: true});
 
-        return() =>{
-            window.removeEventListener("scroll", nav_contract);
-        }
-    },[])
-        
+        window.addEventListener(
+            "scroll",
+            nav_contract,
+            {
+                passive: true
+            }
+        );
 
 
-    const img_source = LOGO;
-    return(
-        <header>  
+        return () => {
+
+            window.removeEventListener(
+                "scroll",
+                nav_contract
+            );
+        };
+
+    }, []);
+
+
+    const isLibraryPage =
+        location.pathname === "/library";
+
+
+    return (
+        <header>
+
             <section id="NAV">
-                <span className="logo"><img src={img_source}/>EDULIENCE</span>
-                <a onClick={props.language}><span><img src={language}/>library language</span></a>
-                <a href="#Library"><span><img src={wayofgroups}/>library</span></a>
-                <a href="#quiz"><span><img src={quiz}/>quiz</span></a>
-                <a href="#footer"><span><img src={contact}/>contact</span></a>
-                <a href="#carasoul"><span><img src={team}/>about us</span></a>
+
+                {/* LOGO / HOME */}
+
+                <Link
+                    to="/"
+                    className="logo"
+                >
+                    <img
+                        src={LOGO}
+                        alt=""
+                    />
+
+                    EDULIENCE
+                </Link>
+
+
+                {/* LIBRARY */}
+
+                <NavLink
+                    to="/library"
+                    className={
+                        ({ isActive }) =>
+                            isActive
+                                ? "nav-link active"
+                                : "nav-link"
+                    }
+                >
+                    <span>
+
+                        <img
+                            src={wayofgroups}
+                            alt=""
+                        />
+
+                        Library
+
+                    </span>
+                </NavLink>
+
+                {/* TRAINING */}
+
+                <NavLink
+                    to="/training"
+                    className={
+                        ({ isActive }) =>
+                            isActive
+                                ? "nav-link active"
+                                : "nav-link"
+                    }
+                >
+                    <span>
+
+                        <img
+                            src={quiz}
+                            alt=""
+                        />
+
+                        Training
+
+                    </span>
+                </NavLink>
+
+
+                {/* CONTACT */}
+
+                <a
+                    href="#footer"
+                    className="nav-link"
+                >
+                    <span>
+
+                        <img
+                            src={contact}
+                            alt=""
+                        />
+
+                        Contact
+
+                    </span>
+                </a>
+
+
+                {/* SIGN IN */}
+
+                <button
+                    type="button"
+                    className="nav-sign-in"
+                    onClick={async () => {
+
+                        try {
+
+                            const user =
+                                await loginWithGoogle();
+
+                            console.log(
+                                "Logged in:",
+                                user.uid,
+                                user.email
+                            );
+
+                        } catch (error) {
+
+                            console.error(
+                                "Login failed:",
+                                error
+                            );
+                        }
+
+                    }}
+                >
+                    Sign in
+                </button>
+
             </section>
+
         </header>
     );
 }
