@@ -188,6 +188,11 @@ button:active{
   padding: 0;
 }
 
+.heroimg{
+  display: inline;
+  width: calc(var(--fs-h1)*0.8);
+}
+
 /* Give space because nav is fixed */
 main,
 section:first-of-type{
@@ -195,7 +200,7 @@ section:first-of-type{
 }
 
 /* OPTION BUTTONS */
-section.options_of_tips_to_choose{
+/*section.options_of_tips_to_choose{
   height: clamp(700px, 64svh, 800px);
   width: 100%;
   background-color: var(--lightblue);
@@ -232,6 +237,455 @@ section.options_of_tips_to_choose button{
 }
 section.options_of_tips_to_choose button:hover{
   background-color: var(--passion-orange);
+}
+
+<section
+  className="options_of_tips_to_choose"
+  id="ways_to_find"
+>
+  <div className="ways_intro">
+
+    <p className="ways_eyebrow">
+      FIND YOUR METHODS
+    </p>
+
+    <h1>
+      3 ways to find what works for you.
+    </h1>
+
+    <p>
+      You don't have to discover your learning
+      methods in only one way. Test them,
+      get suggestions, or explore them yourself.
+    </p>
+
+  </div>
+
+
+  <div className="ways_grid">*/
+
+.options_of_tips_to_choose {
+
+  width: 100%;
+
+  padding:
+    var(--space-5)
+    max(3vw, 20px);
+
+  background:
+    var(--lightblue);
+
+  color:
+    var(--darker-black);
+
+
+  /* =============================
+     INTRO
+     ============================= */
+
+  .ways_intro {
+
+    width:
+      min(1200px, 94vw);
+
+    margin:
+      0 auto
+      var(--space-4);
+  }
+
+
+  .ways_eyebrow {
+
+    margin:
+      0 0
+      var(--space-1);
+
+    color:
+      var(--complement-of-yellow);
+
+    font-size:
+      0.8rem;
+
+    font-weight:
+      900;
+
+    letter-spacing:
+      0.15em;
+
+    text-transform:
+      uppercase;
+  }
+
+
+  .ways_intro h1 {
+
+    max-width:
+      900px;
+
+    margin:
+      0 0
+      var(--space-2);
+
+    color:
+      var(--darker-black);
+
+    font-family:
+      var(--font-heading);
+
+    font-size:
+      var(--fs-h1);
+
+    font-weight:
+      400;
+
+    line-height:
+      0.95;
+  }
+
+
+  .ways_intro > p:last-child {
+
+    max-width:
+      720px;
+
+    margin: 0;
+
+    color:
+      var(--complement-of-yellow);
+
+    font-family:
+      var(--font-body);
+
+    font-size:
+      var(--fs-body);
+
+    font-weight:
+      600;
+
+    line-height:
+      1.6;
+  }
+
+
+  /* =============================
+     THREE WAYS
+     ============================= */
+
+  .ways_grid {
+
+    display:
+      grid;
+
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+
+    gap:
+      var(--space-2);
+
+    width:
+      min(1200px, 94vw);
+
+    margin:
+      0 auto;
+  }
+
+
+  /* =============================
+     CARD
+     ============================= */
+
+  .way_card {
+
+    display:
+      flex;
+
+    min-height:
+      420px;
+
+    flex-direction:
+      column;
+
+    align-items:
+      flex-start;
+
+    padding:
+      clamp(
+        1.7rem,
+        3vw,
+        2.5rem
+      );
+
+    border:
+      2px solid
+      var(--darker-black);
+
+    border-radius:
+      var(--radius);
+
+    background:
+      var(--complement-of-yellow);
+
+    box-shadow:
+      var(--shadow);
+
+    transition:
+      transform
+      160ms ease,
+      box-shadow
+      160ms ease;
+  }
+
+
+  .way_card:hover {
+
+    transform:
+      translateY(-7px);
+
+    box-shadow:
+      0 12px 0
+      rgba(0, 0, 0, 0.9);
+  }
+
+
+  /* NUMBER */
+
+  .way_number {
+
+    display:
+      inline-block;
+
+    margin-bottom:
+      auto;
+
+    color:
+      var(--energetic--yellow);
+
+    font-family:
+      var(--font-heading);
+
+    font-size:
+      clamp(
+        3rem,
+        5vw,
+        5rem
+      );
+
+    line-height:
+      1;
+  }
+
+
+  /* TITLE */
+
+  .way_card h2 {
+
+    margin:
+      var(--space-3)
+      0
+      var(--space-1);
+
+    color:
+      var(--font-color);
+
+    font-family:
+      var(--font-heading);
+
+    font-size:
+      clamp(
+        2rem,
+        3.5vw,
+        3.2rem
+      );
+
+    font-weight:
+      400;
+
+    line-height:
+      1;
+  }
+
+
+  /* DESCRIPTION */
+
+  .way_card p {
+
+    margin:
+      0 0
+      var(--space-3);
+
+    color:
+      rgba(
+        245,
+        245,
+        245,
+        0.75
+      );
+
+    font-family:
+      var(--font-body);
+
+    font-size:
+      var(--fs-body-mobile);
+
+    line-height:
+      1.6;
+  }
+
+
+  /* =============================
+     LINKS / BUTTONS
+     ============================= */
+
+  .way_card button,
+  .way_card a {
+
+    display:
+      inline-flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      center;
+
+    min-height:
+      48px;
+
+    margin-top:
+      auto;
+
+    padding:
+      0.8rem
+      1.3rem;
+
+    border:
+      2px solid
+      var(--darker-black);
+
+    border-radius:
+      var(--radius);
+
+    background:
+      var(--energetic--yellow);
+
+    color:
+      var(--darker-black);
+
+    font-family:
+      var(--font-body);
+
+    font-size:
+      var(--fs-button);
+
+    font-weight:
+      800;
+
+    text-decoration:
+      none;
+
+    cursor:
+      pointer;
+
+    box-shadow:
+      0 4px 0
+      rgba(0, 0, 0, 0.9);
+
+    transition:
+      transform
+      140ms ease,
+      background
+      140ms ease,
+      box-shadow
+      140ms ease;
+  }
+
+
+  .way_card button:hover,
+  .way_card a:hover {
+
+    background:
+      var(--passion-orange);
+
+    transform:
+      translateY(-2px);
+
+    box-shadow:
+      0 6px 0
+      rgba(0, 0, 0, 0.9);
+  }
+
+}
+
+
+/* =================================
+   TABLET
+   ================================= */
+
+@media (
+  max-width: 950px
+) {
+
+  .options_of_tips_to_choose {
+
+    .ways_grid {
+
+      grid-template-columns:
+        1fr;
+    }
+
+
+    .way_card {
+
+      min-height:
+        auto;
+    }
+
+
+    .way_number {
+
+      margin-bottom:
+        var(--space-2);
+    }
+
+  }
+
+}
+
+
+/* =================================
+   MOBILE
+   ================================= */
+
+@media (
+  max-width: 600px
+) {
+
+  .options_of_tips_to_choose {
+
+    padding:
+      var(--space-4)
+      12px;
+
+
+    .ways_intro,
+    .ways_grid {
+
+      width:
+        100%;
+    }
+
+
+    .way_card {
+
+      padding:
+        1.5rem;
+    }
+
+  }
+
 }
 
 
@@ -280,54 +734,6 @@ div#BENEFIT button{
     width: min(280px, 40%);
   }
 }
-
-
-.quiz{
-  background-color: var(--energetic--yellow);
-  justify-self: center;
-  max-width: 1400px;
-  border-radius: 20px;
-  margin: 0 var(--space-1) 12rem; 
-  display: grid;
-  grid-template:1fr 1fr 1fr/ 1fr 1fr;
-  grid-template-areas: "question question"
-                        "ans0 ans1"
-                        "ans0 ans1"
-                        "ans2 ans3"
-                        "ans2 ans3"
-                        "check check";
-  gap: var(--space-1); 
-  padding: var(--space-3); 
-  .question{
-    background-color: var(--energetic--yellow);
-    align-self: center;
-    grid-area: question;
-    padding: var(--space-2) 0
-  };
-  .ans0{
-    grid-area:  ans0;
-  };
-  .ans1{
-    grid-area:  ans1;
-  };
-  .ans2{
-    grid-area:  ans2;
-  };
-  .ans3{
-    grid-area:  ans3;
-  };
-
-  .check-button{
-    grid-area: check;
-    background-color: var(--notso-energetic-yellow)
-  };
-
-
-  div.answer:focus{
-    background-color: var(--passion-orange);
-  }
-}
-
 
 .assessment-option {
   border: 2px solid #1d1d1d;

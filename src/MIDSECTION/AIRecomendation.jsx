@@ -67,7 +67,7 @@ export default function AIRecommendation() {
   }
 
   return (
-    <section className="ai-adviser">
+    <section className="ai-adviser" id="AI-recommendation">
       <div className="ai-container">
         <h1>Edulience's deep suggestion</h1>
 

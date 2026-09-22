@@ -4,9 +4,9 @@ import Table from "./TABLE.jsx";
 import { get_list_of_tips, loadcustomized_user_list, Customize} from "./info_every_tips.jsx";
 import animation_of_each_tip from "./SCROLL_function.jsx";
 import NAV from '../HEADER/header.jsx';
-import firstway from "../../public/your_system.mp4"
-import secondway from "../../public/meta_note_pre.mp4"
+import Footer from "../footer.jsx";
 import AIRecommendation from "./AIRecomendation.jsx";
+import LOGO from "../../public/LOGO.png";
 import "./Library.scss" ;
 
 
@@ -246,22 +246,121 @@ function handleClickfor1(section_id){
   return (
     <>
       <NAV language={handleClickforLanguage}/>
-      <section className="options_of_tips_to_choose" id="ways_to_find">
-        <h1>3 ways to find your SSS:</h1>
-          <div>
-            <p>1st: answer questions in your-system</p>
-            <video autoPlay controls loop>
-              <source src={firstway} type="video/mp4"/>
-            </video>
-          </div>
-          <div>
-            <p>2nd: discover, compare every methods</p>
-            <video autoPlay controls loop>
-              <source src={secondway} type="video/mp4"/>
-            </video>
-          </div>  
-          <h1>OR</h1>
-      </section>
+      <header>
+      <div id="BENEFIT">
+        <h1>Edulience finds y<img src={LOGO} className="heroimg"/>ur<br/><u>suitable study strategy!</u><br/></h1>
+        <a href="#ways_to_find"><button><h2>Start finding</h2></button></a>
+      </div>
+      <div class="section_border border_header"></div>
+    </header>
+      <section
+  className="options_of_tips_to_choose"
+  id="ways_to_find"
+  >
+    <div className="ways_intro">
+
+      <p className="ways_eyebrow">
+        FIND YOUR METHODS
+      </p>
+
+      <h1>
+        3 ways to find what works for you.
+      </h1>
+
+      <p>
+        You don't have to discover your learning
+        methods in only one way. Test them,
+        get suggestions, or explore them yourself.
+      </p>
+
+    </div>
+
+
+    <div className="ways_grid">
+
+      {/* TRAINING */}
+
+      <article className="way_card">
+
+        <span className="way_number">
+          01
+        </span>
+
+        <h2>
+          Training
+        </h2>
+
+        <p>
+          Try learning methods in real tasks,
+          compare your performance, and build
+          a learning profile from actual evidence.
+        </p>
+
+        <button
+          type="button"
+          onClick={() =>
+            navigate("/training")
+          }
+        >
+          Start training →
+        </button>
+
+      </article>
+
+
+      {/* AI */}
+
+      <article className="way_card">
+
+        <span className="way_number">
+          02
+        </span>
+
+        <h2>
+          AI Deep Suggestion
+        </h2>
+
+        <p>
+          Describe what you're learning,
+          what you're struggling with, and
+          what you need. AI helps narrow down
+          methods worth trying.
+        </p>
+
+        <a href="#AI-recommendation">
+          Ask AI →
+        </a>
+
+      </article>
+
+
+      {/* LIBRARY */}
+
+      <article className="way_card">
+
+        <span className="way_number">
+          03
+        </span>
+
+        <h2>
+          Explore the Library
+        </h2>
+
+        <p>
+          Browse the learning methods yourself,
+          understand how they work, compare them,
+          and choose what you want to experiment with.
+        </p>
+
+        <a href="#Library">
+          Explore methods →
+        </a>
+
+      </article>
+
+    </div>
+
+  </section>
       <AIRecommendation/>
       <section className="sss-library" id="Library">
   <header className="sss-library__header">
@@ -366,7 +465,6 @@ function handleClickfor1(section_id){
 
             <p>{information.description}</p>
           </div>
-
         </button>
       );
     })}
@@ -376,8 +474,10 @@ function handleClickfor1(section_id){
     Select a collection to reveal its complete strategy guide below.
   </p>
 </section>
-      {list_of_tips_JSX}     
+      {list_of_tips_JSX}  
+      <Footer/>  
     </>
   );
+  
 
 }
