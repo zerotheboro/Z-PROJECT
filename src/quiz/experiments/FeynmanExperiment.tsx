@@ -1,15 +1,19 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  feynmanExperiment
-} from "../methodLabData";
-
 import type {
-  MethodExperimentResult
-} from "../type";
+  ExplanationEngineData,
+  LabEngineProps
+} from "../methodEngineTypes";
+import {
+  LabRatings,
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  StudyPanel,
+  TextResponse,
+  useExperimentTimer
+} from "../engines/shared";
 
 type Stage =
   | "intro"
@@ -19,13 +23,13 @@ type Stage =
   | "test"
   | "reflection";
 
-type Props = {
-  onComplete: (
-    result: MethodExperimentResult
-  ) => void;
-};
+type Props = LabEngineProps<ExplanationEngineData>;
 
 function FeynmanExperiment({
+  method,
+  category,
+  name,
+  data,
   onComplete
 }: Props) {
 
@@ -71,17 +75,18 @@ function FeynmanExperiment({
   ] =
     useState<number | null>(null);
 
-  const experimentStart =
-    useRef<number | null>(null);
+  const {
+    start: startTimer,
+    elapsedMs
+  } = useExperimentTimer();
 
   const currentQuestion =
-    feynmanExperiment
+    data
       .questions[questionIndex];
 
   function startExperiment() {
 
-    experimentStart.current =
-      Date.now();
+    startTimer();
 
     setStage("study");
   }
@@ -101,7 +106,7 @@ function FeynmanExperiment({
 
     if (
       questionIndex <
-      feynmanExperiment.questions.length - 1
+      data.questions.length - 1
     ) {
 
       setQuestionIndex(
@@ -124,39 +129,26 @@ function FeynmanExperiment({
       return;
     }
 
-    let correct = 0;
+    const {
+      correct,
+      total,
+      score
+    } = scoreMultipleChoice(
+      data.questions,
+      answers
+    );
 
-    feynmanExperiment
-      .questions
-      .forEach((question) => {
+    const result = {
 
-        if (
-          answers[question.id] ===
-          question.correct
-        ) {
-          correct += 1;
-        }
+      method,
 
-      });
-
-    const total =
-      feynmanExperiment.questions.length;
-
-    const result:
-      MethodExperimentResult = {
-
-      method: "feynman",
-
-      category: "understanding",
+      category,
 
       correct,
 
       total,
 
-      score:
-        total === 0
-          ? 0
-          : correct / total,
+      score,
 
       confidence,
 
@@ -164,11 +156,7 @@ function FeynmanExperiment({
 
       willingnessToUse,
 
-      timeSpentMs:
-        experimentStart.current
-          ? Date.now() -
-            experimentStart.current
-          : 0
+      timeSpentMs: elapsedMs()
     };
 
     /*
@@ -205,7 +193,7 @@ function FeynmanExperiment({
           </p>
 
           <h2>
-            Feynman Technique
+            {name}
           </h2>
 
           <p>
@@ -236,19 +224,19 @@ function FeynmanExperiment({
           </p>
 
           <h2>
-            {feynmanExperiment.topic}
+            {data.topic}
           </h2>
 
-          <div className="study-content">
+          <StudyPanel>
 
             <p>
               {
-                feynmanExperiment
+                data
                   .explanation
               }
             </p>
 
-          </div>
+          </StudyPanel>
 
           <button
             type="button"
@@ -282,21 +270,16 @@ function FeynmanExperiment({
             studied the topic.
           </p>
 
-          <textarea
+          <TextResponse
             value={explanation}
-            onChange={(event) =>
-              setExplanation(
-                event.target.value
-              )
-            }
+            onChange={setExplanation}
             placeholder="Explain the concept..."
           />
 
           <button
             type="button"
             disabled={
-              explanation.trim().length <
-              20
+              explanation.trim().length < 20
             }
             onClick={() =>
               setStage("simplify")
@@ -327,15 +310,11 @@ function FeynmanExperiment({
             were teaching a younger student.
           </p>
 
-          <textarea
+          <TextResponse
             value={
               simplifiedExplanation
             }
-            onChange={(event) =>
-              setSimplifiedExplanation(
-                event.target.value
-              )
-            }
+            onChange={setSimplifiedExplanation}
             placeholder="Explain it simply..."
           />
 
@@ -343,8 +322,7 @@ function FeynmanExperiment({
             type="button"
             disabled={
               simplifiedExplanation
-                .trim()
-                .length < 15
+                .trim().length < 15
             }
             onClick={() =>
               setStage("test")
@@ -370,72 +348,30 @@ function FeynmanExperiment({
             {questionIndex + 1}
             {" / "}
             {
-              feynmanExperiment
+              data
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentQuestion
-                .question
+          <MultipleChoiceRunner
+            question={currentQuestion}
+            selectedAnswer={
+              answers[currentQuestion.id]
             }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentQuestion
-                .options
-                .map((option) => {
-
-                  const selected =
-                    answers[
-                      currentQuestion.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        selectAnswer(
-                          currentQuestion.id,
-                          option
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+            onSelect={(option) =>
+              selectAnswer(
+                currentQuestion.id,
+                option
+              )
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !answers[
-                currentQuestion.id
-              ]
+            onNext={nextQuestion}
+            nextLabel={
+              questionIndex ===
+              data.questions.length - 1
+                ? "Finish test"
+                : "Next question"
             }
-            onClick={
-              nextQuestion
-            }
-          >
-            {questionIndex ===
-            feynmanExperiment
-              .questions.length -
-              1
-              ? "Finish test"
-              : "Next question"}
-          </button>
+          />
 
         </div>
       )}
@@ -450,105 +386,37 @@ function FeynmanExperiment({
           </p>
 
           <h2>
-            How did the Feynman
-            Technique feel?
+            How did the {name} feel?
           </h2>
 
-          <h3>
-            How confident are you that
-            you understood the concept?
-          </h3>
-
-          <div>
-            {[1, 2, 3, 4, 5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    confidence === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            How easy was this method
-            to use?
-          </h3>
-
-          <div>
-            {[1, 2, 3, 4, 5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    ease === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setEase(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            Would you use this while
-            studying?
-          </h3>
-
-          <div>
-            {[1, 2, 3, 4, 5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    willingnessToUse ===
-                    value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setWillingnessToUse(
-                      value
-                    )
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null ||
-              ease === null ||
-              willingnessToUse ===
-                null
-            }
-            onClick={
-              finishExperiment
-            }
-          >
-            Complete experiment
-          </button>
+          <LabRatings
+            confidence={{
+              prompt: <>
+                How confident are you that
+                you understood the concept?
+              </>,
+              value: confidence,
+              onChange: setConfidence
+            }}
+            ease={{
+              prompt: <>
+                How easy was this method
+                to use?
+              </>,
+              value: ease,
+              onChange: setEase
+            }}
+            willingnessToUse={{
+              prompt: <>
+                Would you use this while
+                studying?
+              </>,
+              value: willingnessToUse,
+              onChange: setWillingnessToUse
+            }}
+            completeLabel="Complete experiment"
+            onComplete={finishExperiment}
+          />
 
         </div>
       )}

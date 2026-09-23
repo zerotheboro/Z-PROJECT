@@ -1,33 +1,22 @@
-import ActiveRecallExperiment
-  from "../experiments/ActiveRecallExperiment";
-
-import FeynmanExperiment
-  from "../experiments/FeynmanExperiment";
-
-import CornellExperiment
-  from "../experiments/CornellExperiment";
-
-import InterleavingExperiment
-  from "../experiments/InterleavingExperiment";
-
-import MemoryPalaceExperiment
-  from "../experiments/MemoryPalaceExperiment";
-
 import {
-  useMemo,
   useState
 } from "react";
 
+import {
+  getMethodDefinition
+} from "../methodRegistry";
+import {
+  EngineProgress
+} from "../engines/shared";
+
 import type {
-  LearningSituation,
-  BaselineResult,
   MethodExperimentResult,
   MethodLabResult,
-  MethodId
+  TrainingMethodId
 } from "../type";
 
 type Props = {
-  methods: MethodId[];
+  methods: TrainingMethodId[];
 
   onComplete: (
     result: MethodLabResult
@@ -107,83 +96,29 @@ console.log(
     });
   }
 
- function renderExperiment() {
-
-  switch (currentMethod) {
-
-    case "active-recall":
-      return (
-        <ActiveRecallExperiment
-          onComplete={
-            handleExperimentComplete
-          }
-        />
-      );
-
-    case "feynman":
-      return (
-        <FeynmanExperiment
-          onComplete={
-            handleExperimentComplete
-          }
-        />
-      );
-      
-    case "cornell":
-      return (
-        <CornellExperiment
-          onComplete={
-            handleExperimentComplete
-          }
-        />
-      );
-
-    case "interleaving":
-      return (
-        <InterleavingExperiment
-          onComplete={
-            handleExperimentComplete
-          }
-        />
-      );
-    
-    case "memory-palace":
-      return (
-        <MemoryPalaceExperiment
-          onComplete={
-            handleExperimentComplete
-          }
-        />
-      );
-     
-
-    default:
-      return (
-        <p>
-          Experiment not implemented yet.
-        </p>
-      );
-    }
-  }
+  const experiment =
+    getMethodDefinition(
+      currentMethod
+    ).renderLab(
+      handleExperimentComplete
+    );
   return (
     <section className="method-lab">
 
-      <div className="method-lab-progress">
-
-        <span>
-          SECTION 3 OF 6
-        </span>
-
-        <span>
+      <EngineProgress
+        className="method-lab-progress"
+        label="SECTION 3 OF 6"
+        status={
+          <>
           Experiment{" "}
           {currentExperimentIndex + 1}
           {" / "}
           {methods.length}
-        </span>
+          </>
+        }
+      />
 
-      </div>
-
-      {renderExperiment()}
+      {experiment}
 
     </section>
   );

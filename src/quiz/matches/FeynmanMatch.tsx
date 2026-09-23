@@ -1,15 +1,19 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  feynmanMatchData
-} from "../methodMatchData";
-
 import type {
-  MethodMatchExperimentResult
-} from "../type";
+  ExplanationEngineData,
+  MatchEngineProps
+} from "../methodEngineTypes";
+import {
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  StudyPanel,
+  TextResponse,
+  useExperimentTimer,
+  VerificationConfidence
+} from "../engines/shared";
 
 type Stage =
   | "study"
@@ -17,15 +21,11 @@ type Stage =
   | "test"
   | "confidence";
 
-type Props = {
-  originalScore: number | null;
-
-  onComplete: (
-    result: MethodMatchExperimentResult
-  ) => void;
-};
+type Props = MatchEngineProps<ExplanationEngineData>;
 
 function FeynmanMatch({
+  method,
+  data,
   originalScore,
   onComplete
 }: Props) {
@@ -55,18 +55,20 @@ function FeynmanMatch({
   ] =
     useState<number | null>(null);
 
-  const startTime =
-    useRef(Date.now());
+  const { elapsedMs } =
+    useExperimentTimer({
+      startImmediately: true
+    });
 
   const currentQuestion =
-    feynmanMatchData
+    data
       .questions[questionIndex];
 
   function nextQuestion() {
 
     if (
       questionIndex <
-      feynmanMatchData.questions.length - 1
+      data.questions.length - 1
     ) {
 
       setQuestionIndex(
@@ -85,29 +87,12 @@ function FeynmanMatch({
       return;
     }
 
-    let correct = 0;
-
-    feynmanMatchData
-      .questions
-      .forEach((question) => {
-
-        if (
-          answers[question.id] ===
-          question.correct
-        ) {
-          correct += 1;
-        }
-
-      });
-
-    const total =
-      feynmanMatchData
-        .questions.length;
-
-    const verificationScore =
-      total === 0
-        ? 0
-        : correct / total;
+    const {
+      score: verificationScore
+    } = scoreMultipleChoice(
+      data.questions,
+      answers
+    );
 
     console.log(
       "FEYNMAN ROUND 2 EXPLANATION:",
@@ -115,7 +100,7 @@ function FeynmanMatch({
     );
 
     onComplete({
-      method: "feynman",
+      method,
 
       firstScore:
         originalScore,
@@ -124,9 +109,7 @@ function FeynmanMatch({
 
       confidence,
 
-      timeSpentMs:
-        Date.now() -
-        startTime.current
+      timeSpentMs: elapsedMs()
     });
   }
 
@@ -137,24 +120,24 @@ function FeynmanMatch({
         <div>
 
           <p>
-            FEYNMAN · ROUND 2
+            {data.title.toUpperCase()}
           </p>
 
           <h2>
             {
-              feynmanMatchData
+              data
                 .topic
             }
           </h2>
 
-          <div className="study-content">
+          <StudyPanel>
             <p>
               {
-                feynmanMatchData
+                data
                   .explanation
               }
             </p>
-          </div>
+          </StudyPanel>
 
           <button
             type="button"
@@ -176,22 +159,16 @@ function FeynmanMatch({
             simple language.
           </h2>
 
-          <textarea
+          <TextResponse
             value={explanation}
-            onChange={(event) =>
-              setExplanation(
-                event.target.value
-              )
-            }
+            onChange={setExplanation}
             placeholder="Explain it simply..."
           />
 
           <button
             type="button"
             disabled={
-              explanation
-                .trim()
-                .length < 20
+              explanation.trim().length < 20
             }
             onClick={() =>
               setStage("test")
@@ -215,74 +192,30 @@ function FeynmanMatch({
             {questionIndex + 1}
             {" / "}
             {
-              feynmanMatchData
+              data
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentQuestion
-                .question
+          <MultipleChoiceRunner
+            question={currentQuestion}
+            selectedAnswer={
+              answers[currentQuestion.id]
             }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentQuestion
-                .options
-                .map((option) => {
-
-                  const selected =
-                    answers[
-                      currentQuestion.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        setAnswers(
-                          (prev) => ({
-                            ...prev,
-                            [currentQuestion.id]:
-                              option
-                          })
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+            onSelect={(option) =>
+              setAnswers((prev) => ({
+                ...prev,
+                [currentQuestion.id]: option
+              }))
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !answers[
-                currentQuestion.id
-              ]
+            onNext={nextQuestion}
+            nextLabel={
+              questionIndex ===
+              data.questions.length - 1
+                ? "Finish test"
+                : "Next question"
             }
-            onClick={
-              nextQuestion
-            }
-          >
-            {questionIndex ===
-            feynmanMatchData
-              .questions.length - 1
-              ? "Finish test"
-              : "Next question"}
-          </button>
+          />
 
         </div>
       )}
@@ -290,42 +223,17 @@ function FeynmanMatch({
       {stage === "confidence" && (
         <div>
 
-          <h2>
-            How confident are you
-            that you understood the
-            concept?
-          </h2>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    confidence === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null
-            }
-            onClick={finish}
-          >
-            Complete verification
-          </button>
+          <VerificationConfidence
+            prompt={<>
+              How confident are you
+              that you understood the
+              concept?
+            </>}
+            value={confidence}
+            onChange={setConfidence}
+            completeLabel="Complete verification"
+            onComplete={finish}
+          />
 
         </div>
       )}

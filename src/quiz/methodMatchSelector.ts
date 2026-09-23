@@ -1,13 +1,27 @@
 import type {
   MethodExperimentResult,
-  MethodId
+  TrainingMethodId
+} from "./type";
+import {
+  isTrainingMethodId
 } from "./type";
 
 export function selectMethodsForVerification(
   experiments: MethodExperimentResult[]
-): MethodId[] {
+): TrainingMethodId[] {
 
   const ranked = [...experiments]
+    .filter(
+      (
+        experiment
+      ): experiment is
+        MethodExperimentResult & {
+          method: TrainingMethodId;
+        } =>
+        isTrainingMethodId(
+          experiment.method
+        )
+    )
     .map((experiment) => {
 
       /*

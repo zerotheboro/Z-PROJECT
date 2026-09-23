@@ -1,0 +1,96 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`current method copy > keeps metadata, introductions, and verification headings stable for all five methods 1`] = `
+[
+  {
+    "id": "active-recall",
+    "introduction": {
+      "description": "Active Recall means deliberately retrieving information from memory instead of repeatedly looking at your notes.",
+      "example": "Read about photosynthesis, close the page, then explain everything you remember.",
+      "howTo": [
+        "Study the material.",
+        "Hide or close it.",
+        "Try to remember the information.",
+        "Check what you missed.",
+      ],
+      "knowledgePrompt": "Which method mainly involves retrieving information without looking at the material?",
+      "name": "Active Recall",
+    },
+    "name": "Active Recall",
+    "shortName": undefined,
+    "verificationHeading": "ACTIVE RECALL · ROUND 2",
+  },
+  {
+    "id": "feynman",
+    "introduction": {
+      "description": "The Feynman Technique helps you test understanding by explaining a concept in simple language.",
+      "example": "Learn why seasons happen, then explain it as if teaching a younger student.",
+      "howTo": [
+        "Learn the concept.",
+        "Explain it in your own words.",
+        "Notice where your explanation becomes unclear.",
+        "Review those gaps and simplify again.",
+      ],
+      "knowledgePrompt": "Which method mainly involves explaining a concept in simple language?",
+      "name": "Feynman Technique",
+    },
+    "name": "Feynman Technique",
+    "shortName": undefined,
+    "verificationHeading": "FEYNMAN · ROUND 2",
+  },
+  {
+    "id": "cornell",
+    "introduction": {
+      "description": "Cornell Notes organizes information into main notes, cues or questions, and a short summary.",
+      "example": "After a biology lesson, write your notes, create questions beside them, and summarize the topic below.",
+      "howTo": [
+        "Record important information.",
+        "Create cues or questions.",
+        "Summarize the main idea.",
+        "Use the cues later for review.",
+      ],
+      "knowledgePrompt": "Which method organizes information into main notes, cues and a summary?",
+      "name": "Cornell Notes",
+    },
+    "name": "Cornell Notes",
+    "shortName": "Cornell",
+    "verificationHeading": "CORNELL NOTES · ROUND 2",
+  },
+  {
+    "id": "interleaving",
+    "introduction": {
+      "description": "Interleaving means mixing different types of problems or material instead of practising one type repeatedly.",
+      "example": "Instead of doing ten percentage problems first, mix percentages, equations and averages.",
+      "howTo": [
+        "Choose several related problem types.",
+        "Mix them during practice.",
+        "Identify which approach each problem requires.",
+        "Switch between approaches.",
+      ],
+      "knowledgePrompt": "Which method involves mixing different problem types during practice?",
+      "name": "Interleaving",
+    },
+    "name": "Interleaving",
+    "shortName": undefined,
+    "verificationHeading": "INTERLEAVING · ROUND 2",
+  },
+  {
+    "id": "memory-palace",
+    "introduction": {
+      "description": "The Memory Palace technique links information to familiar imagined locations so those locations become retrieval cues.",
+      "example": "Imagine placing five facts around different locations in your bedroom.",
+      "howTo": [
+        "Choose familiar locations.",
+        "Assign information to each location.",
+        "Create vivid mental images.",
+        "Mentally walk through the locations to retrieve the information.",
+      ],
+      "knowledgePrompt": "Which method links information to familiar imagined locations?",
+      "name": "Memory Palace",
+    },
+    "name": "Memory Palace",
+    "shortName": undefined,
+    "verificationHeading": "MEMORY PALACE · ROUND 2",
+  },
+]
+`;

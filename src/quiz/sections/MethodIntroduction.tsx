@@ -3,18 +3,19 @@ import {
 } from "react";
 
 import {
-  methodIntroductionData
-} from "../methodIntroductionData";
+  getMethodDefinition,
+  getMethodSelectionReasons
+} from "../methodRegistry";
 
 import type {
   LearningSituation,
   BaselineResult,
-  MethodId,
-  MethodIntroductionResult
+  MethodIntroductionResult,
+  TrainingMethodId
 } from "../type";
 
 type Props = {
-  methods: MethodId[];
+  methods: TrainingMethodId[];
 
   learningSituation:
     LearningSituation;
@@ -56,196 +57,32 @@ function MethodIntroduction({
     answers,
     setAnswers
   ] =
-    useState<Record<string, MethodId>>({});
+    useState<Record<string, TrainingMethodId>>({});
 
   const currentMethod =
     methods[methodIndex];
 
   const currentData =
-    methodIntroductionData[
+    getMethodDefinition(
       currentMethod
-    ];
+    ).introduction;
 
   const knowledgeMethod =
     methods[questionIndex];
 
   const knowledgeData =
-    methodIntroductionData[
+    getMethodDefinition(
       knowledgeMethod
-    ];
+    ).introduction;
 
   function getReasons(
-    method: MethodId
+    method: TrainingMethodId
   ): string[] {
-
-    const reasons: string[] = [];
-
-    if (
-      method === "active-recall"
-    ) {
-
-      if (
-        learningSituation
-          .difficulties
-          .includes("forgetting")
-      ) {
-        reasons.push(
-          "You reported difficulty remembering information."
-        );
-      }
-
-      if (
-        learningSituation
-          .contentTypes
-          .includes("facts")
-      ) {
-        reasons.push(
-          "You often study factual material."
-        );
-      }
-
-      if (
-        baseline.memory.score <
-        0.7
-      ) {
-        reasons.push(
-          "Your baseline suggests memory is worth testing further."
-        );
-      }
-    }
-
-    if (
-      method === "memory-palace"
-    ) {
-
-      if (
-        learningSituation
-          .difficulties
-          .includes("forgetting")
-      ) {
-        reasons.push(
-          "You reported difficulty remembering information."
-        );
-      }
-
-      if (
-        learningSituation
-          .contentTypes
-          .includes("facts")
-      ) {
-        reasons.push(
-          "You often need to remember factual material."
-        );
-      }
-    }
-
-    if (
-      method === "feynman"
-    ) {
-
-      if (
-        learningSituation
-          .difficulties
-          .includes("understanding")
-      ) {
-        reasons.push(
-          "You reported difficulty understanding concepts."
-        );
-      }
-
-      if (
-        learningSituation
-          .contentTypes
-          .includes("concepts")
-      ) {
-        reasons.push(
-          "Conceptual material is important in your learning."
-        );
-      }
-
-      if (
-        baseline
-          .understanding
-          .score < 0.7
-      ) {
-        reasons.push(
-          "Your understanding baseline makes this useful to test."
-        );
-      }
-    }
-
-    if (
-      method === "cornell"
-    ) {
-
-      if (
-        learningSituation
-          .contentTypes
-          .includes("reading")
-      ) {
-        reasons.push(
-          "You regularly work with reading material."
-        );
-      }
-
-      if (
-        learningSituation
-          .contentTypes
-          .includes("essays")
-      ) {
-        reasons.push(
-          "Organizing ideas may help with essay-based material."
-        );
-      }
-
-      if (
-        learningSituation
-          .difficulties
-          .includes(
-            "prioritization"
-          )
-      ) {
-        reasons.push(
-          "You reported difficulty identifying or prioritizing important information."
-        );
-      }
-    }
-
-    if (
-      method ===
-      "interleaving"
-    ) {
-
-      if (
-        learningSituation
-          .contentTypes
-          .includes("problems")
-      ) {
-        reasons.push(
-          "You regularly work with problem-solving material."
-        );
-      }
-
-      if (
-        learningSituation
-          .difficulties
-          .includes("application")
-      ) {
-        reasons.push(
-          "You reported difficulty applying what you learn."
-        );
-      }
-    }
-
-    if (
-      reasons.length === 0
-    ) {
-      reasons.push(
-        "This method gives us another useful learning approach to compare."
-      );
-    }
-
-    return reasons;
+    return getMethodSelectionReasons(
+      method,
+      learningSituation,
+      baseline
+    );
   }
 
   function nextMethod() {
@@ -264,8 +101,20 @@ function MethodIntroduction({
     setStage("knowledge");
   }
 
+  function lastMethod(){
+    if(
+      methodIndex - 1 >= 0
+    ) {
+      setMethodIndex(
+        prev => prev - 1
+      );
+
+      return;
+    }
+  }
+
   function selectAnswer(
-    answer: MethodId
+    answer: TrainingMethodId
   ) {
 
     setAnswers(prev => ({
@@ -416,6 +265,15 @@ function MethodIntroduction({
             }
           </p>
 
+           <button
+            type="button"
+            onClick={
+              lastMethod
+            }
+          >
+            Last method
+          </button>
+
           <button
             type="button"
             onClick={
@@ -429,7 +287,6 @@ function MethodIntroduction({
                 : "Next method"
             }
           </button>
-
         </div>
       )}
 
@@ -461,13 +318,9 @@ function MethodIntroduction({
                 method => {
 
                   const info =
-                    methodIntroductionData[
+                    getMethodDefinition(
                       method
-                    ];
-
-                  if (!info) {
-                    return null;
-                  }
+                    ).introduction;
 
                   const selected =
                     answers[

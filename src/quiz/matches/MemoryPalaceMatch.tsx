@@ -1,15 +1,18 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  memoryPalaceMatchData
-} from "../methodMatchData";
-
 import type {
-  MethodMatchExperimentResult
-} from "../type";
+  MatchEngineProps,
+  SpatialMemoryEngineData
+} from "../methodEngineTypes";
+import {
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  TextResponse,
+  useExperimentTimer,
+  VerificationConfidence
+} from "../engines/shared";
 
 type Stage =
   | "encode"
@@ -17,15 +20,11 @@ type Stage =
   | "test"
   | "confidence";
 
-type Props = {
-  originalScore: number | null;
-
-  onComplete: (
-    result: MethodMatchExperimentResult
-  ) => void;
-};
+type Props = MatchEngineProps<SpatialMemoryEngineData>;
 
 function MemoryPalaceMatch({
+  method,
+  data,
   originalScore,
   onComplete
 }: Props) {
@@ -55,18 +54,20 @@ function MemoryPalaceMatch({
   ] =
     useState<number | null>(null);
 
-  const startTime =
-    useRef(Date.now());
+  const { elapsedMs } =
+    useExperimentTimer({
+      startImmediately: true
+    });
 
   const currentQuestion =
-    memoryPalaceMatchData
+    data
       .questions[questionIndex];
 
   function nextQuestion() {
 
     if (
       questionIndex <
-      memoryPalaceMatchData
+      data
         .questions.length - 1
     ) {
 
@@ -86,29 +87,12 @@ function MemoryPalaceMatch({
       return;
     }
 
-    let correct = 0;
-
-    memoryPalaceMatchData
-      .questions
-      .forEach((question) => {
-
-        if (
-          answers[question.id] ===
-          question.correct
-        ) {
-          correct += 1;
-        }
-
-      });
-
-    const total =
-      memoryPalaceMatchData
-        .questions.length;
-
-    const verificationScore =
-      total === 0
-        ? 0
-        : correct / total;
+    const {
+      score: verificationScore
+    } = scoreMultipleChoice(
+      data.questions,
+      answers
+    );
 
     console.log(
       "MEMORY PALACE ROUND 2 RECALL:",
@@ -116,7 +100,7 @@ function MemoryPalaceMatch({
     );
 
     onComplete({
-      method: "memory-palace",
+      method,
 
       firstScore:
         originalScore,
@@ -125,9 +109,7 @@ function MemoryPalaceMatch({
 
       confidence,
 
-      timeSpentMs:
-        Date.now() -
-        startTime.current
+      timeSpentMs: elapsedMs()
     });
   }
 
@@ -140,7 +122,7 @@ function MemoryPalaceMatch({
         <div>
 
           <p>
-            MEMORY PALACE · ROUND 2
+            {data.title.toUpperCase()}
           </p>
 
           <h2>
@@ -155,7 +137,7 @@ function MemoryPalaceMatch({
           <div className="memory-palace-pairs">
 
             {
-              memoryPalaceMatchData
+              data
                 .pairings
                 .map(
                   ({
@@ -224,13 +206,9 @@ function MemoryPalaceMatch({
             looking back.
           </p>
 
-          <textarea
+          <TextResponse
             value={retrievalText}
-            onChange={(event) =>
-              setRetrievalText(
-                event.target.value
-              )
-            }
+            onChange={setRetrievalText}
             placeholder="Write the items you remember..."
           />
 
@@ -265,74 +243,30 @@ function MemoryPalaceMatch({
             {questionIndex + 1}
             {" / "}
             {
-              memoryPalaceMatchData
+              data
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentQuestion
-                .question
+          <MultipleChoiceRunner
+            question={currentQuestion}
+            selectedAnswer={
+              answers[currentQuestion.id]
             }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentQuestion
-                .options
-                .map((option) => {
-
-                  const selected =
-                    answers[
-                      currentQuestion.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        setAnswers(
-                          (prev) => ({
-                            ...prev,
-                            [currentQuestion.id]:
-                              option
-                          })
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+            onSelect={(option) =>
+              setAnswers((prev) => ({
+                ...prev,
+                [currentQuestion.id]: option
+              }))
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !answers[
-                currentQuestion.id
-              ]
+            onNext={nextQuestion}
+            nextLabel={
+              questionIndex ===
+              data.questions.length - 1
+                ? "Finish test"
+                : "Next question"
             }
-            onClick={
-              nextQuestion
-            }
-          >
-            {questionIndex ===
-            memoryPalaceMatchData
-              .questions.length - 1
-              ? "Finish test"
-              : "Next question"}
-          </button>
+          />
 
         </div>
       )}
@@ -342,45 +276,16 @@ function MemoryPalaceMatch({
       {stage === "confidence" && (
         <div>
 
-          <h2>
-            How confident were you
-            retrieving the palace?
-          </h2>
-
-          <div>
-
-            {[1,2,3,4,5].map(
-              (value) => (
-
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    confidence === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-
-              )
-            )}
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null
-            }
-            onClick={finish}
-          >
-            Complete verification
-          </button>
+          <VerificationConfidence
+            prompt={<>
+              How confident were you
+              retrieving the palace?
+            </>}
+            value={confidence}
+            onChange={setConfidence}
+            completeLabel="Complete verification"
+            onComplete={finish}
+          />
 
         </div>
       )}

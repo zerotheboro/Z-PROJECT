@@ -658,7 +658,7 @@
 
     width: 100%;
 
-    min-height: 155px;
+    min-height: 200px;
 
     margin:
       var(--space-1)
@@ -812,9 +812,9 @@
 
     display: grid;
 
-    grid-template-columns:
-      0.75fr
-      1.5fr;
+    grid-template-rows:
+      1.5fr
+      1.25fr;
 
     gap: 14px;
 

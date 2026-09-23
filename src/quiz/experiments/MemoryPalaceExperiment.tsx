@@ -1,15 +1,18 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  memoryPalaceExperiment
-} from "../methodLabData";
-
 import type {
-  MethodExperimentResult
-} from "../type";
+  LabEngineProps,
+  SpatialMemoryEngineData
+} from "../methodEngineTypes";
+import {
+  LabRatings,
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  TextResponse,
+  useExperimentTimer
+} from "../engines/shared";
 
 type Stage =
   | "intro"
@@ -19,13 +22,13 @@ type Stage =
   | "test"
   | "reflection";
 
-type Props = {
-  onComplete: (
-    result: MethodExperimentResult
-  ) => void;
-};
+type Props = LabEngineProps<SpatialMemoryEngineData>;
 
 function MemoryPalaceExperiment({
+  method,
+  category,
+  name,
+  data,
   onComplete
 }: Props) {
 
@@ -66,16 +69,17 @@ function MemoryPalaceExperiment({
   ] =
     useState<number | null>(null);
 
-  const experimentStart =
-    useRef<number | null>(null);
+  const {
+    start: startTimer,
+    elapsedMs
+  } = useExperimentTimer();
 
   const currentQuestion =
-    memoryPalaceExperiment
+    data
       .questions[questionIndex];
 
   function startExperiment() {
-    experimentStart.current =
-      Date.now();
+    startTimer();
 
     setStage("learn");
   }
@@ -95,7 +99,7 @@ function MemoryPalaceExperiment({
 
     if (
       questionIndex <
-      memoryPalaceExperiment
+      data
         .questions.length - 1
     ) {
 
@@ -119,40 +123,26 @@ function MemoryPalaceExperiment({
       return;
     }
 
-    let correct = 0;
+    const {
+      correct,
+      total,
+      score
+    } = scoreMultipleChoice(
+      data.questions,
+      answers
+    );
 
-    memoryPalaceExperiment
-      .questions
-      .forEach((question) => {
+    const result = {
 
-        if (
-          answers[question.id] ===
-          question.correct
-        ) {
-          correct += 1;
-        }
+      method,
 
-      });
-
-    const total =
-      memoryPalaceExperiment
-        .questions.length;
-
-    const result:
-      MethodExperimentResult = {
-
-      method: "memory-palace",
-
-      category: "memory",
+      category,
 
       correct,
 
       total,
 
-      score:
-        total === 0
-          ? 0
-          : correct / total,
+      score,
 
       confidence,
 
@@ -160,11 +150,7 @@ function MemoryPalaceExperiment({
 
       willingnessToUse,
 
-      timeSpentMs:
-        experimentStart.current
-          ? Date.now() -
-            experimentStart.current
-          : 0
+      timeSpentMs: elapsedMs()
     };
 
     console.log(
@@ -188,7 +174,7 @@ function MemoryPalaceExperiment({
           </p>
 
           <h2>
-            Memory Palace
+            {name}
           </h2>
 
           <p>
@@ -233,7 +219,7 @@ function MemoryPalaceExperiment({
           </p>
 
           <ol>
-            {memoryPalaceExperiment
+            {data
               .locations
               .map(
                 (location) => (
@@ -283,7 +269,7 @@ function MemoryPalaceExperiment({
           <div className="memory-palace-pairs">
 
             {
-              memoryPalaceExperiment
+              data
                 .pairings
                 .map(
                   ({
@@ -351,13 +337,9 @@ function MemoryPalaceExperiment({
             each location.
           </p>
 
-          <textarea
+          <TextResponse
             value={recallText}
-            onChange={(event) =>
-              setRecallText(
-                event.target.value
-              )
-            }
+            onChange={setRecallText}
             placeholder="Write the items you remember, in order if possible..."
           />
 
@@ -392,73 +374,30 @@ function MemoryPalaceExperiment({
             {questionIndex + 1}
             {" / "}
             {
-              memoryPalaceExperiment
+              data
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentQuestion
-                .question
+          <MultipleChoiceRunner
+            question={currentQuestion}
+            selectedAnswer={
+              answers[currentQuestion.id]
             }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentQuestion
-                .options
-                .map((option) => {
-
-                  const selected =
-                    answers[
-                      currentQuestion.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        selectAnswer(
-                          currentQuestion.id,
-                          option
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+            onSelect={(option) =>
+              selectAnswer(
+                currentQuestion.id,
+                option
+              )
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !answers[
-                currentQuestion.id
-              ]
+            onNext={nextQuestion}
+            nextLabel={
+              questionIndex ===
+              data.questions.length - 1
+                ? "Finish test"
+                : "Next question"
             }
-            onClick={
-              nextQuestion
-            }
-          >
-
-            {questionIndex ===
-            memoryPalaceExperiment
-              .questions.length - 1
-              ? "Finish test"
-              : "Next question"}
-
-          </button>
+          />
 
         </div>
       )}
@@ -473,103 +412,34 @@ function MemoryPalaceExperiment({
           </p>
 
           <h2>
-            How did Memory Palace feel?
+            How did {name} feel?
           </h2>
 
-          <h3>
-            How confident were you
-            remembering the locations?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    confidence === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            How easy was it to use?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    ease === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setEase(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            Would you use this method
-            when studying?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    willingnessToUse ===
-                    value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setWillingnessToUse(
-                      value
-                    )
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null ||
-              ease === null ||
-              willingnessToUse ===
-                null
-            }
-            onClick={
-              finishExperiment
-            }
-          >
-            Complete experiment
-          </button>
+          <LabRatings
+            confidence={{
+              prompt: <>
+                How confident were you
+                remembering the locations?
+              </>,
+              value: confidence,
+              onChange: setConfidence
+            }}
+            ease={{
+              prompt: "How easy was it to use?",
+              value: ease,
+              onChange: setEase
+            }}
+            willingnessToUse={{
+              prompt: <>
+                Would you use this method
+                when studying?
+              </>,
+              value: willingnessToUse,
+              onChange: setWillingnessToUse
+            }}
+            completeLabel="Complete experiment"
+            onComplete={finishExperiment}
+          />
 
         </div>
       )}

@@ -8,6 +8,9 @@ import Footer from "../footer.jsx";
 import AIRecommendation from "./AIRecomendation.jsx";
 import LOGO from "../../public/LOGO.png";
 import "./Library.scss" ;
+import {
+  Link
+} from "react-router-dom";
 
 
 export default function Tips(props) {
@@ -296,14 +299,12 @@ function handleClickfor1(section_id){
           a learning profile from actual evidence.
         </p>
 
-        <button
-          type="button"
-          onClick={() =>
-            navigate("/training")
-          }
-        >
-          Start training →
-        </button>
+       <Link
+        to="/training"
+        className="way_button"
+      >
+        Start training →
+      </Link>
 
       </article>
 

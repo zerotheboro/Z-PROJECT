@@ -43,14 +43,44 @@ export type BaselineResult = {
   understanding: BaselineTaskResult;
 };
 
+export const TRAINING_METHOD_IDS = [
+  "active-recall",
+  "feynman",
+  "cornell",
+  "interleaving",
+  "memory-palace",
+  "active-blurting",
+  "one-sentence",
+  "note-taking-4x4",
+  "leitner-system",
+  "story-telling",
+  "capture-create",
+  "abbreviation",
+  "header-first",
+  "prime-question",
+  "doodle-effect",
+  "eighty-twenty-rule",
+  "divide-steps",
+  "derive-basics"
+] as const;
+
+export type TrainingMethodId =
+  (typeof TRAINING_METHOD_IDS)[number];
+
+// Pomodoro and stopwatch remain part of MethodId so previously saved
+// assessment/profile data keeps the same compatible type surface.
 export type MethodId =
-  | "active-recall"
-  | "feynman"
-  | "cornell"
-  | "memory-palace"
-  | "interleaving"
+  | TrainingMethodId
   | "pomodoro"
   | "stopwatch";
+
+export function isTrainingMethodId(
+  method: MethodId
+): method is TrainingMethodId {
+  return (
+    TRAINING_METHOD_IDS as readonly MethodId[]
+  ).includes(method);
+}
 
 export type MethodCategory =
   | "memory"

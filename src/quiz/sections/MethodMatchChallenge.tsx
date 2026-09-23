@@ -7,26 +7,18 @@ import {
   selectMethodsForVerification
 } from "../methodMatchSelector";
 
-import ActiveRecallMatch
-  from "../matches/ActiveRecallMatch";
-
-import FeynmanMatch
-  from "../matches/FeynmanMatch";
-
-import CornellMatch
-  from "../matches/CornellMatch";
-
-import InterleavingMatch
-  from "../matches/InterleavingMatch";
-
-import MemoryPalaceMatch
-  from "../matches/MemoryPalaceMatch";
+import {
+  getMethodDefinition
+} from "../methodRegistry";
+import {
+  EngineProgress
+} from "../engines/shared";
 
 import type {
   MethodLabResult,
-  MethodId,
   MethodMatchExperimentResult,
-  MethodMatchResult
+  MethodMatchResult,
+  TrainingMethodId
 } from "../type";
 
 type Props = {
@@ -96,7 +88,7 @@ function MethodMatchChallenge({
   }
 
   function getOriginalScore(
-    method: MethodId
+    method: TrainingMethodId
   ) {
 
     return (
@@ -108,107 +100,34 @@ function MethodMatchChallenge({
     );
   }
 
-  function renderVerification() {
-
   const originalScore =
     getOriginalScore(
       currentMethod
     );
 
-  switch (currentMethod) {
-
-    case "active-recall":
-      return (
-        <ActiveRecallMatch
-          originalScore={
-            originalScore
-          }
-          onComplete={
-            completeVerification
-          }
-        />
-      );
-
-    case "feynman":
-      return (
-        <FeynmanMatch
-          originalScore={
-            originalScore
-          }
-          onComplete={
-            completeVerification
-          }
-        />
-      );
-
-      
-    case "cornell":
-    return (
-        <CornellMatch
-        originalScore={
-            originalScore
-        }
-        onComplete={
-            completeVerification
-        }
-        />
+  const verification =
+    getMethodDefinition(
+      currentMethod
+    ).renderMatch(
+      originalScore,
+      completeVerification
     );
-
-    case "interleaving":
-    return (
-        <InterleavingMatch
-        originalScore={
-            originalScore
-        }
-        onComplete={
-            completeVerification
-        }
-        />
-    );
-
-    case "memory-palace":
-    return (
-      <MemoryPalaceMatch
-        originalScore={
-          originalScore
-        }
-        onComplete={
-          completeVerification
-        }
-      />
-    );
-
-    default:
-      return (
-        <div>
-          Verification for{" "}
-          <strong>
-            {currentMethod}
-          </strong>
-          {" "}
-          is not implemented yet.
-        </div>
-      );
-    }
-    }
 
   return (
     <section className="method-match">
 
-      <div className="method-match-header">
-
-        <span>
-          SECTION 4 OF 6
-        </span>
-
-        <span>
+      <EngineProgress
+        className="method-match-header"
+        label="SECTION 4 OF 6"
+        status={
+          <>
           Match{" "}
           {currentIndex + 1}
           {" / "}
           {methods.length}
-        </span>
-
-      </div>
+          </>
+        }
+      />
 
       <h2>
         Method Match Challenge
@@ -237,7 +156,7 @@ function MethodMatchChallenge({
       }
     </p>
 
-    {renderVerification()}
+    {verification}
 
     </section>
   );

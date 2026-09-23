@@ -1,15 +1,17 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  interleavingExperiment
-} from "../methodLabData";
-
 import type {
-  MethodExperimentResult
-} from "../type";
+  ComparisonEngineData,
+  LabEngineProps
+} from "../methodEngineTypes";
+import {
+  LabRatings,
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  useExperimentTimer
+} from "../engines/shared";
 
 type Stage =
   | "intro"
@@ -18,13 +20,13 @@ type Stage =
   | "test"
   | "reflection";
 
-type Props = {
-  onComplete: (
-    result: MethodExperimentResult
-  ) => void;
-};
+type Props = LabEngineProps<ComparisonEngineData>;
 
 function InterleavingExperiment({
+  method,
+  category,
+  name,
+  data,
   onComplete
 }: Props) {
 
@@ -71,20 +73,21 @@ function InterleavingExperiment({
   ] =
     useState<number | null>(null);
 
-  const experimentStart =
-    useRef<number | null>(null);
+  const {
+    start: startTimer,
+    elapsedMs
+  } = useExperimentTimer();
 
   const currentPractice =
-    interleavingExperiment
+    data
       .practice[practiceIndex];
 
   const currentTest =
-    interleavingExperiment
+    data
       .test[testIndex];
 
   function startExperiment() {
-    experimentStart.current =
-      Date.now();
+    startTimer();
 
     setStage("learn");
   }
@@ -106,7 +109,7 @@ function InterleavingExperiment({
 
     if (
       practiceIndex <
-      interleavingExperiment
+      data
         .practice.length - 1
     ) {
 
@@ -137,7 +140,7 @@ function InterleavingExperiment({
 
     if (
       testIndex <
-      interleavingExperiment
+      data
         .test.length - 1
     ) {
 
@@ -161,42 +164,26 @@ function InterleavingExperiment({
       return;
     }
 
-    let correct = 0;
+    const {
+      correct,
+      total,
+      score
+    } = scoreMultipleChoice(
+      data.test,
+      testAnswers
+    );
 
-    interleavingExperiment
-      .test
-      .forEach((question) => {
+    const result = {
 
-        if (
-          testAnswers[
-            question.id
-          ] === question.correct
-        ) {
-          correct += 1;
-        }
+      method,
 
-      });
-
-    const total =
-      interleavingExperiment
-        .test.length;
-
-    const result:
-      MethodExperimentResult = {
-
-      method: "interleaving",
-
-      category:
-        "problem-solving",
+      category,
 
       correct,
 
       total,
 
-      score:
-        total === 0
-          ? 0
-          : correct / total,
+      score,
 
       confidence,
 
@@ -204,11 +191,7 @@ function InterleavingExperiment({
 
       willingnessToUse,
 
-      timeSpentMs:
-        experimentStart.current
-          ? Date.now() -
-            experimentStart.current
-          : 0
+      timeSpentMs: elapsedMs()
     };
 
     onComplete(result);
@@ -227,7 +210,7 @@ function InterleavingExperiment({
           </p>
 
           <h2>
-            Interleaving
+            {name}
           </h2>
 
           <p>
@@ -262,7 +245,7 @@ function InterleavingExperiment({
             Three problem types
           </h2>
 
-          {interleavingExperiment
+          {data
             .instructions.map(
               (item) => (
 
@@ -315,71 +298,32 @@ function InterleavingExperiment({
             {practiceIndex + 1}
             {" / "}
             {
-              interleavingExperiment
+              data
                 .practice.length
             }
           </p>
 
-          <h2>
-            {
-              currentPractice
-                .question
-            }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentPractice
-                .options
-                .map((option) => {
-
-                  const selected =
-                    practiceAnswers[
-                      currentPractice.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        selectPracticeAnswer(
-                          currentPractice.id,
-                          option
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
-            }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !practiceAnswers[
+          <MultipleChoiceRunner
+            question={currentPractice}
+            selectedAnswer={
+              practiceAnswers[
                 currentPractice.id
               ]
             }
-            onClick={
-              nextPractice
+            onSelect={(option) =>
+              selectPracticeAnswer(
+                currentPractice.id,
+                option
+              )
             }
-          >
-            {practiceIndex ===
-            interleavingExperiment
-              .practice.length - 1
-              ? "Finish practice"
-              : "Next problem"}
-          </button>
+            onNext={nextPractice}
+            nextLabel={
+              practiceIndex ===
+              data.practice.length - 1
+                ? "Finish practice"
+                : "Next problem"
+            }
+          />
 
         </div>
       )}
@@ -398,68 +342,30 @@ function InterleavingExperiment({
             {testIndex + 1}
             {" / "}
             {
-              interleavingExperiment
+              data
                 .test.length
             }
           </p>
 
-          <h2>
-            {currentTest.question}
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentTest
-                .options
-                .map((option) => {
-
-                  const selected =
-                    testAnswers[
-                      currentTest.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        selectTestAnswer(
-                          currentTest.id,
-                          option
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+          <MultipleChoiceRunner
+            question={currentTest}
+            selectedAnswer={
+              testAnswers[currentTest.id]
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !testAnswers[
-                currentTest.id
-              ]
+            onSelect={(option) =>
+              selectTestAnswer(
+                currentTest.id,
+                option
+              )
             }
-            onClick={
-              nextTest
+            onNext={nextTest}
+            nextLabel={
+              testIndex ===
+              data.test.length - 1
+                ? "Finish test"
+                : "Next question"
             }
-          >
-            {testIndex ===
-            interleavingExperiment
-              .test.length - 1
-              ? "Finish test"
-              : "Next question"}
-          </button>
+          />
 
         </div>
       )}
@@ -478,99 +384,28 @@ function InterleavingExperiment({
             problem types feel?
           </h2>
 
-          <h3>
-            How confident were you?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    confidence === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            How easy was it?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    ease === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setEase(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            Would you use mixed
-            practice yourself?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    willingnessToUse ===
-                    value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setWillingnessToUse(
-                      value
-                    )
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null ||
-              ease === null ||
-              willingnessToUse ===
-                null
-            }
-            onClick={
-              finishExperiment
-            }
-          >
-            Complete experiment
-          </button>
+          <LabRatings
+            confidence={{
+              prompt: "How confident were you?",
+              value: confidence,
+              onChange: setConfidence
+            }}
+            ease={{
+              prompt: "How easy was it?",
+              value: ease,
+              onChange: setEase
+            }}
+            willingnessToUse={{
+              prompt: <>
+                Would you use mixed
+                practice yourself?
+              </>,
+              value: willingnessToUse,
+              onChange: setWillingnessToUse
+            }}
+            completeLabel="Complete experiment"
+            onComplete={finishExperiment}
+          />
 
         </div>
       )}

@@ -263,36 +263,20 @@ const Promodoro = new DetailOfTips(
 )
 
 const Flowtime_technique = new DetailOfTips(
-  {
-    eng: "Flowtime technique",
-    vn: "Kỹ thuật Flowtime",
-    src : image_importor("fish").src
+  { 
+    eng: "Flowtime technique", 
+    vn: "Kỹ thuật Flowtime", 
+    src: image_importor("fish").src 
   },
-  {
-  eng: <>
-    This is a time management tool that helps you
-    manage your task, here are the 5 steps:<br/>
-    1.identify the tasks that need to be done<br/>
-    2.set a 25-minute timer<br/>
-    3.focus on finishing the tasks<br/>
-    4.after the focus timer runs out, take a 5 -minutes timed rest<br/>
-    5.repeat step1,2,3,4 four times then rest for 15-30 minutes and repeat the whole process..<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/>
-    </>,
-  vn: <>
-    Bước 1: Chọn một công việc cần hoàn thành.
-    Bước 2: Đặt đồng hồ trong 25 phút. <br/>
-    Bước 3: Tập trung hoàn toàn vào công việc cho đến khi chuông reo.<br/>
-    Bước 4: Nghỉ giải lao ngắn trong 5 phút.<br/>
-    Bước 5: Sau mỗi 4 lần nghỉ ngắn, hãy nghỉ một quãng dài từ 15–30 phút.<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/>
-  </>
+  { 
+    eng: <> This is a time management tool that helps you work with your natural focus flow. Here are the 5 steps:<br/> 1.choose a specific task to work on<br/> 2.record your start time and begin working without a rigid timer<br/> 3.focus completely until you naturally feel a need for a break<br/> 4.record your end time and calculate your total focus duration<br/> 5.take a proportional break (e.g., 5 mins for &lt;25 mins work, 10-15 mins for 50+ mins work) and repeat.<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/> </>, 
+    vn: <> Bước 1: Chọn một công việc cụ thể để thực hiện. Bước 2: Ghi lại thời gian bắt đầu và bắt đầu làm việc không có đồng hồ gò bó.<br/> Bước 3: Tập trung hoàn toàn cho đến khi bạn tự nhiên cảm thấy cần nghỉ ngơi.<br/> Bước 4: Ghi lại thời gian kết thúc và tính tổng thời gian đã tập trung.<br/> Bước 5: Nghỉ ngơi một khoảng thời gian tương xứng với thời gian làm việc (Ví dụ: làm &lt;25 phút nghỉ 5 phút, làm trên 50 phút nghỉ 10–15 phút).<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/> </> 
   },
-  {
-    src: <Clock/>,
-    format: "component"
-  },
+  { src: <Clock/>, format: "component" },
   "left",
-  <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 )
+
 
 const Everything_in_1_place = new DetailOfTips(
   {
@@ -1571,6 +1555,7 @@ export const preLearnTips = [
   Promodoro,
   Peripheral_vision,
   describe_problems,
+  Flowtime_technique,
   Everything_in_1_place,
   Auto_google,
   Water_ur_face_body,

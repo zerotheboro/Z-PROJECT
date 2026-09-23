@@ -1,42 +1,15 @@
 import type {
   LearningProfile,
-  MethodEvidence,
-  MethodId
+  MethodEvidence
 } from "../type";
+
+import {
+  getMethodName
+} from "../methodRegistry";
 
 type Props = {
   profile: LearningProfile;
 };
-
-function getMethodName(
-  method: MethodId
-) {
-  switch (method) {
-    case "active-recall":
-      return "Active Recall";
-
-    case "feynman":
-      return "Feynman Technique";
-
-    case "cornell":
-      return "Cornell Notes";
-
-    case "interleaving":
-      return "Interleaving";
-
-    case "memory-palace":
-      return "Memory Palace";
-
-    case "pomodoro":
-      return "Pomodoro";
-
-    case "stopwatch":
-      return "Stopwatch";
-
-    default:
-      return method;
-  }
-}
 
 function percent(
   score: number | null

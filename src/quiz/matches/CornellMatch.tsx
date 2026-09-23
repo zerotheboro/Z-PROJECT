@@ -1,15 +1,19 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  cornellMatchData
-} from "../methodMatchData";
-
 import type {
-  MethodMatchExperimentResult
-} from "../type";
+  MatchEngineProps,
+  OrganizationEngineData
+} from "../methodEngineTypes";
+import {
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  StudyPanel,
+  TextResponse,
+  useExperimentTimer,
+  VerificationConfidence
+} from "../engines/shared";
 
 type Stage =
   | "organize"
@@ -17,15 +21,13 @@ type Stage =
   | "test"
   | "confidence";
 
-type Props = {
-  originalScore: number | null;
-
-  onComplete: (
-    result: MethodMatchExperimentResult
-  ) => void;
-};
+type Props = MatchEngineProps<OrganizationEngineData>;
 
 function CornellMatch({
+  method,
+  name,
+  shortName,
+  data,
   originalScore,
   onComplete
 }: Props) {
@@ -59,18 +61,20 @@ function CornellMatch({
   ] =
     useState<number | null>(null);
 
-  const startTime =
-    useRef(Date.now());
+  const { elapsedMs } =
+    useExperimentTimer({
+      startImmediately: true
+    });
 
   const currentQuestion =
-    cornellMatchData
+    data
       .questions[questionIndex];
 
   function nextQuestion() {
 
     if (
       questionIndex <
-      cornellMatchData.questions.length - 1
+      data.questions.length - 1
     ) {
 
       setQuestionIndex(
@@ -89,28 +93,12 @@ function CornellMatch({
       return;
     }
 
-    let correct = 0;
-
-    cornellMatchData
-      .questions
-      .forEach((question) => {
-
-        if (
-          answers[question.id] ===
-          question.correct
-        ) {
-          correct += 1;
-        }
-
-      });
-
-    const total =
-      cornellMatchData.questions.length;
-
-    const verificationScore =
-      total === 0
-        ? 0
-        : correct / total;
+    const {
+      score: verificationScore
+    } = scoreMultipleChoice(
+      data.questions,
+      answers
+    );
 
     console.log(
       "CORNELL ROUND 2:",
@@ -122,7 +110,7 @@ function CornellMatch({
     );
 
     onComplete({
-      method: "cornell",
+      method,
 
       firstScore:
         originalScore,
@@ -131,9 +119,7 @@ function CornellMatch({
 
       confidence,
 
-      timeSpentMs:
-        Date.now() -
-        startTime.current
+      timeSpentMs: elapsedMs()
     });
   }
 
@@ -146,57 +132,43 @@ function CornellMatch({
         <div>
 
           <p>
-            CORNELL NOTES · ROUND 2
+            {data.title.toUpperCase()}
           </p>
 
           <h2>
-            {cornellMatchData.topic}
+            {data.topic}
           </h2>
 
-          <div className="study-content">
+          <StudyPanel>
 
             <p>
-              {cornellMatchData.content}
+              {data.content}
             </p>
 
-          </div>
+          </StudyPanel>
 
           <div className="cornell-layout">
 
             <div>
-
               <h3>
                 Cues / Questions
               </h3>
-
-              <textarea
+              <TextResponse
                 value={cues}
-                onChange={(event) =>
-                  setCues(
-                    event.target.value
-                  )
-                }
+                onChange={setCues}
                 placeholder="Important words or questions..."
               />
-
             </div>
 
             <div>
-
               <h3>
                 Main Notes
               </h3>
-
-              <textarea
+              <TextResponse
                 value={notes}
-                onChange={(event) =>
-                  setNotes(
-                    event.target.value
-                  )
-                }
+                onChange={setNotes}
                 placeholder="Organize the important information..."
               />
-
             </div>
 
           </div>
@@ -226,13 +198,9 @@ function CornellMatch({
             Summarize the material.
           </h2>
 
-          <textarea
+          <TextResponse
             value={summary}
-            onChange={(event) =>
-              setSummary(
-                event.target.value
-              )
-            }
+            onChange={setSummary}
             placeholder="Short summary..."
           />
 
@@ -265,74 +233,30 @@ function CornellMatch({
             {questionIndex + 1}
             {" / "}
             {
-              cornellMatchData
+              data
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentQuestion
-                .question
+          <MultipleChoiceRunner
+            question={currentQuestion}
+            selectedAnswer={
+              answers[currentQuestion.id]
             }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentQuestion
-                .options
-                .map((option) => {
-
-                  const selected =
-                    answers[
-                      currentQuestion.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        setAnswers(
-                          (prev) => ({
-                            ...prev,
-                            [currentQuestion.id]:
-                              option
-                          })
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+            onSelect={(option) =>
+              setAnswers((prev) => ({
+                ...prev,
+                [currentQuestion.id]: option
+              }))
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !answers[
-                currentQuestion.id
-              ]
+            onNext={nextQuestion}
+            nextLabel={
+              questionIndex ===
+              data.questions.length - 1
+                ? "Finish test"
+                : "Next question"
             }
-            onClick={
-              nextQuestion
-            }
-          >
-            {questionIndex ===
-            cornellMatchData
-              .questions.length - 1
-              ? "Finish test"
-              : "Next question"}
-          </button>
+          />
 
         </div>
       )}
@@ -342,45 +266,18 @@ function CornellMatch({
       {stage === "confidence" && (
         <div>
 
-          <h2>
-            How confident are you
-            that Cornell helped you
-            organize and understand
-            the material?
-          </h2>
-
-          <div>
-
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    confidence === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null
-            }
-            onClick={finish}
-          >
-            Complete verification
-          </button>
+          <VerificationConfidence
+            prompt={<>
+              How confident are you
+              that {shortName ?? name} helped you
+              organize and understand
+              the material?
+            </>}
+            value={confidence}
+            onChange={setConfidence}
+            completeLabel="Complete verification"
+            onComplete={finish}
+          />
 
         </div>
       )}

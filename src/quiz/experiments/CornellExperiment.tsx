@@ -1,15 +1,18 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  cornellExperiment
-} from "../methodLabData";
-
 import type {
-  MethodExperimentResult
-} from "../type";
+  LabEngineProps,
+  OrganizationEngineData
+} from "../methodEngineTypes";
+import {
+  LabRatings,
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  TextResponse,
+  useExperimentTimer
+} from "../engines/shared";
 
 type Stage =
   | "intro"
@@ -18,13 +21,13 @@ type Stage =
   | "test"
   | "reflection";
 
-type Props = {
-  onComplete: (
-    result: MethodExperimentResult
-  ) => void;
-};
+type Props = LabEngineProps<OrganizationEngineData>;
 
 function CornellExperiment({
+  method,
+  category,
+  name,
+  data,
   onComplete
 }: Props) {
 
@@ -63,16 +66,17 @@ function CornellExperiment({
     setWillingnessToUse
   ] = useState<number | null>(null);
 
-  const experimentStart =
-    useRef<number | null>(null);
+  const {
+    start: startTimer,
+    elapsedMs
+  } = useExperimentTimer();
 
   const currentQuestion =
-    cornellExperiment
+    data
       .questions[questionIndex];
 
   function startExperiment() {
-    experimentStart.current =
-      Date.now();
+    startTimer();
 
     setStage("notes");
   }
@@ -92,7 +96,7 @@ function CornellExperiment({
 
     if (
       questionIndex <
-      cornellExperiment
+      data
         .questions.length - 1
     ) {
 
@@ -116,40 +120,26 @@ function CornellExperiment({
       return;
     }
 
-    let correct = 0;
+    const {
+      correct,
+      total,
+      score
+    } = scoreMultipleChoice(
+      data.questions,
+      answers
+    );
 
-    cornellExperiment
-      .questions
-      .forEach((question) => {
+    const result = {
 
-        if (
-          answers[question.id] ===
-          question.correct
-        ) {
-          correct += 1;
-        }
+      method,
 
-      });
-
-    const total =
-      cornellExperiment
-        .questions.length;
-
-    const result:
-      MethodExperimentResult = {
-
-      method: "cornell",
-
-      category: "organization",
+      category,
 
       correct,
 
       total,
 
-      score:
-        total === 0
-          ? 0
-          : correct / total,
+      score,
 
       confidence,
 
@@ -157,11 +147,7 @@ function CornellExperiment({
 
       willingnessToUse,
 
-      timeSpentMs:
-        experimentStart.current
-          ? Date.now() -
-            experimentStart.current
-          : 0
+      timeSpentMs: elapsedMs()
     };
 
     console.log(
@@ -189,7 +175,7 @@ function CornellExperiment({
           </p>
 
           <h2>
-            Cornell Notes
+            {name}
           </h2>
 
           <p>
@@ -225,7 +211,7 @@ function CornellExperiment({
           </p>
 
           <h2>
-            {cornellExperiment.topic}
+            {data.topic}
           </h2>
 
           <div className="cornell-layout">
@@ -238,7 +224,7 @@ function CornellExperiment({
 
               <p>
                 {
-                  cornellExperiment
+                  data
                     .content
                 }
               </p>
@@ -251,14 +237,9 @@ function CornellExperiment({
                 <h3>
                   Cues / Questions
                 </h3>
-
-                <textarea
+                <TextResponse
                   value={cues}
-                  onChange={(event) =>
-                    setCues(
-                      event.target.value
-                    )
-                  }
+                  onChange={setCues}
                   placeholder="Key words, questions, important ideas..."
                 />
               </div>
@@ -267,14 +248,9 @@ function CornellExperiment({
                 <h3>
                   Main Notes
                 </h3>
-
-                <textarea
+                <TextResponse
                   value={notes}
-                  onChange={(event) =>
-                    setNotes(
-                      event.target.value
-                    )
-                  }
+                  onChange={setNotes}
                   placeholder="Write the important information here..."
                 />
               </div>
@@ -317,21 +293,16 @@ function CornellExperiment({
             process in a few sentences.
           </p>
 
-          <textarea
+          <TextResponse
             value={summary}
-            onChange={(event) =>
-              setSummary(
-                event.target.value
-              )
-            }
+            onChange={setSummary}
             placeholder="Your summary..."
           />
 
           <button
             type="button"
             disabled={
-              summary.trim().length <
-              20
+              summary.trim().length < 20
             }
             onClick={() =>
               setStage("test")
@@ -357,74 +328,30 @@ function CornellExperiment({
             {questionIndex + 1}
             {" / "}
             {
-              cornellExperiment
+              data
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentQuestion
-                .question
+          <MultipleChoiceRunner
+            question={currentQuestion}
+            selectedAnswer={
+              answers[currentQuestion.id]
             }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentQuestion
-                .options
-                .map((option) => {
-
-                  const selected =
-                    answers[
-                      currentQuestion.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        selectAnswer(
-                          currentQuestion.id,
-                          option
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+            onSelect={(option) =>
+              selectAnswer(
+                currentQuestion.id,
+                option
+              )
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !answers[
-                currentQuestion.id
-              ]
+            onNext={nextQuestion}
+            nextLabel={
+              questionIndex ===
+              data.questions.length - 1
+                ? "Finish test"
+                : "Next question"
             }
-            onClick={
-              nextQuestion
-            }
-          >
-
-            {questionIndex ===
-            cornellExperiment
-              .questions.length -
-              1
-              ? "Finish test"
-              : "Next question"}
-
-          </button>
+          />
 
         </div>
       )}
@@ -439,105 +366,35 @@ function CornellExperiment({
           </p>
 
           <h2>
-            How did Cornell Notes
-            feel?
+            How did {name} feel?
           </h2>
 
-          <h3>
-            How confident are you
-            that you understood and
-            organized the material?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    confidence === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            How easy was the method?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    ease === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setEase(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            Would you use Cornell
-            Notes while studying?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    willingnessToUse ===
-                    value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setWillingnessToUse(
-                      value
-                    )
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null ||
-              ease === null ||
-              willingnessToUse ===
-                null
-            }
-            onClick={
-              finishExperiment
-            }
-          >
-            Complete experiment
-          </button>
+          <LabRatings
+            confidence={{
+              prompt: <>
+                How confident are you
+                that you understood and
+                organized the material?
+              </>,
+              value: confidence,
+              onChange: setConfidence
+            }}
+            ease={{
+              prompt: "How easy was the method?",
+              value: ease,
+              onChange: setEase
+            }}
+            willingnessToUse={{
+              prompt: <>
+                Would you use {name}
+                while studying?
+              </>,
+              value: willingnessToUse,
+              onChange: setWillingnessToUse
+            }}
+            completeLabel="Complete experiment"
+            onComplete={finishExperiment}
+          />
 
         </div>
       )}

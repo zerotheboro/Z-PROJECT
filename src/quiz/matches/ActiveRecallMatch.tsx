@@ -1,15 +1,19 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  activeRecallMatchData
-} from "../methodMatchData";
-
 import type {
-  MethodMatchExperimentResult
-} from "../type";
+  MatchEngineProps,
+  RecallEngineData
+} from "../methodEngineTypes";
+import {
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  StudyPanel,
+  TextResponse,
+  useExperimentTimer,
+  VerificationConfidence
+} from "../engines/shared";
 
 type Stage =
   | "study"
@@ -17,15 +21,11 @@ type Stage =
   | "test"
   | "confidence";
 
-type Props = {
-  originalScore: number | null;
-
-  onComplete: (
-    result: MethodMatchExperimentResult
-  ) => void;
-};
+type Props = MatchEngineProps<RecallEngineData>;
 
 function ActiveRecallMatch({
+  method,
+  data,
   originalScore,
   onComplete
 }: Props) {
@@ -55,18 +55,20 @@ function ActiveRecallMatch({
   ] =
     useState<number | null>(null);
 
-  const startTime =
-    useRef(Date.now());
+  const { elapsedMs } =
+    useExperimentTimer({
+      startImmediately: true
+    });
 
   const currentQuestion =
-    activeRecallMatchData
+    data
       .questions[questionIndex];
 
   function nextQuestion() {
 
     if (
       questionIndex <
-      activeRecallMatchData.questions.length - 1
+      data.questions.length - 1
     ) {
 
       setQuestionIndex(
@@ -85,32 +87,15 @@ function ActiveRecallMatch({
       return;
     }
 
-    let correct = 0;
-
-    activeRecallMatchData
-      .questions
-      .forEach((question) => {
-
-        if (
-          answers[question.id] ===
-          question.correct
-        ) {
-          correct += 1;
-        }
-
-      });
-
-    const total =
-      activeRecallMatchData
-        .questions.length;
-
-    const verificationScore =
-      total === 0
-        ? 0
-        : correct / total;
+    const {
+      score: verificationScore
+    } = scoreMultipleChoice(
+      data.questions,
+      answers
+    );
 
     onComplete({
-      method: "active-recall",
+      method,
 
       firstScore:
         originalScore,
@@ -119,9 +104,7 @@ function ActiveRecallMatch({
 
       confidence,
 
-      timeSpentMs:
-        Date.now() -
-        startTime.current
+      timeSpentMs: elapsedMs()
     });
   }
 
@@ -132,12 +115,12 @@ function ActiveRecallMatch({
         <div>
 
           <p>
-            ACTIVE RECALL · ROUND 2
+            {data.title.toUpperCase()}
           </p>
 
           <h2>
             {
-              activeRecallMatchData
+              data
                 .topic
             }
           </h2>
@@ -148,10 +131,10 @@ function ActiveRecallMatch({
             next.
           </p>
 
-          <div className="study-content">
+          <StudyPanel>
 
             {
-              activeRecallMatchData
+              data
                 .facts.map(
                   (fact, index) => (
                     <p key={index}>
@@ -161,7 +144,7 @@ function ActiveRecallMatch({
                 )
             }
 
-          </div>
+          </StudyPanel>
 
           <button
             type="button"
@@ -187,13 +170,9 @@ function ActiveRecallMatch({
             remember without looking back.
           </h2>
 
-          <textarea
+          <TextResponse
             value={retrievalText}
-            onChange={(event) =>
-              setRetrievalText(
-                event.target.value
-              )
-            }
+            onChange={setRetrievalText}
             placeholder="What do you remember?"
           />
 
@@ -226,74 +205,30 @@ function ActiveRecallMatch({
             {questionIndex + 1}
             {" / "}
             {
-              activeRecallMatchData
+              data
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentQuestion
-                .question
+          <MultipleChoiceRunner
+            question={currentQuestion}
+            selectedAnswer={
+              answers[currentQuestion.id]
             }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentQuestion
-                .options
-                .map((option) => {
-
-                  const selected =
-                    answers[
-                      currentQuestion.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        setAnswers(
-                          (prev) => ({
-                            ...prev,
-                            [currentQuestion.id]:
-                              option
-                          })
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+            onSelect={(option) =>
+              setAnswers((prev) => ({
+                ...prev,
+                [currentQuestion.id]: option
+              }))
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !answers[
-                currentQuestion.id
-              ]
+            onNext={nextQuestion}
+            nextLabel={
+              questionIndex ===
+              data.questions.length - 1
+                ? "Finish test"
+                : "Next question"
             }
-            onClick={
-              nextQuestion
-            }
-          >
-            {questionIndex ===
-            activeRecallMatchData
-              .questions.length - 1
-              ? "Finish test"
-              : "Next question"}
-          </button>
+          />
 
         </div>
       )}
@@ -301,41 +236,16 @@ function ActiveRecallMatch({
       {stage === "confidence" && (
         <div>
 
-          <h2>
-            How confident are you in
-            what you remembered?
-          </h2>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    confidence === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null
-            }
-            onClick={finish}
-          >
-            Complete verification
-          </button>
+          <VerificationConfidence
+            prompt={<>
+              How confident are you in
+              what you remembered?
+            </>}
+            value={confidence}
+            onChange={setConfidence}
+            completeLabel="Complete verification"
+            onComplete={finish}
+          />
 
         </div>
       )}

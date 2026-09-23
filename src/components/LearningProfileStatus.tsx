@@ -8,6 +8,10 @@ type Props = {
   onLogin: () => void;
 };
 
+import {
+    loginWithGoogle
+} from "../services/auth";
+
 function LearningProfileStatus({
   onStartAssessment,
   onViewProfile,
@@ -45,12 +49,34 @@ function LearningProfileStatus({
           your Edulience learning profile.
         </p>
 
-        <button
+         <button
           type="button"
-          onClick={onLogin}
-        >
+          className="nav-sign-in"
+          onClick={async () => {
+
+              try {
+
+                  const user =
+                      await loginWithGoogle();
+
+                  console.log(
+                      "Logged in:",
+                      user.uid,
+                      user.email
+                  );
+
+              } catch (error) {
+
+                  console.error(
+                      "Login failed:",
+                      error
+                  );
+              }
+
+          }}
+      >
           Sign in
-        </button>
+      </button>
 
       </section>
     );

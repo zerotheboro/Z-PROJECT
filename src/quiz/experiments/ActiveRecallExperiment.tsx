@@ -1,15 +1,19 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  activeRecallExperiment
-} from "../methodLabData";
-
 import type {
-  MethodExperimentResult
-} from "../type";
+  LabEngineProps,
+  RecallEngineData
+} from "../methodEngineTypes";
+import {
+  LabRatings,
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  StudyPanel,
+  TextResponse,
+  useExperimentTimer
+} from "../engines/shared";
 
 type Stage =
   | "intro"
@@ -18,13 +22,13 @@ type Stage =
   | "test"
   | "reflection";
 
-type Props = {
-  onComplete: (
-    result: MethodExperimentResult
-  ) => void;
-};
+type Props = LabEngineProps<RecallEngineData>;
 
 function ActiveRecallExperiment({
+  method,
+  category,
+  name,
+  data,
   onComplete
 }: Props) {
 
@@ -52,17 +56,18 @@ function ActiveRecallExperiment({
   ] =
     useState<number | null>(null);
 
-  const experimentStart =
-    useRef<number | null>(null);
+  const {
+    start: startTimer,
+    elapsedMs
+  } = useExperimentTimer();
 
   const currentQuestion =
-    activeRecallExperiment
+    data
       .questions[questionIndex];
 
   function startExperiment() {
 
-    experimentStart.current =
-      Date.now();
+    startTimer();
 
     setStage("study");
   }
@@ -82,7 +87,7 @@ function ActiveRecallExperiment({
 
     if (
       questionIndex <
-      activeRecallExperiment
+      data
         .questions.length - 1
     ) {
 
@@ -106,40 +111,26 @@ function ActiveRecallExperiment({
       return;
     }
 
-    let correct = 0;
+    const {
+      correct,
+      total,
+      score
+    } = scoreMultipleChoice(
+      data.questions,
+      answers
+    );
 
-    activeRecallExperiment
-      .questions
-      .forEach((question) => {
+    const result = {
 
-        if (
-          answers[question.id] ===
-          question.correct
-        ) {
-          correct += 1;
-        }
+      method,
 
-      });
-
-    const total =
-      activeRecallExperiment
-        .questions.length;
-
-    const result:
-      MethodExperimentResult = {
-
-      method: "active-recall",
-
-      category: "memory",
+      category,
 
       correct,
 
       total,
 
-      score:
-        total === 0
-          ? 0
-          : correct / total,
+      score,
 
       confidence,
 
@@ -147,11 +138,7 @@ function ActiveRecallExperiment({
 
       willingnessToUse,
 
-      timeSpentMs:
-        experimentStart.current
-          ? Date.now() -
-            experimentStart.current
-          : 0
+      timeSpentMs: elapsedMs()
     };
 
     onComplete(result);
@@ -168,7 +155,7 @@ function ActiveRecallExperiment({
           </p>
 
           <h2>
-            Active Recall
+            {name}
           </h2>
 
           <p>
@@ -204,7 +191,7 @@ function ActiveRecallExperiment({
 
           <h2>
             {
-              activeRecallExperiment
+              data
                 .topic
             }
           </h2>
@@ -213,10 +200,10 @@ function ActiveRecallExperiment({
             Read these facts carefully.
           </p>
 
-          <div className="study-content">
+          <StudyPanel>
 
             {
-              activeRecallExperiment
+              data
                 .facts.map(
                   (fact, index) => (
 
@@ -228,7 +215,7 @@ function ActiveRecallExperiment({
                 )
             }
 
-          </div>
+          </StudyPanel>
 
           <button
             type="button"
@@ -255,13 +242,9 @@ function ActiveRecallExperiment({
             remember.
           </h2>
 
-          <textarea
+          <TextResponse
             value={retrievalText}
-            onChange={(event) =>
-              setRetrievalText(
-                event.target.value
-              )
-            }
+            onChange={setRetrievalText}
             placeholder="Write what you remember..."
           />
 
@@ -293,72 +276,30 @@ function ActiveRecallExperiment({
             {questionIndex + 1}
             {" / "}
             {
-              activeRecallExperiment
+              data
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentQuestion
-                .question
+          <MultipleChoiceRunner
+            question={currentQuestion}
+            selectedAnswer={
+              answers[currentQuestion.id]
             }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentQuestion
-                .options
-                .map((option) => {
-
-                  const selected =
-                    answers[
-                      currentQuestion.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        selectAnswer(
-                          currentQuestion.id,
-                          option
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+            onSelect={(option) =>
+              selectAnswer(
+                currentQuestion.id,
+                option
+              )
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !answers[
-                currentQuestion.id
-              ]
+            onNext={nextQuestion}
+            nextLabel={
+              questionIndex ===
+              data.questions.length - 1
+                ? "Finish test"
+                : "Next question"
             }
-            onClick={
-              nextQuestion
-            }
-          >
-            {questionIndex ===
-            activeRecallExperiment
-              .questions.length -
-              1
-              ? "Finish test"
-              : "Next question"}
-          </button>
+          />
 
         </div>
       )}
@@ -371,87 +312,35 @@ function ActiveRecallExperiment({
           </p>
 
           <h2>
-            How did Active Recall
+            How did {name}
             feel?
           </h2>
 
-          <h3>
-            Confidence
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            How easy was it to use?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  onClick={() =>
-                    setEase(value)
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <h3>
-            Would you actually use
-            this while studying?
-          </h3>
-
-          <div>
-            {[1,2,3,4,5].map(
-              (value) => (
-                <button
-                  type="button"
-                  key={value}
-                  onClick={() =>
-                    setWillingnessToUse(
-                      value
-                    )
-                  }
-                >
-                  {value}
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null ||
-              ease === null ||
-              willingnessToUse ===
-                null
-            }
-            onClick={
-              finishExperiment
-            }
-          >
-            Complete experiment
-          </button>
+          <LabRatings
+            confidence={{
+              prompt: "Confidence",
+              value: confidence,
+              onChange: setConfidence,
+              highlightSelection: false
+            }}
+            ease={{
+              prompt: "How easy was it to use?",
+              value: ease,
+              onChange: setEase,
+              highlightSelection: false
+            }}
+            willingnessToUse={{
+              prompt: <>
+                Would you actually use
+                this while studying?
+              </>,
+              value: willingnessToUse,
+              onChange: setWillingnessToUse,
+              highlightSelection: false
+            }}
+            completeLabel="Complete experiment"
+            onComplete={finishExperiment}
+          />
 
         </div>
       )}

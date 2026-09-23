@@ -1,15 +1,17 @@
 import {
-  useRef,
   useState
 } from "react";
 
-import {
-  interleavingMatchData
-} from "../methodMatchData";
-
 import type {
-  MethodMatchExperimentResult
-} from "../type";
+  ComparisonEngineData,
+  MatchEngineProps
+} from "../methodEngineTypes";
+import {
+  MultipleChoiceRunner,
+  scoreMultipleChoice,
+  useExperimentTimer,
+  VerificationConfidence
+} from "../engines/shared";
 
 type Stage =
   | "review"
@@ -17,15 +19,11 @@ type Stage =
   | "test"
   | "confidence";
 
-type Props = {
-  originalScore: number | null;
-
-  onComplete: (
-    result: MethodMatchExperimentResult
-  ) => void;
-};
+type Props = MatchEngineProps<ComparisonEngineData>;
 
 function InterleavingMatch({
+  method,
+  data,
   originalScore,
   onComplete
 }: Props) {
@@ -61,22 +59,24 @@ function InterleavingMatch({
   ] =
     useState<number | null>(null);
 
-  const startTime =
-    useRef(Date.now());
+  const { elapsedMs } =
+    useExperimentTimer({
+      startImmediately: true
+    });
 
   const currentPractice =
-    interleavingMatchData
+    data
       .practice[practiceIndex];
 
   const currentTest =
-    interleavingMatchData
+    data
       .test[testIndex];
 
   function nextPractice() {
 
     if (
       practiceIndex <
-      interleavingMatchData
+      data
         .practice.length - 1
     ) {
 
@@ -94,7 +94,7 @@ function InterleavingMatch({
 
     if (
       testIndex <
-      interleavingMatchData
+      data
         .test.length - 1
     ) {
 
@@ -114,33 +114,15 @@ function InterleavingMatch({
       return;
     }
 
-    let correct = 0;
-
-    interleavingMatchData
-      .test
-      .forEach((question) => {
-
-        if (
-          testAnswers[
-            question.id
-          ] === question.correct
-        ) {
-          correct += 1;
-        }
-
-      });
-
-    const total =
-      interleavingMatchData
-        .test.length;
-
-    const verificationScore =
-      total === 0
-        ? 0
-        : correct / total;
+    const {
+      score: verificationScore
+    } = scoreMultipleChoice(
+      data.test,
+      testAnswers
+    );
 
     onComplete({
-      method: "interleaving",
+      method,
 
       firstScore:
         originalScore,
@@ -149,9 +131,7 @@ function InterleavingMatch({
 
       confidence,
 
-      timeSpentMs:
-        Date.now() -
-        startTime.current
+      timeSpentMs: elapsedMs()
     });
   }
 
@@ -164,7 +144,7 @@ function InterleavingMatch({
         <div>
 
           <p>
-            INTERLEAVING · ROUND 2
+            {data.title.toUpperCase()}
           </p>
 
           <h2>
@@ -178,7 +158,7 @@ function InterleavingMatch({
           </p>
 
           {
-            interleavingMatchData
+            data
               .instructions
               .map((item) => (
 
@@ -230,74 +210,32 @@ function InterleavingMatch({
             {practiceIndex + 1}
             {" / "}
             {
-              interleavingMatchData
+              data
                 .practice.length
             }
           </p>
 
-          <h2>
-            {
-              currentPractice
-                .question
-            }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentPractice
-                .options
-                .map((option) => {
-
-                  const selected =
-                    practiceAnswers[
-                      currentPractice.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        setPracticeAnswers(
-                          (prev) => ({
-                            ...prev,
-                            [currentPractice.id]:
-                              option
-                          })
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
-            }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !practiceAnswers[
+          <MultipleChoiceRunner
+            question={currentPractice}
+            selectedAnswer={
+              practiceAnswers[
                 currentPractice.id
               ]
             }
-            onClick={
-              nextPractice
+            onSelect={(option) =>
+              setPracticeAnswers((prev) => ({
+                ...prev,
+                [currentPractice.id]: option
+              }))
             }
-          >
-            {practiceIndex ===
-            interleavingMatchData
-              .practice.length - 1
-              ? "Finish practice"
-              : "Next problem"}
-          </button>
+            onNext={nextPractice}
+            nextLabel={
+              practiceIndex ===
+              data.practice.length - 1
+                ? "Finish practice"
+                : "Next problem"
+            }
+          />
 
         </div>
       )}
@@ -316,73 +254,30 @@ function InterleavingMatch({
             {testIndex + 1}
             {" / "}
             {
-              interleavingMatchData
+              data
                 .test.length
             }
           </p>
 
-          <h2>
-            {
-              currentTest.question
+          <MultipleChoiceRunner
+            question={currentTest}
+            selectedAnswer={
+              testAnswers[currentTest.id]
             }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentTest
-                .options
-                .map((option) => {
-
-                  const selected =
-                    testAnswers[
-                      currentTest.id
-                    ] === option;
-
-                  return (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected
-                          ? "assessment-option selected"
-                          : "assessment-option"
-                      }
-                      onClick={() =>
-                        setTestAnswers(
-                          (prev) => ({
-                            ...prev,
-                            [currentTest.id]:
-                              option
-                          })
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  );
-                })
+            onSelect={(option) =>
+              setTestAnswers((prev) => ({
+                ...prev,
+                [currentTest.id]: option
+              }))
             }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !testAnswers[
-                currentTest.id
-              ]
+            onNext={nextTest}
+            nextLabel={
+              testIndex ===
+              data.test.length - 1
+                ? "Finish test"
+                : "Next problem"
             }
-            onClick={
-              nextTest
-            }
-          >
-            {testIndex ===
-            interleavingMatchData
-              .test.length - 1
-              ? "Finish test"
-              : "Next problem"}
-          </button>
+          />
 
         </div>
       )}
@@ -392,46 +287,17 @@ function InterleavingMatch({
       {stage === "confidence" && (
         <div>
 
-          <h2>
-            How confident were you
-            switching between the
-            different problem types?
-          </h2>
-
-          <div>
-
-            {[1,2,3,4,5].map(
-              (value) => (
-
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    confidence === value
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setConfidence(value)
-                  }
-                >
-                  {value}
-                </button>
-
-              )
-            )}
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              confidence === null
-            }
-            onClick={finish}
-          >
-            Complete verification
-          </button>
+          <VerificationConfidence
+            prompt={<>
+              How confident were you
+              switching between the
+              different problem types?
+            </>}
+            value={confidence}
+            onChange={setConfidence}
+            completeLabel="Complete verification"
+            onComplete={finish}
+          />
 
         </div>
       )}

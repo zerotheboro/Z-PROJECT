@@ -3,6 +3,10 @@ import {
   useState
 } from "react";
 
+import {
+  getMethodName
+} from "../methodRegistry";
+
 import type {
   MethodId,
   MethodLabResult,
@@ -20,37 +24,6 @@ type Props = {
     result: ReflectionResult
   ) => void;
 };
-
-function getMethodName(
-  method: MethodId
-) {
-  switch (method) {
-
-    case "active-recall":
-      return "Active Recall";
-
-    case "feynman":
-      return "Feynman Technique";
-
-    case "cornell":
-      return "Cornell Notes";
-
-    case "interleaving":
-      return "Interleaving";
-
-    case "memory-palace":
-      return "Memory Palace";
-
-    case "pomodoro":
-      return "Pomodoro";
-
-    case "stopwatch":
-      return "Stopwatch";
-
-    default:
-      return method;
-  }
-}
 
 function Reflection({
   methodLab,
