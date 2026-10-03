@@ -1,6 +1,10 @@
 import {
-  useState
+  useEffect
 } from "react";
+
+import {
+  useTrainingState as useState
+} from "../trainingProgressState";
 
 import {
   getMethodDefinition
@@ -18,6 +22,14 @@ import type {
 type Props = {
   methods: TrainingMethodId[];
 
+  random?: () => number;
+
+  onProgress?: (progress: {
+    method: TrainingMethodId;
+    methodIndex: number;
+    contentSetIds: string[];
+  }) => void;
+
   onComplete: (
     result: MethodLabResult
   ) => void;
@@ -25,6 +37,8 @@ type Props = {
 
 function MethodLab({
   methods,
+  random,
+  onProgress,
   onComplete
 }: Props) {
 
@@ -45,8 +59,32 @@ console.log(
     MethodExperimentResult[]
   >([]);
 
+  const [contentSetIds] = useState(
+    () =>
+      methods.map((method) =>
+        getMethodDefinition(
+          method
+        ).selectLabContentSetId(
+          random
+        )
+      )
+  );
+
   const currentMethod =
     methods[currentExperimentIndex];
+
+  useEffect(() => {
+    onProgress?.({
+      method: currentMethod,
+      methodIndex: currentExperimentIndex,
+      contentSetIds
+    });
+  }, [
+    contentSetIds,
+    currentExperimentIndex,
+    currentMethod,
+    onProgress
+  ]);
 
   function handleExperimentComplete(
     result: MethodExperimentResult
@@ -100,6 +138,9 @@ console.log(
     getMethodDefinition(
       currentMethod
     ).renderLab(
+      contentSetIds[
+        currentExperimentIndex
+      ],
       handleExperimentComplete
     );
   return (

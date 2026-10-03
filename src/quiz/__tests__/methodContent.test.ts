@@ -16,6 +16,11 @@ import {
   cornellExperiment,
   feynmanExperiment,
   headerFirstExperiment,
+  kidlinRuleExperiment,
+  premackPrincipleExperiment,
+  wallStareExperiment,
+  strooperEffectExperiment,
+  twoXVideoExperiment,
   interleavingExperiment,
   leitnerSystemExperiment,
   memoryPalaceExperiment,
@@ -36,6 +41,11 @@ import {
   cornellMatchData,
   feynmanMatchData,
   headerFirstMatchData,
+  kidlinRuleMatchData,
+  premackPrincipleMatchData,
+  wallStareMatchData,
+  strooperEffectMatchData,
+  twoXVideoMatchData,
   interleavingMatchData,
   leitnerSystemMatchData,
   memoryPalaceMatchData,
@@ -323,6 +333,21 @@ const contentCases: ContentCase[] = [
     verificationQuestionGroups: [deriveBasicsMatchData.questions],
     requiredLabArrays: [deriveBasicsExperiment.basicPrinciples, deriveBasicsExperiment.questions],
     requiredVerificationArrays: [deriveBasicsMatchData.basicPrinciples, deriveBasicsMatchData.questions]
+  },
+  {
+    method: "kidlin-rule", labQuestionGroups: [kidlinRuleExperiment.questions], verificationQuestionGroups: [kidlinRuleMatchData.questions], requiredLabArrays: [kidlinRuleExperiment.questions], requiredVerificationArrays: [kidlinRuleMatchData.questions]
+  },
+  {
+    method: "premack-principle", labQuestionGroups: [premackPrincipleExperiment.questions], verificationQuestionGroups: [premackPrincipleMatchData.questions], requiredLabArrays: [premackPrincipleExperiment.preferredExamples, premackPrincipleExperiment.questions], requiredVerificationArrays: [premackPrincipleMatchData.preferredExamples, premackPrincipleMatchData.questions]
+  },
+  {
+    method: "ten-minute-wall-stare", labQuestionGroups: [wallStareExperiment.questions], verificationQuestionGroups: [wallStareMatchData.questions], requiredLabArrays: [wallStareExperiment.questions], requiredVerificationArrays: [wallStareMatchData.questions]
+  },
+  {
+    method: "strooper-effect", labQuestionGroups: [strooperEffectExperiment.questions], verificationQuestionGroups: [strooperEffectMatchData.questions], requiredLabArrays: [strooperEffectExperiment.colors, strooperEffectExperiment.questions], requiredVerificationArrays: [strooperEffectMatchData.colors, strooperEffectMatchData.questions]
+  },
+  {
+    method: "two-x-video-speed", labQuestionGroups: [twoXVideoExperiment.questions], verificationQuestionGroups: [twoXVideoMatchData.questions], requiredLabArrays: [twoXVideoExperiment.focusPoints, twoXVideoExperiment.questions], requiredVerificationArrays: [twoXVideoMatchData.focusPoints, twoXVideoMatchData.questions]
   }
 ];
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTrainingState as useState } from "../trainingProgressState";
 import { LabRatings, MultipleChoiceRunner, scoreMultipleChoice, StudyPanel, TextResponse, useExperimentTimer } from "../engines/shared";
 import type { DeriveBasicsEngineData, LabEngineProps } from "../methodEngineTypes";
 type Stage = "intro" | "inspect" | "basics" | "derive" | "chain" | "test" | "reflection";

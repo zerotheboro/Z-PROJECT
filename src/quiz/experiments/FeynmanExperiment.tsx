@@ -1,6 +1,10 @@
 import {
-  useState
+  useRef
 } from "react";
+
+import {
+  useTrainingState as useState
+} from "../trainingProgressState";
 
 import type {
   ExplanationEngineData,
@@ -12,7 +16,8 @@ import {
   scoreMultipleChoice,
   StudyPanel,
   TextResponse,
-  useExperimentTimer
+  useExperimentTimer,
+  useStageCountdown
 } from "../engines/shared";
 
 type Stage =
@@ -79,6 +84,24 @@ function FeynmanExperiment({
     start: startTimer,
     elapsedMs
   } = useExperimentTimer();
+
+  const studyAdvancedRef = useRef(false);
+
+  function finishStudy() {
+    if (studyAdvancedRef.current) {
+      return;
+    }
+
+    studyAdvancedRef.current = true;
+    setStage("explain");
+  }
+
+  const studySecondsRemaining =
+    useStageCountdown({
+      durationSeconds: data.studyTime,
+      active: stage === "study",
+      onExpire: finishStudy
+    });
 
   const currentQuestion =
     data
@@ -238,11 +261,16 @@ function FeynmanExperiment({
 
           </StudyPanel>
 
+          {studySecondsRemaining !== null && (
+            <p role="timer">
+              Time remaining:{" "}
+              {studySecondsRemaining}s
+            </p>
+          )}
+
           <button
             type="button"
-            onClick={() =>
-              setStage("explain")
-            }
+            onClick={finishStudy}
           >
             I'm ready
           </button>

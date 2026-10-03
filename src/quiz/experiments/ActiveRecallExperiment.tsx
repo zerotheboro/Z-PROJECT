@@ -1,6 +1,10 @@
 import {
-  useState
+  useRef
 } from "react";
+
+import {
+  useTrainingState as useState
+} from "../trainingProgressState";
 
 import type {
   LabEngineProps,
@@ -12,7 +16,8 @@ import {
   scoreMultipleChoice,
   StudyPanel,
   TextResponse,
-  useExperimentTimer
+  useExperimentTimer,
+  useStageCountdown
 } from "../engines/shared";
 
 type Stage =
@@ -60,6 +65,44 @@ function ActiveRecallExperiment({
     start: startTimer,
     elapsedMs
   } = useExperimentTimer();
+
+  const studyAdvancedRef = useRef(false);
+  const retrievalAdvancedRef = useRef(false);
+
+  function finishStudy() {
+    if (studyAdvancedRef.current) {
+      return;
+    }
+
+    studyAdvancedRef.current = true;
+    setStage("retrieval");
+  }
+
+  function finishRetrieval() {
+    if (
+      retrievalAdvancedRef.current ||
+      retrievalText.trim().length === 0
+    ) {
+      return;
+    }
+
+    retrievalAdvancedRef.current = true;
+    setStage("test");
+  }
+
+  const studySecondsRemaining =
+    useStageCountdown({
+      durationSeconds: data.studyTime,
+      active: stage === "study",
+      onExpire: finishStudy
+    });
+
+  const retrievalSecondsRemaining =
+    useStageCountdown({
+      durationSeconds: data.retrievalTime,
+      active: stage === "retrieval",
+      onExpire: finishRetrieval
+    });
 
   const currentQuestion =
     data
@@ -217,11 +260,16 @@ function ActiveRecallExperiment({
 
           </StudyPanel>
 
+          {studySecondsRemaining !== null && (
+            <p role="timer">
+              Time remaining:{" "}
+              {studySecondsRemaining}s
+            </p>
+          )}
+
           <button
             type="button"
-            onClick={() =>
-              setStage("retrieval")
-            }
+            onClick={finishStudy}
           >
             I'm ready
           </button>
@@ -248,15 +296,20 @@ function ActiveRecallExperiment({
             placeholder="Write what you remember..."
           />
 
+          {retrievalSecondsRemaining !== null && (
+            <p role="timer">
+              Time remaining:{" "}
+              {retrievalSecondsRemaining}s
+            </p>
+          )}
+
           <button
             type="button"
             disabled={
               retrievalText.trim()
                 .length === 0
             }
-            onClick={() =>
-              setStage("test")
-            }
+            onClick={finishRetrieval}
           >
             Continue
           </button>

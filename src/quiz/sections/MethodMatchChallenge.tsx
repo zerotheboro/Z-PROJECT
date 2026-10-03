@@ -1,7 +1,11 @@
 import {
-  useMemo,
-  useState
+  useEffect,
+  useMemo
 } from "react";
+
+import {
+  useTrainingState as useState
+} from "../trainingProgressState";
 
 import {
   selectMethodsForVerification
@@ -24,6 +28,15 @@ import type {
 type Props = {
   methodLab: MethodLabResult;
 
+  random?: () => number;
+
+  onProgress?: (progress: {
+    method: TrainingMethodId;
+    methodIndex: number;
+    methods: TrainingMethodId[];
+    contentSetIds: string[];
+  }) => void;
+
   onComplete: (
     result: MethodMatchResult
   ) => void;
@@ -31,6 +44,8 @@ type Props = {
 
 function MethodMatchChallenge({
   methodLab,
+  random,
+  onProgress,
   onComplete
 }: Props) {
 
@@ -55,8 +70,34 @@ function MethodMatchChallenge({
       MethodMatchExperimentResult[]
     >([]);
 
+  const [contentSetIds] = useState(
+    () =>
+      methods.map((method) =>
+        getMethodDefinition(
+          method
+        ).selectMatchContentSetId(
+          random
+        )
+      )
+  );
+
   const currentMethod =
     methods[currentIndex];
+
+  useEffect(() => {
+    onProgress?.({
+      method: currentMethod,
+      methodIndex: currentIndex,
+      methods,
+      contentSetIds
+    });
+  }, [
+    contentSetIds,
+    currentIndex,
+    currentMethod,
+    methods,
+    onProgress
+  ]);
 
   function completeVerification(
     result:
@@ -109,6 +150,7 @@ function MethodMatchChallenge({
     getMethodDefinition(
       currentMethod
     ).renderMatch(
+      contentSetIds[currentIndex],
       originalScore,
       completeVerification
     );

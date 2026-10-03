@@ -1,9 +1,6 @@
+import React, { useState } from "react";
 
-
-
-
-function givedecison(e){
-    let list_of_colors =  [ { name: "red",    hsla: "hsla(0, 100%, 50%, 1)" },
+export const STROOP_COLORS = [ { name: "red",    hsla: "hsla(0, 100%, 50%, 1)" },
                             { name: "orange", hsla: "hsla(30, 100%, 50%, 1)" },
                             { name: "yellow", hsla: "hsla(60, 100%, 50%, 1)" },
                             { name: "green",  hsla: "hsla(120, 100%, 40%, 1)" },
@@ -17,34 +14,67 @@ function givedecison(e){
                             { name: "gold",         hsla: "hsla(50, 100%, 50%, 1)" },
                             { name: "lime",         hsla: "hsla(120, 100%, 50%, 1)" },
                             { name: "cyan",         hsla: "hsla(180, 100%, 50%, 1)" },]
-   
+export function createStroopStimulus(
+    colors = STROOP_COLORS,
+    random = Math.random
+){
+    if (colors.length === 0) return null;
 
-    let  selector_color1 = Math.floor(Math.random()*list_of_colors.length);
-    let  selector_color2 = Math.floor(Math.random()*list_of_colors.length);
+    const inkIndex = Math.floor(random() * colors.length);
+    let wordIndex = Math.floor(random() * colors.length);
 
-    let current_value = e.target.textContent;
-    if (list_of_colors[selector_color1].name !== current_value) {
-    e.target.style.color = `${list_of_colors[selector_color1 + 2 >= list_of_colors.length ? selector_color1 - 3 : selector_color1 + 2 ].hsla}`
-    e.target.textContent = `${list_of_colors[selector_color2 + 2 >= list_of_colors.length ? selector_color2 - 3 : selector_color2 + 2 ].name}`
-    }
-    else if (list_of_colors[selector_color1].name === current_value) {
-
-        let indexremove = list_of_colors.indexOf(current_value)
-        list_of_colors.splice(indexremove, 1)
-        let  selector_color3 = Math.floor(Math.random()*list_of_colors.length)
-        let  selector_color4 = Math.floor(Math.random()*list_of_colors.length)
-        e.target.style.color = `${list_of_colors[selector_color4].hsla}`
-        e.target.textContent = `${list_of_colors[selector_color3].name}`
-
+    if (wordIndex === inkIndex && colors.length > 1) {
+        wordIndex = (wordIndex + 1) % colors.length;
     }
 
-};
+    return { inkIndex, wordIndex };
+}
 
-function BODY(){
+/**
+ * @param {{
+ *   colors?: Array<{ name: string; hsla: string }>;
+ *   initialLabel?: string;
+ *   onAttempt?: () => void;
+ *   stimulus?: { inkIndex: number; wordIndex: number } | null;
+ *   onStimulusChange?: (
+ *     stimulus: { inkIndex: number; wordIndex: number } | null
+ *   ) => void;
+ * }} props
+ */
+function BODY({
+    colors = STROOP_COLORS,
+    initialLabel = "press",
+    onAttempt = () => {},
+    stimulus,
+    onStimulusChange
+} = {}){
+    const [localStimulus, setLocalStimulus] = useState(null);
+    const activeStimulus = stimulus ?? localStimulus;
+    const ink = activeStimulus
+        ? colors[activeStimulus.inkIndex]
+        : null;
+    const word = activeStimulus
+        ? colors[activeStimulus.wordIndex]
+        : null;
+
+    function nextStimulus() {
+        const next = createStroopStimulus(colors);
+
+        setLocalStimulus(next);
+        onStimulusChange?.(next);
+        onAttempt();
+    }
+
     return(
-        <button className="asset" id="PROMPT" onClick={(e) => givedecison(e)}>press</button>
+        <button
+            className="asset"
+            id="PROMPT"
+            style={ink ? { color: ink.hsla } : undefined}
+            onClick={nextStimulus}
+        >
+            {word?.name ?? initialLabel}
+        </button>
     );
-        
 }
 
 export default BODY

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { auth } from "../firebase";
 import './AISTYLE.scss';
 
 
@@ -26,12 +27,19 @@ export default function AIRecommendation() {
       setLoading(true);
       setError("");
 
+      const idToken = auth.currentUser
+        ? await auth.currentUser.getIdToken()
+        : null;
+
       const response = await fetch(
         "https://z-project-ba3t.onrender.com/api/recommend",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...(idToken
+              ? { Authorization: `Bearer ${idToken}` }
+              : {}),
           },
           body: JSON.stringify({
             biggestProblem,
@@ -88,10 +96,10 @@ export default function AIRecommendation() {
               </span>
 
               <h2>
-                Explore your top 3 Edulience's SSS  
+                Start from how you learn
               </h2>
               <p>
-                Receive 3 "SSS" or Suitable Study Strategies and a study plan only after 1-2 minutes submiting your answers for every day you log in the website
+                Receive 3 "SSS" or Suitable Study Strategies and a study plan only after 1-2 minutes submiting your answers, just to let you know by signing up you get smarter response
               </p>
 
               <div className="button-area">

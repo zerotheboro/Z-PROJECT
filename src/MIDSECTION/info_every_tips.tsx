@@ -5,9 +5,49 @@ import Daily from "./Day.jsx";
 import SpacePlan from "./Space_plan.jsx";
 import AddingMethods from "./Writing.jsx";
 import RSVP from "./RSVP.jsx";
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction
+} from "react";
 
-export const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg,mp4,mp3}", { eager: true });
+type ImageModule = {
+  default: string;
+};
+
+export type FileMediaAsset = {
+  src: string;
+  format: string;
+};
+
+export type MediaAsset = FileMediaAsset | {
+  src: ReactNode;
+  format: "component";
+};
+
+export type LocalizedContent = {
+  eng: ReactNode;
+  vn: ReactNode;
+};
+
+export type TipHeader = {
+  eng: string;
+  vn: string;
+  src?: string;
+};
+
+type StoredUserTip = {
+  _header: TipHeader;
+  _paragraph: LocalizedContent;
+  _asset: FileMediaAsset;
+};
+
+export const images = import.meta.glob<ImageModule>(
+  "../image/*.{png,jpg,jpeg,webp,gif,svg,mp4,mp3}",
+  { eager: true }
+);
 /*return an object of file */
 export const imageFiles = Object.entries(images).map(([path, module]) => ({
   path,
@@ -15,7 +55,7 @@ export const imageFiles = Object.entries(images).map(([path, module]) => ({
 }));
 /*convert it back to another form of object */
 
-export function image_importor(name, type = "image") {
+export function image_importor(name: string, type = "image"): FileMediaAsset {
   const found = imageFiles.find(file => file.path.includes(name));
   if (!found) {
     console.warn(`Image not found: ${name}`);
@@ -41,7 +81,17 @@ export function image_importor(name, type = "image") {
 
 /*THE 2 CLASS */
 class TypeOfTips {
-  constructor(type, introduction, list, additional_material = null) {
+  declare private _type: string;
+  declare private _introduction: LocalizedContent;
+  declare private _list: DetailOfTips[];
+  declare private _additional_material: ReactNode;
+
+  constructor(
+    type: string,
+    introduction: LocalizedContent,
+    list: DetailOfTips[],
+    additional_material: ReactNode = null
+  ) {
     this._type = type;
     this._list = list;
     this._introduction = introduction;
@@ -63,7 +113,22 @@ class TypeOfTips {
 
 /*change img into asset */
 export class DetailOfTips{
-  constructor(header = "header", paragraph = "p", asset = image_importor("LOGO", "image"), side="right", more_info= false, audio = false){
+  declare private _header: TipHeader;
+  declare private _paragraph: LocalizedContent;
+  declare private _asset: MediaAsset;
+  declare private _side: string;
+  declare private _more_info: ReactNode | false;
+  declare private _audio: FileMediaAsset | false;
+
+  constructor(
+    header: TipHeader = "header" as unknown as TipHeader,
+    paragraph: LocalizedContent = "p" as unknown as LocalizedContent,
+    asset: MediaAsset = image_importor("LOGO", "image"),
+    side = "right",
+    more_info: ReactNode | false = false,
+    audio: FileMediaAsset | false = false,
+    _legacyAdditionalContent: ReactNode = null
+  ){
     this._header = header;
     this._paragraph = paragraph;
     this._asset = asset;
@@ -91,9 +156,13 @@ export class DetailOfTips{
   }
 }
 
-function CITATE(props){
+function CITATE(props: {
+  n: string;
+  src: string;
+  num?: string;
+}){
   const cite = "¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ¹⁰";
-  let num = "";
+  let num: string | undefined = "";
   switch(props.n){
     case "1": num = "¹";break;
     case "2": num = "²";break;
@@ -143,12 +212,14 @@ function CITATE(props){
   )
 }
 
-let user_list
-let raw_object_user_list = [];
+let user_list: DetailOfTips[] = [];
+let raw_object_user_list: StoredUserTip[] = [];
 
 try {
-  const parsed = JSON.parse(localStorage.getItem("user_lists") || "[]");
-  raw_object_user_list = Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  const parsed: unknown = JSON.parse(localStorage.getItem("user_lists") || "[]");
+  raw_object_user_list = Array.isArray(parsed)
+    ? parsed.filter(Boolean) as StoredUserTip[]
+    : [];
 } catch {
   raw_object_user_list = [];
   localStorage.setItem("user_lists", "[]");
@@ -173,13 +244,13 @@ if(raw_object_user_list){
         eng: (
           <>
             {object._paragraph.eng}
-            <button className="x-button" onClick={() => deleteUserTip(index)}><img src={image_importor("xaxon").src}></img></button>
+            <button className="x-button" onClick={() => deleteUserTip()}><img src={image_importor("xaxon").src}></img></button>
           </>
         ),
         vn: (
           <>
             {object._paragraph.vn}
-            <button className="x-button" onClick={() => deleteUserTip(index)}><img src={image_importor("xaxon").src}></img></button>
+            <button className="x-button" onClick={() => deleteUserTip()}><img src={image_importor("xaxon").src}></img></button>
           </>
         ),
       },
@@ -224,7 +295,7 @@ const Prime_question = new DetailOfTips(
   image_importor("brain.svg"),
   "left",
   <>
-    <label for="prime-question">What question?</label><br/>
+    <label htmlFor="prime-question">What question?</label><br/>
     <textarea name="prime-question" placeholder="What knowledge does this give me?, How much effort do I need to put in?, What is the hardest thing I need to learn?"></textarea>
   </>
 )
@@ -258,7 +329,7 @@ const Promodoro = new DetailOfTips(
     format: "component"
   },
   "left",
-  <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
 )
 
 const Everything_in_1_place = new DetailOfTips(
@@ -522,10 +593,10 @@ const Premacks_principle = new DetailOfTips(
   image_importor("pirate_map"),
   "left",
   <>
-    <label for="need">The task you need to do before:</label><br/>
+    <label htmlFor="need">The task you need to do before:</label><br/>
     <textarea name="need" placeholder="Study algrebra"/><br/>
 
-    <label for="love">The task you love to do after:</label><br/>
+    <label htmlFor="love">The task you love to do after:</label><br/>
     <textarea name="love" placeholder="Relax on social media"/><br/>
   </>
   
@@ -578,7 +649,7 @@ const Brain_diet = new DetailOfTips(
   </>},
   image_importor("chicken"),
   "left",
-  <iframe src="https://www.youtube.com/embed/btXIAqMSLaI?si=3kt0H28IhoPyIWlm" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe src="https://www.youtube.com/embed/btXIAqMSLaI?si=3kt0H28IhoPyIWlm" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
 )
 
 const Incubation_effect = new DetailOfTips(
@@ -679,7 +750,7 @@ const Peripheral_vision = new DetailOfTips(
   </>},
   image_importor("eye"),
   "left",
-  <iframe src="https://www.youtube.com/embed/PdI3fJTzK3g?si=ZB17BI2g_3XT7zcT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe src="https://www.youtube.com/embed/PdI3fJTzK3g?si=ZB17BI2g_3XT7zcT" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
 )
 const Doodle_effect = new DetailOfTips(
   {
@@ -762,7 +833,7 @@ const Spaced_learning = new DetailOfTips(
   "left",
   <>
     <SpacePlan/>
-    <iframe src="https://www.youtube.com/embed/UviQTOdUJEw?si=_ETlIQS9r-fguhCu" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <iframe src="https://www.youtube.com/embed/UviQTOdUJEw?si=_ETlIQS9r-fguhCu" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
   </>,
 )
 
@@ -903,7 +974,7 @@ const FEYNMAN_technique = new DetailOfTips(
      you don't understand it well enough." and that is very true when it comes
     to explaining ideas to people.
   </p>
-  <iframe src="https://www.youtube.com/embed/dRA_UW6ZfOQ?si=wc-jqgL__ub9Oxdd" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe src="https://www.youtube.com/embed/dRA_UW6ZfOQ?si=wc-jqgL__ub9Oxdd" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
   </>
 )
 const Memory_Palace = new DetailOfTips(
@@ -939,7 +1010,7 @@ const Memory_Palace = new DetailOfTips(
   },
   image_importor("palace"),
   "right",
-  <><iframe src="https://www.youtube.com/embed/C8r_HncpWrM?si=Jk_ht6v3_4TgtgaV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><h1>OR</h1><a href="../../Memory_palace.html"><img src={image_importor("more-info").src} className="more-info"/></a></>,
+  <><iframe src="https://www.youtube.com/embed/C8r_HncpWrM?si=Jk_ht6v3_4TgtgaV" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe><h1>OR</h1><a href="../../Memory_palace.html"><img src={image_importor("more-info").src} className="more-info"/></a></>,
   image_importor("Palaceaudio")
 
 )
@@ -1074,7 +1145,7 @@ const Leitner_system = new DetailOfTips(
   "left",
   <>
     <video controls><source src={image_importor("Leitner_vid").src} type="video/mp4"/></video>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/kB-NuR6NTZw?si=BDrD5yloPbgS70l9" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/kB-NuR6NTZw?si=BDrD5yloPbgS70l9" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
   </>,
   image_importor("LEINTNER")
 
@@ -1174,7 +1245,7 @@ const CORNELL_method = new DetailOfTips(
   },
   image_importor("CORNELL"),
   "right",
-  <iframe  src="https://www.youtube.com/embed/GKodBunEPuI?si=6ERiznbgXUVsTurE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>,
+  <iframe  src="https://www.youtube.com/embed/GKodBunEPuI?si=6ERiznbgXUVsTurE" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>,
   image_importor("Cornor")
 )
 
@@ -1297,7 +1368,7 @@ const TWO_X_ILETS = new DetailOfTips(
   </>,
   }, image_importor("2XILETS"),
   "right",
-  <iframe src="https://www.youtube.com/embed/cyPd2mfnR2Y?si=cWIHwAStR8ZrtLTc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>,
+  <iframe src="https://www.youtube.com/embed/cyPd2mfnR2Y?si=cWIHwAStR8ZrtLTc" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>,
   image_importor("ILETS2XAUDIO")
 )
 
@@ -1331,7 +1402,7 @@ const words_in_1_spot = new DetailOfTips(
   image_importor("RSVP_AUDI"),
   <>
     <RSVP/>
-    <iframe src="https://www.youtube.com/embed/HzOpcQPdvh0?si=g-cySJjN3zKk01vq" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <iframe src="https://www.youtube.com/embed/HzOpcQPdvh0?si=g-cySJjN3zKk01vq" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
   </>
 
 )
@@ -1454,7 +1525,7 @@ const real_music = new DetailOfTips(
   </>}, 
   image_importor("music_help"),
   "left",
-  <iframe src="https://www.youtube.com/embed/1dINKoEFpsw?si=CJ1dLnc9016-Hbn6" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe src="https://www.youtube.com/embed/1dINKoEFpsw?si=CJ1dLnc9016-Hbn6" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
 )
 
 const point_call = new DetailOfTips(
@@ -1488,7 +1559,7 @@ const point_call = new DetailOfTips(
   </>}, 
   image_importor("point-call"),
   "left",
-  <iframe src="https://www.youtube.com/embed/GynusyJZmwI?si=vZme65oZ6_6Ms5F4" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>,
+  <iframe src="https://www.youtube.com/embed/GynusyJZmwI?si=vZme65oZ6_6Ms5F4" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>,
   image_importor("POINT_CALLAUDIO")
 )
 
@@ -1903,23 +1974,30 @@ const question_options = [
   }
 ];
 
-export function loadcustomized_user_list() {
-  return JSON.parse(
+export function loadcustomized_user_list(): DetailOfTips[] {
+  const parsed: unknown = JSON.parse(
     localStorage.getItem("customize_user_list") || "[]"
-  )
-    .flat()
-    .filter(Boolean)
-    .map(header =>
+  );
+  const headers = Array.isArray(parsed)
+    ? parsed.flat().filter(Boolean)
+    : [];
+
+  return headers
+    .map((header: unknown) =>
       [...metaLearnTips, ...preLearnTips, ...noteTakeTips]
         .find(tip => tip.header.eng === header)
     )
-    .filter(Boolean);
+    .filter((tip): tip is DetailOfTips => Boolean(tip));
 }
 
-export function Customize({ setCustomize_list }){
+export function Customize({
+  setCustomize_list
+}: {
+  setCustomize_list: Dispatch<SetStateAction<DetailOfTips[]>>;
+}){
     const [questionindex, setQuestionindex ] = useState(0);
     
-    const [suggestedtips, setSuggestedtips] = useState([]);
+    const [suggestedtips, setSuggestedtips] = useState<string[]>([]);
 
     useEffect(() => {
       if(questionindex >= question_options.length){
@@ -1936,7 +2014,7 @@ export function Customize({ setCustomize_list }){
           <img src={image_importor("customize").src}/>
           <h2>You have finished customizing</h2>
           <div>
-            <button onClick={() => {setQuestionindex(0); setSuggestedtips([])}}>customize again?</button> <button onClick={() => {setCustomize_list(loadcustomized_user_list()); document.getElementById("YOUR-SYSTEM").scrollIntoView({behavior: "smooth"}) }}>see result!</button>
+            <button onClick={() => {setQuestionindex(0); setSuggestedtips([])}}>customize again?</button> <button onClick={() => {setCustomize_list(loadcustomized_user_list()); document.getElementById("YOUR-SYSTEM")?.scrollIntoView({behavior: "smooth"}) }}>see result!</button>
           </div>
           
         </div>
@@ -1965,7 +2043,10 @@ export function Customize({ setCustomize_list }){
         </div>
     )}
 
-function study_overview(list, language){
+function study_overview(
+  list: DetailOfTips[],
+  language: "eng" | "vn"
+){
   return(
     <ol className="method-overview-list">
       <h2>Overview:</h2>
@@ -1983,7 +2064,10 @@ function study_overview(list, language){
 /*=======================================DATA BASE=================================================*/
 
 
-export function get_list_of_tips(customize_list, setCustomize_list){
+export function get_list_of_tips(
+  customize_list: DetailOfTips[],
+  setCustomize_list: Dispatch<SetStateAction<DetailOfTips[]>>
+): TypeOfTips[]{
   return [
   new TypeOfTips(
     "YOUR-SYSTEM",

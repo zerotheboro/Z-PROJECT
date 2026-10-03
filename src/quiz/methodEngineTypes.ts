@@ -15,6 +15,8 @@ export type MultipleChoiceQuestion = {
 export type RecallEngineData = {
   title: string;
   topic: string;
+  studyTime?: number;
+  retrievalTime?: number;
   facts: readonly string[];
   questions: readonly MultipleChoiceQuestion[];
 };
@@ -22,6 +24,7 @@ export type RecallEngineData = {
 export type ExplanationEngineData = {
   title: string;
   topic: string;
+  studyTime?: number;
   explanation: string;
   questions: readonly MultipleChoiceQuestion[];
 };
@@ -138,6 +141,12 @@ export type DeriveBasicsEngineData = {
   basicPrinciples: readonly string[];
   questions: readonly MultipleChoiceQuestion[];
 };
+
+export type KidlinRuleEngineData = { title: string; topic: string; vagueProblem: string; context: string; questions: readonly MultipleChoiceQuestion[]; };
+export type PremackPrincipleEngineData = { title: string; topic: string; task: string; material: string; preferredExamples: readonly string[]; questions: readonly MultipleChoiceQuestion[]; };
+export type WallStareEngineData = { title: string; topic: string; material: string; questions: readonly MultipleChoiceQuestion[]; };
+export type StrooperEngineData = { title: string; topic: string; material: string; colors: { name: string; hsla: string }[]; questions: readonly MultipleChoiceQuestion[]; };
+export type TwoXVideoEngineData = { title: string; topic: string; mediaSrc: string; focusPoints: readonly string[]; questions: readonly MultipleChoiceQuestion[]; };
 
 export type LabEngineProps<Data> = {
   method: TrainingMethodId;

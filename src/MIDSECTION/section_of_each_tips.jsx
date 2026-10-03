@@ -221,12 +221,6 @@ const list_of_tips_JSX = list_of_tips.map((each_section) => {
   );
 });
 
-function handleClickforLanguage(e){
-  (VNLanguage)? e.target.textContent = `Vietnamese` :  e.target.textContent = `English` 
-  setVNLanguage(prevVNLanguage => {
-    return !prevVNLanguage
-  })
-}
 
 function handleClickfor1(section_id){
   setShow(prevShow => {
@@ -248,7 +242,7 @@ function handleClickfor1(section_id){
 
   return (
     <>
-      <NAV language={handleClickforLanguage}/>
+      <NAV/>
       <header>
       <div id="BENEFIT">
         <h1>Edulience finds y<img src={LOGO} className="heroimg"/>ur<br/><u>suitable study strategy!</u><br/></h1>
@@ -361,122 +355,149 @@ function handleClickfor1(section_id){
 
     </div>
 
-  </section>
-      <AIRecommendation/>
-      <section className="sss-library" id="Library">
-  <header className="sss-library__header">
-    <div>
-      <span className="sss-library__eyebrow">
-        EDULIENCE METHOD DATABASE
-      </span>
 
-      <h1>Explore the SSS Library</h1>
+{/* HOW IT WORKS */}
 
-      <p>
-        Browse, compare and discover Suitable Study Strategies
-        based on what you need before, during and after learning.
-      </p>
-    </div>
+<section className="home-process">
 
-    <div className="sss-library__summary">
-      <strong>
-        {list_of_tips.reduce(
-          (total, section) => total + section.list.length,
-          0
-        )}
-      </strong>
+  <div className="home-section-heading">
 
-      <span>study strategies</span>
-    </div>
-  </header>
+    <span className="home-eyebrow">
+      HOW IT WORKS
+    </span>
 
-  <div className="sss-library__grid">
-    {list_of_tips.map((section, index) => {
-      const libraryInformation = {
-        "YOUR-SYSTEM": {
-          number: "01",
-          label: "Personal collection",
-          description:
-            "View strategies suggested for you and methods you have added.",
-          icon: "✦"
-        },
+    <h2>
+      From “I don't know what works”
+      <br />
+      to a system you can actually use.
+    </h2>
 
-        "PRE-LEARN": {
-          number: "02",
-          label: "Prepare to learn",
-          description:
-            "Improve focus, energy, motivation and your study environment.",
-          icon: "↗"
-        },
-
-        "META-LEARN": {
-          number: "03",
-          label: "Learn how to learn",
-          description:
-            "Understand, practise and remember information more effectively.",
-          icon: "◎"
-        },
-
-        "NOTE-TAKE": {
-          number: "04",
-          label: "Capture knowledge",
-          description:
-            "Organise, compress and retrieve information through better notes.",
-          icon: "≡"
-        }
-      };
-
-      const information =
-        libraryInformation[section.type] || {
-          number: String(index + 1).padStart(2, "0"),
-          label: "Study strategies",
-          description: "Explore this Edulience strategy collection.",
-          icon: "→"
-        };
-
-      const isOpen = Boolean(show[section.type]);
-
-      return (
-        <button
-          type="button"
-          key={section.type}
-          className={`sss-library-card ${
-            isOpen ? "is-active" : ""
-          }`}
-          onClick={() => handleClickfor1(section.type)}
-          aria-expanded={isOpen}
-          aria-controls={section.type}
-        >
-          <div className="sss-library-card__top">
-            <span className="sss-library-card__number">
-              {information.number}
-            </span>
-
-            <span className="sss-library-card__icon">
-              {information.icon}
-            </span>
-          </div>
-
-          <div className="sss-library-card__content">
-            <span className="sss-library-card__label">
-              {information.label}
-            </span>
-
-            <h2>{section.type}</h2>
-
-            <p>{information.description}</p>
-          </div>
-        </button>
-      );
-    })}
   </div>
 
-  <p className="sss-library__hint">
-    Select a collection to reveal its complete strategy guide below.
-  </p>
+
+  <div className="home-process-list">
+
+    <article className="home-process-step">
+
+      <div className="home-process-index">
+        1
+      </div>
+
+      <div>
+        <span>
+          DISCOVER
+        </span>
+
+        <h3>
+          Find methods worth trying.
+        </h3>
+
+        <p>
+          Browse the Library, ask AI for suggestions,
+          or start directly with Training.
+        </p>
+      </div>
+
+    </article>
+
+
+    <article className="home-process-step">
+
+      <div className="home-process-index">
+        2
+      </div>
+
+      <div>
+        <span>
+          EXPERIMENT
+        </span>
+
+        <h3>
+          Try them instead of guessing.
+        </h3>
+
+        <p>
+          Training puts learning methods into small
+          exercises so you can experience how they
+          actually work.
+        </p>
+      </div>
+
+    </article>
+
+
+    <article className="home-process-step">
+
+      <div className="home-process-index">
+        3
+      </div>
+
+      <div>
+        <span>
+          REFINE
+        </span>
+
+        <h3>
+          Build a learning profile over time.
+        </h3>
+
+        <p>
+          Keep what helps, understand what doesn't,
+          and gradually build a set of methods for
+          different learning situations.
+        </p>
+      </div>
+
+    </article>
+
+  </div>
+
 </section>
-      {list_of_tips_JSX}  
-      <Footer/>  
+
+
+{/* FINAL CTA */}
+
+<section className="home-final-cta">
+
+  <div className="home-final-cta__content">
+
+    <span className="home-eyebrow">
+      READY TO START?
+    </span>
+
+    <h2>
+      Stop searching for the perfect study method.
+    </h2>
+
+    <p>
+      Start testing what works for you.
+    </p>
+
+
+    <div className="home-final-cta__actions">
+
+      <Link
+        to="/training"
+        className="home-primary-action"
+      >
+        Start training →
+      </Link>
+
+      <Link
+        to="/library"
+        className="home-secondary-action"
+      >
+        Explore the Library
+      </Link>
+
+    </div>
+
+  </div>
+
+</section>
+
+  </section>
+    <Footer/>
     </>
   );
   

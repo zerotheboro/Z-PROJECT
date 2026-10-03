@@ -27,7 +27,12 @@ const addedMethods = [
   "doodle-effect",
   "eighty-twenty-rule",
   "divide-steps",
-  "derive-basics"
+  "derive-basics",
+  "kidlin-rule",
+  "premack-principle",
+  "ten-minute-wall-stare",
+  "strooper-effect",
+  "two-x-video-speed"
 ] as const satisfies readonly TrainingMethodId[];
 
 function baseline(
@@ -200,13 +205,43 @@ describe("expanded method selection", () => {
       method: "divide-steps",
       currentSituation: situation(["application"], ["problems"]),
       currentBaseline: baseline(1, 1),
-      expected: ["interleaving", "divide-steps", "capture-create", "derive-basics"]
+      expected: ["interleaving", "divide-steps", "capture-create", "kidlin-rule"]
     },
     {
       method: "derive-basics",
       currentSituation: situation(["understanding", "application"], ["concepts"]),
       currentBaseline: baseline(1, 0.5),
       expected: ["feynman", "one-sentence", "derive-basics", "interleaving"]
+    },
+    {
+      method: "kidlin-rule",
+      currentSituation: situation(["strategy", "application"], ["problems"]),
+      currentBaseline: baseline(1, 1),
+      expected: ["interleaving", "kidlin-rule", "divide-steps", "capture-create"]
+    },
+    {
+      method: "premack-principle",
+      currentSituation: situation(["starting"], []),
+      currentBaseline: baseline(1, 1),
+      expected: ["premack-principle", "active-recall", "feynman", "cornell"]
+    },
+    {
+      method: "ten-minute-wall-stare",
+      currentSituation: situation(["focus", "inefficiency"], []),
+      currentBaseline: baseline(1, 1),
+      expected: ["ten-minute-wall-stare", "strooper-effect", "two-x-video-speed", "premack-principle"]
+    },
+    {
+      method: "strooper-effect",
+      currentSituation: situation(["focus"], []),
+      currentBaseline: baseline(1, 1),
+      expected: ["strooper-effect", "ten-minute-wall-stare", "active-recall", "feynman"]
+    },
+    {
+      method: "two-x-video-speed",
+      currentSituation: situation(["inefficiency"], ["reading"]),
+      currentBaseline: baseline(1, 1),
+      expected: ["two-x-video-speed", "cornell", "note-taking-4x4", "prime-question"]
     }
   ] as const)(
     "makes $method reachable for a related profile",

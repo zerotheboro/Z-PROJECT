@@ -46,6 +46,18 @@ describe("methodRegistry", () => {
       expect(definition.renderMatch).toEqual(
         expect.any(Function)
       );
+      expect(
+        definition.labContentSetIds.length
+      ).toBeGreaterThan(0);
+      expect(
+        definition.matchContentSetIds.length
+      ).toBeGreaterThan(0);
+      expect(
+        definition.selectLabContentSetId
+      ).toEqual(expect.any(Function));
+      expect(
+        definition.selectMatchContentSetId
+      ).toEqual(expect.any(Function));
     });
   });
 });

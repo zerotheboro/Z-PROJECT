@@ -8,7 +8,9 @@ export default defineConfig({
     clearMocks: true,
     restoreMocks: true,
     include: [
-      "src/**/*.test.{ts,tsx}"
+      "src/**/*.test.{ts,tsx}",
+      "firebaseAdmin.test.js",
+      "server.test.js"
     ]
   }
 });

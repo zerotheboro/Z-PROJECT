@@ -1,0 +1,22 @@
+// Merge this scoped match into the project's existing
+// match /databases/{database}/documents block before deployment.
+// It intentionally does not redefine or loosen any existing user,
+// assessment, profile, or backend AI usage rules.
+match /users/{userId}/trainingProgress/{draftId} {
+  allow read: if request.auth != null
+    && request.auth.uid == userId
+    && draftId == "active";
+
+  allow create, update: if request.auth != null
+    && request.auth.uid == userId
+    && draftId == "active"
+    && request.resource.data.schemaVersion == 1
+    && request.resource.data.sessionId is string
+    && request.resource.data.owner.kind == "user"
+    && request.resource.data.owner.uid == request.auth.uid
+    && request.resource.data.mode in ["auto", "manual"];
+
+  allow delete: if request.auth != null
+    && request.auth.uid == userId
+    && draftId == "active";
+}

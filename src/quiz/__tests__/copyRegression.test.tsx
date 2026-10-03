@@ -155,12 +155,22 @@ describe("current method copy", () => {
   });
 
   it("registers exactly the five newest approved display names", () => {
-    expect(TRAINING_METHOD_IDS.slice(13).map((id) => ({ id, name: methodRegistry[id].name }))).toEqual([
+    expect(TRAINING_METHOD_IDS.slice(13, 18).map((id) => ({ id, name: methodRegistry[id].name }))).toEqual([
       { id: "prime-question", name: "Prime question" },
       { id: "doodle-effect", name: "the Doodle effect" },
       { id: "eighty-twenty-rule", name: "80/20 rule" },
       { id: "divide-steps", name: "divide steps" },
       { id: "derive-basics", name: "derive basics" }
+    ]);
+  });
+
+  it("registers exactly the five latest approved display names", () => {
+    expect(TRAINING_METHOD_IDS.slice(18).map((id) => ({ id, name: methodRegistry[id].name }))).toEqual([
+      { id: "kidlin-rule", name: "Kidlin's rule" },
+      { id: "premack-principle", name: "Premack's principle" },
+      { id: "ten-minute-wall-stare", name: "10 min wall stare" },
+      { id: "strooper-effect", name: "Strooper effect" },
+      { id: "two-x-video-speed", name: "2X video speed" }
     ]);
   });
 

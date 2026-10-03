@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTrainingState as useState } from "../trainingProgressState";
 import type { LeitnerEngineData, MatchEngineProps } from "../methodEngineTypes";
 import { MultipleChoiceRunner, scoreMultipleChoice, StudyPanel, useExperimentTimer, VerificationConfidence } from "../engines/shared";
 

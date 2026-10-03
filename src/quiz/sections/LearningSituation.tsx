@@ -1,4 +1,6 @@
-import { useState } from "react";
+import {
+  useTrainingState as useState
+} from "../trainingProgressState";
 
 import {
   learningSituationQuestions

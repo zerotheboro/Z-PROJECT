@@ -2,6 +2,11 @@ import {
   useRef
 } from "react";
 
+import {
+  useTrainingProgressCheckpoint,
+  useTrainingState
+} from "../../trainingProgressState";
+
 type Options = {
   startImmediately?: boolean;
 };
@@ -9,22 +14,52 @@ type Options = {
 export function useExperimentTimer({
   startImmediately = false
 }: Options = {}) {
-  const startTime = useRef<number | null>(
-    startImmediately ? Date.now() : null
+  const [timer, setTimer] = useTrainingState(
+    () => ({
+      accumulatedMs: 0,
+      running: startImmediately
+    })
+  );
+  const startedAt = useRef<number | null>(
+    timer.running ? Date.now() : null
   );
 
   function start() {
-    startTime.current = Date.now();
+    startedAt.current = Date.now();
+    setTimer({
+      accumulatedMs: 0,
+      running: true
+    });
   }
 
   function elapsedMs() {
-    return startTime.current === null
-      ? 0
-      : Date.now() - startTime.current;
+    const active =
+      timer.running && startedAt.current !== null
+        ? Date.now() - startedAt.current
+        : 0;
+
+    return timer.accumulatedMs + active;
   }
+
+  useTrainingProgressCheckpoint(() => {
+    const started = startedAt.current;
+    if (!timer.running || started === null) {
+      return;
+    }
+
+    const now = Date.now();
+    startedAt.current = now;
+    setTimer(current => ({
+      ...current,
+      accumulatedMs:
+        current.accumulatedMs +
+        (now - started)
+    }));
+  });
 
   return {
     start,
-    elapsedMs
+    elapsedMs,
+    isRunning: timer.running
   };
 }

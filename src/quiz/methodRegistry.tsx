@@ -34,6 +34,11 @@ import DoodleEffectExperiment from "./experiments/DoodleEffectExperiment";
 import EightyTwentyExperiment from "./experiments/EightyTwentyExperiment";
 import DivideStepsExperiment from "./experiments/DivideStepsExperiment";
 import DeriveBasicsExperiment from "./experiments/DeriveBasicsExperiment";
+import KidlinRuleExperiment from "./experiments/KidlinRuleExperiment";
+import PremackPrincipleExperiment from "./experiments/PremackPrincipleExperiment";
+import TenMinuteWallStareExperiment from "./experiments/TenMinuteWallStareExperiment";
+import StrooperEffectExperiment from "./experiments/StrooperEffectExperiment";
+import TwoXVideoSpeedExperiment from "./experiments/TwoXVideoSpeedExperiment";
 
 import RecallMatch
   from "./matches/ActiveRecallMatch";
@@ -66,47 +71,20 @@ import DoodleEffectMatch from "./matches/DoodleEffectMatch";
 import EightyTwentyMatch from "./matches/EightyTwentyMatch";
 import DivideStepsMatch from "./matches/DivideStepsMatch";
 import DeriveBasicsMatch from "./matches/DeriveBasicsMatch";
+import KidlinRuleMatch from "./matches/KidlinRuleMatch";
+import PremackPrincipleMatch from "./matches/PremackPrincipleMatch";
+import TenMinuteWallStareMatch from "./matches/TenMinuteWallStareMatch";
+import StrooperEffectMatch from "./matches/StrooperEffectMatch";
+import TwoXVideoSpeedMatch from "./matches/TwoXVideoSpeedMatch";
 
 import {
-  activeBlurtingExperiment,
-  activeRecallExperiment,
-  cornellExperiment,
-  feynmanExperiment,
-  headerFirstExperiment,
-  interleavingExperiment,
-  leitnerSystemExperiment,
-  memoryPalaceExperiment,
-  noteTaking4x4Experiment,
-  oneSentenceExperiment,
-  storyTellingExperiment,
-  captureCreateExperiment,
-  abbreviationExperiment,
-  primeQuestionExperiment,
-  doodleEffectExperiment,
-  eightyTwentyExperiment,
-  divideStepsExperiment,
-  deriveBasicsExperiment
-} from "./methodLabData";
+  methodLabContentSets,
+  methodMatchContentSets
+} from "./methodContentSets";
 import {
-  activeBlurtingMatchData,
-  activeRecallMatchData,
-  cornellMatchData,
-  feynmanMatchData,
-  headerFirstMatchData,
-  interleavingMatchData,
-  leitnerSystemMatchData,
-  memoryPalaceMatchData,
-  noteTaking4x4MatchData,
-  oneSentenceMatchData,
-  storyTellingMatchData,
-  captureCreateMatchData,
-  abbreviationMatchData,
-  primeQuestionMatchData,
-  doodleEffectMatchData,
-  eightyTwentyMatchData,
-  divideStepsMatchData,
-  deriveBasicsMatchData
-} from "./methodMatchData";
+  getMethodContentSet,
+  selectMethodContentSet
+} from "./methodContentSelector";
 import {
   methodIntroductionData
 } from "./methodIntroductionData";
@@ -127,6 +105,9 @@ import type {
   LabEngineProps,
   MatchEngineProps
 } from "./methodEngineTypes";
+import {
+  TrainingStateScope
+} from "./trainingProgressState";
 
 type SelectionSignal =
   | {
@@ -164,12 +145,22 @@ type MethodDefinition = {
   defaultSelectionWeight: number;
   defaultSelectionOrder: number;
   selectionSignals: readonly SelectionSignal[];
+  labContentSetIds: readonly string[];
+  matchContentSetIds: readonly string[];
+  selectLabContentSetId: (
+    random?: () => number
+  ) => string;
+  selectMatchContentSetId: (
+    random?: () => number
+  ) => string;
   renderLab: (
+    contentSetId: string,
     onComplete: (
       result: MethodExperimentResult
     ) => void
   ) => ReactNode;
   renderMatch: (
+    contentSetId: string,
     originalScore: number | null,
     onComplete: (
       result: MethodMatchExperimentResult
@@ -180,52 +171,103 @@ type MethodDefinition = {
 function defineMethod<LabData, MatchData>(
   definition: Omit<
     MethodDefinition,
-    "renderLab" | "renderMatch"
+    | "labContentSetIds"
+    | "matchContentSetIds"
+    | "selectLabContentSetId"
+    | "selectMatchContentSetId"
+    | "renderLab"
+    | "renderMatch"
   > & {
     labEngine: ComponentType<
       LabEngineProps<LabData>
     >;
-    labData: LabData;
+    labContentSets: readonly {
+      id: string;
+      data: LabData;
+    }[];
     matchEngine: ComponentType<
       MatchEngineProps<MatchData>
     >;
-    matchData: MatchData;
+    matchContentSets: readonly {
+      id: string;
+      data: MatchData;
+    }[];
   }
 ): MethodDefinition {
   const {
     labEngine: LabEngine,
-    labData,
+    labContentSets,
     matchEngine: MatchEngine,
-    matchData,
+    matchContentSets,
     ...method
   } = definition;
 
   return {
     ...method,
-    renderLab: (onComplete) => (
-      <LabEngine
-        key={method.id}
-        method={method.id}
-        category={method.category}
-        name={method.name}
-        data={labData}
-        onComplete={onComplete}
-      />
-    ),
+    labContentSetIds:
+      labContentSets.map(({ id }) => id),
+    matchContentSetIds:
+      matchContentSets.map(({ id }) => id),
+    selectLabContentSetId: (random) =>
+      selectMethodContentSet(
+        labContentSets,
+        random
+      ).id,
+    selectMatchContentSetId: (random) =>
+      selectMethodContentSet(
+        matchContentSets,
+        random
+      ).id,
+    renderLab: (
+      contentSetId,
+      onComplete
+    ) => {
+      const { data } = getMethodContentSet(
+        labContentSets,
+        contentSetId
+      );
+
+      return (
+        <TrainingStateScope
+          key={`${method.id}:${contentSetId}`}
+          name={`lab:${method.id}:${contentSetId}`}
+        >
+          <LabEngine
+            method={method.id}
+            category={method.category}
+            name={method.name}
+            data={data}
+            onComplete={onComplete}
+          />
+        </TrainingStateScope>
+      );
+    },
     renderMatch: (
+      contentSetId,
       originalScore,
       onComplete
-    ) => (
-      <MatchEngine
-        key={method.id}
-        method={method.id}
-        name={method.name}
-        shortName={method.shortName}
-        data={matchData}
-        originalScore={originalScore}
-        onComplete={onComplete}
-      />
-    )
+    ) => {
+      const { data } = getMethodContentSet(
+        matchContentSets,
+        contentSetId
+      );
+
+      return (
+        <TrainingStateScope
+          key={`${method.id}:${contentSetId}`}
+          name={`match:${method.id}:${contentSetId}`}
+        >
+          <MatchEngine
+            method={method.id}
+            name={method.name}
+            shortName={method.shortName}
+            data={data}
+            originalScore={originalScore}
+            onComplete={onComplete}
+          />
+        </TrainingStateScope>
+      );
+    }
   };
 }
 
@@ -266,9 +308,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: RecallExperiment,
-    labData: activeRecallExperiment,
+    labContentSets: methodLabContentSets["active-recall"],
     matchEngine: RecallMatch,
-    matchData: activeRecallMatchData
+    matchContentSets: methodMatchContentSets["active-recall"]
   }),
   "feynman": defineMethod({
     id: "feynman",
@@ -312,9 +354,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: ExplanationExperiment,
-    labData: feynmanExperiment,
+    labContentSets: methodLabContentSets.feynman,
     matchEngine: ExplanationMatch,
-    matchData: feynmanMatchData
+    matchContentSets: methodMatchContentSets.feynman
   }),
   "cornell": defineMethod({
     id: "cornell",
@@ -365,9 +407,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: OrganizationExperiment,
-    labData: cornellExperiment,
+    labContentSets: methodLabContentSets.cornell,
     matchEngine: OrganizationMatch,
-    matchData: cornellMatchData
+    matchContentSets: methodMatchContentSets.cornell
   }),
   "interleaving": defineMethod({
     id: "interleaving",
@@ -396,9 +438,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: ComparisonExperiment,
-    labData: interleavingExperiment,
+    labContentSets: methodLabContentSets.interleaving,
     matchEngine: ComparisonMatch,
-    matchData: interleavingMatchData
+    matchContentSets: methodMatchContentSets.interleaving
   }),
   "memory-palace": defineMethod({
     id: "memory-palace",
@@ -434,9 +476,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: SpatialMemoryExperiment,
-    labData: memoryPalaceExperiment,
+    labContentSets: methodLabContentSets["memory-palace"],
     matchEngine: SpatialMemoryMatch,
-    matchData: memoryPalaceMatchData
+    matchContentSets: methodMatchContentSets["memory-palace"]
   }),
   "active-blurting": defineMethod({
     id: "active-blurting",
@@ -474,9 +516,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: ActiveBlurtingExperiment,
-    labData: activeBlurtingExperiment,
+    labContentSets: methodLabContentSets["active-blurting"],
     matchEngine: ActiveBlurtingMatch,
-    matchData: activeBlurtingMatchData
+    matchContentSets: methodMatchContentSets["active-blurting"]
   }),
   "one-sentence": defineMethod({
     id: "one-sentence",
@@ -520,9 +562,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: OneSentenceExperiment,
-    labData: oneSentenceExperiment,
+    labContentSets: methodLabContentSets["one-sentence"],
     matchEngine: OneSentenceMatch,
-    matchData: oneSentenceMatchData
+    matchContentSets: methodMatchContentSets["one-sentence"]
   }),
   "note-taking-4x4": defineMethod({
     id: "note-taking-4x4",
@@ -565,9 +607,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: NoteTaking4x4Experiment,
-    labData: noteTaking4x4Experiment,
+    labContentSets: methodLabContentSets["note-taking-4x4"],
     matchEngine: NoteTaking4x4Match,
-    matchData: noteTaking4x4MatchData
+    matchContentSets: methodMatchContentSets["note-taking-4x4"]
   }),
   "leitner-system": defineMethod({
     id: "leitner-system",
@@ -597,9 +639,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: LeitnerSystemExperiment,
-    labData: leitnerSystemExperiment,
+    labContentSets: methodLabContentSets["leitner-system"],
     matchEngine: LeitnerSystemMatch,
-    matchData: leitnerSystemMatchData
+    matchContentSets: methodMatchContentSets["leitner-system"]
   }),
   "story-telling": defineMethod({
     id: "story-telling",
@@ -637,9 +679,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: StoryTellingExperiment,
-    labData: storyTellingExperiment,
+    labContentSets: methodLabContentSets["story-telling"],
     matchEngine: StoryTellingMatch,
-    matchData: storyTellingMatchData
+    matchContentSets: methodMatchContentSets["story-telling"]
   }),
   "capture-create": defineMethod({
     id: "capture-create",
@@ -668,9 +710,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: CaptureCreateExperiment,
-    labData: captureCreateExperiment,
+    labContentSets: methodLabContentSets["capture-create"],
     matchEngine: CaptureCreateMatch,
-    matchData: captureCreateMatchData
+    matchContentSets: methodMatchContentSets["capture-create"]
   }),
   "abbreviation": defineMethod({
     id: "abbreviation",
@@ -699,9 +741,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: AbbreviationExperiment,
-    labData: abbreviationExperiment,
+    labContentSets: methodLabContentSets.abbreviation,
     matchEngine: AbbreviationMatch,
-    matchData: abbreviationMatchData
+    matchContentSets: methodMatchContentSets.abbreviation
   }),
   "header-first": defineMethod({
     id: "header-first",
@@ -730,9 +772,9 @@ export const methodRegistry = {
       }
     ],
     labEngine: HeaderFirstExperiment,
-    labData: headerFirstExperiment,
+    labContentSets: methodLabContentSets["header-first"],
     matchEngine: HeaderFirstMatch,
-    matchData: headerFirstMatchData
+    matchContentSets: methodMatchContentSets["header-first"]
   }),
   "prime-question": defineMethod({
     id: "prime-question",
@@ -747,9 +789,9 @@ export const methodRegistry = {
       { kind: "content-type", value: "concepts", weight: 1, selectionOrder: 46 }
     ],
     labEngine: PrimeQuestionExperiment,
-    labData: primeQuestionExperiment,
+    labContentSets: methodLabContentSets["prime-question"],
     matchEngine: PrimeQuestionMatch,
-    matchData: primeQuestionMatchData
+    matchContentSets: methodMatchContentSets["prime-question"]
   }),
   "doodle-effect": defineMethod({
     id: "doodle-effect",
@@ -763,9 +805,9 @@ export const methodRegistry = {
       { kind: "content-type", value: "concepts", weight: 3, selectionOrder: 48, reasonOrder: 1, reason: "You study concepts whose relationships can be represented visually." }
     ],
     labEngine: DoodleEffectExperiment,
-    labData: doodleEffectExperiment,
+    labContentSets: methodLabContentSets["doodle-effect"],
     matchEngine: DoodleEffectMatch,
-    matchData: doodleEffectMatchData
+    matchContentSets: methodMatchContentSets["doodle-effect"]
   }),
   "eighty-twenty-rule": defineMethod({
     id: "eighty-twenty-rule",
@@ -779,9 +821,9 @@ export const methodRegistry = {
       { kind: "content-type", value: "reading", weight: 1, selectionOrder: 50, reasonOrder: 1, reason: "You work with reading material that contains both core ideas and supporting details." }
     ],
     labEngine: EightyTwentyExperiment,
-    labData: eightyTwentyExperiment,
+    labContentSets: methodLabContentSets["eighty-twenty-rule"],
     matchEngine: EightyTwentyMatch,
-    matchData: eightyTwentyMatchData
+    matchContentSets: methodMatchContentSets["eighty-twenty-rule"]
   }),
   "divide-steps": defineMethod({
     id: "divide-steps",
@@ -795,9 +837,9 @@ export const methodRegistry = {
       { kind: "content-type", value: "problems", weight: 3, selectionOrder: 52, reasonOrder: 1, reason: "You work with problems or tasks that benefit from an explicit sequence." }
     ],
     labEngine: DivideStepsExperiment,
-    labData: divideStepsExperiment,
+    labContentSets: methodLabContentSets["divide-steps"],
     matchEngine: DivideStepsMatch,
-    matchData: divideStepsMatchData
+    matchContentSets: methodMatchContentSets["divide-steps"]
   }),
   "derive-basics": defineMethod({
     id: "derive-basics",
@@ -813,9 +855,31 @@ export const methodRegistry = {
       { kind: "baseline", task: "understanding", below: 0.7, weight: 1, selectionOrder: 56 }
     ],
     labEngine: DeriveBasicsExperiment,
-    labData: deriveBasicsExperiment,
+    labContentSets: methodLabContentSets["derive-basics"],
     matchEngine: DeriveBasicsMatch,
-    matchData: deriveBasicsMatchData
+    matchContentSets: methodMatchContentSets["derive-basics"]
+  }),
+  "kidlin-rule": defineMethod({id:"kidlin-rule",name:"Kidlin's rule",category:"problem-solving",introduction:methodIntroductionData["kidlin-rule"],defaultSelectionWeight:0,defaultSelectionOrder:35,selectionSignals:[
+    {kind:"difficulty",value:"strategy",weight:4,selectionOrder:57,reasonOrder:0,reason:"Clarifying the real problem can provide a concrete starting strategy."},
+    {kind:"difficulty",value:"application",weight:2,selectionOrder:58,reasonOrder:1,reason:"A precise problem statement can make the next action clearer."},
+    {kind:"content-type",value:"problems",weight:2,selectionOrder:59}
+  ],labEngine:KidlinRuleExperiment,labContentSets:methodLabContentSets["kidlin-rule"],matchEngine:KidlinRuleMatch,matchContentSets:methodMatchContentSets["kidlin-rule"]}),
+  "premack-principle": defineMethod({id:"premack-principle",name:"Premack's principle",category:"focus",introduction:methodIntroductionData["premack-principle"],defaultSelectionWeight:0,defaultSelectionOrder:36,selectionSignals:[
+    {kind:"difficulty",value:"starting",weight:5,selectionOrder:60,reasonOrder:0,reason:"You reported difficulty starting your learning task."},
+    {kind:"difficulty",value:"inefficiency",weight:2,selectionOrder:61,reasonOrder:1,reason:"A clear task-before-reward pairing may reduce delay."}
+  ],labEngine:PremackPrincipleExperiment,labContentSets:methodLabContentSets["premack-principle"],matchEngine:PremackPrincipleMatch,matchContentSets:methodMatchContentSets["premack-principle"]}),
+  "ten-minute-wall-stare": defineMethod({id:"ten-minute-wall-stare",name:"10 min wall stare",category:"focus",introduction:methodIntroductionData["ten-minute-wall-stare"],defaultSelectionWeight:0,defaultSelectionOrder:37,selectionSignals:[
+    {kind:"difficulty",value:"focus",weight:4,selectionOrder:62,reasonOrder:0,reason:"You reported difficulty sustaining focus."},
+    {kind:"difficulty",value:"inefficiency",weight:2,selectionOrder:63,reasonOrder:1,reason:"A low-stimulation reset is worth testing before another learning attempt."}
+  ],labEngine:TenMinuteWallStareExperiment,labContentSets:methodLabContentSets["ten-minute-wall-stare"],matchEngine:TenMinuteWallStareMatch,matchContentSets:methodMatchContentSets["ten-minute-wall-stare"]}),
+  "strooper-effect": defineMethod({id:"strooper-effect",name:"Strooper effect",category:"focus",introduction:methodIntroductionData["strooper-effect"],defaultSelectionWeight:0,defaultSelectionOrder:38,selectionSignals:[
+    {kind:"difficulty",value:"focus",weight:5,selectionOrder:64,reasonOrder:0,reason:"You reported difficulty focusing, so an interference warm-up is useful to test."},
+    {kind:"difficulty",value:"strategy",weight:1,selectionOrder:65}
+  ],labEngine:StrooperEffectExperiment,labContentSets:methodLabContentSets["strooper-effect"],matchEngine:StrooperEffectMatch,matchContentSets:methodMatchContentSets["strooper-effect"]}),
+  "two-x-video-speed": defineMethod({id:"two-x-video-speed",name:"2X video speed",category:"understanding",introduction:methodIntroductionData["two-x-video-speed"],defaultSelectionWeight:0,defaultSelectionOrder:39,selectionSignals:[
+    {kind:"difficulty",value:"inefficiency",weight:4,selectionOrder:66,reasonOrder:0,reason:"You reported spending substantial time without enough progress."},
+    {kind:"content-type",value:"reading",weight:2,selectionOrder:67,reasonOrder:1,reason:"Accelerated instructional presentation is worth comparing with your usual information intake."}
+  ],labEngine:TwoXVideoSpeedExperiment,labContentSets:methodLabContentSets["two-x-video-speed"],matchEngine:TwoXVideoSpeedMatch,matchContentSets:methodMatchContentSets["two-x-video-speed"]
   })
 } satisfies Record<
   TrainingMethodId,

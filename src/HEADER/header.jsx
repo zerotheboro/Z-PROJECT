@@ -1,224 +1,287 @@
 import LOGO from "../image/LOGO.png";
-import language from "../image/languages.svg";
-import wayofgroups from "../image/ways of groups.svg";
-import contact from "../image/contact.svg";
-import quiz from "../image/quiz.svg";
+import wayofgroups from "../image/Library.png";
+import quiz from "../image/training rock.png";
+import Home from "../image/Home button.png";
+import Short from "../image/short-icon.png"
 
 import {
-    NavLink,
-    Link,
-    useLocation
+  NavLink,
+  Link
 } from "react-router-dom";
 
 import {
-    loginWithGoogle
+  getCurrentUser,
+  loginWithGoogle,
+  logoutUser,
+  subscribeToAuth
 } from "../services/auth";
 
 import {
-    the_animation_obj
+  the_animation_obj
 } from "./ANIMATION";
 
 import {
-    useEffect,
-    useRef
+  default as React,
+  useEffect,
+  useRef,
+  useState
 } from "react";
 
+function NAV() {
+  const old_Y_value = useRef(window.scrollY);
+  const accountRef = useRef(null);
+  const [user, setUser] = useState(getCurrentUser);
+  const [accountOpen, setAccountOpen] = useState(false);
 
-function NAV(props) {
+  useEffect(() => {
+    const nav = document.getElementById("NAV");
 
-    const old_Y_value =
-        useRef(window.scrollY);
+    if (!nav) return;
 
-    const location =
-        useLocation();
+    const navHeight = nav.offsetHeight;
 
+    function nav_contract() {
+      const currentY = window.scrollY;
 
-    useEffect(() => {
-
-        const nav =
-            document.getElementById("NAV");
-
-        if (!nav) return;
-
-        const nav_height =
-            2 * nav.offsetHeight;
-
-
-        function nav_contract() {
-
-            const current_Y_value =
-                window.scrollY;
-
-            if (
-                current_Y_value >
-                old_Y_value.current
-            ) {
-
-                the_animation_obj
-                    .the_nav_anime(
-                        nav,
-                        nav_height * -2
-                    );
-
-            } else {
-
-                the_animation_obj
-                    .the_nav_anime(
-                        nav,
-                        0
-                    );
-            }
-
-            old_Y_value.current =
-                current_Y_value;
-        }
-
-
-        window.addEventListener(
-            "scroll",
-            nav_contract,
-            {
-                passive: true
-            }
+      if (currentY > old_Y_value.current && currentY > 70) {
+        the_animation_obj.the_nav_anime(
+          nav,
+          navHeight * -1.6
         );
+      } else {
+        the_animation_obj.the_nav_anime(
+          nav,
+          0
+        );
+      }
 
+      old_Y_value.current = currentY;
+    }
 
-        return () => {
+    window.addEventListener(
+      "scroll",
+      nav_contract,
+      { passive: true }
+    );
 
-            window.removeEventListener(
-                "scroll",
-                nav_contract
-            );
-        };
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        nav_contract
+      );
+    };
+  }, []);
 
-    }, []);
+  useEffect(() => subscribeToAuth((currentUser) => {
+    setUser(currentUser);
 
+    if (!currentUser) {
+      setAccountOpen(false);
+    }
+  }), []);
 
-    const isLibraryPage =
-        location.pathname === "/library";
+  useEffect(() => {
+    if (!accountOpen) return undefined;
 
+    function closeAccountMenu(event) {
+      if (!accountRef.current?.contains(event.target)) {
+        setAccountOpen(false);
+      }
+    }
 
-    return (
-        <header>
+    function closeAccountMenuWithEscape(event) {
+      if (event.key === "Escape") {
+        setAccountOpen(false);
+      }
+    }
 
-            <section id="NAV">
+    document.addEventListener("mousedown", closeAccountMenu);
+    document.addEventListener("keydown", closeAccountMenuWithEscape);
 
-                {/* LOGO / HOME */}
+    return () => {
+      document.removeEventListener("mousedown", closeAccountMenu);
+      document.removeEventListener("keydown", closeAccountMenuWithEscape);
+    };
+  }, [accountOpen]);
 
-                <Link
-                    to="/"
-                    className="logo"
+  const handleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      console.error(
+        "Login failed:",
+        error
+      );
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      setAccountOpen(false);
+    } catch (error) {
+      console.error(
+        "Sign out failed:",
+        error
+      );
+    }
+  };
+
+  const userLabel = user?.displayName || user?.email || "Account";
+  const fallbackInitial = userLabel.trim().charAt(0).toUpperCase() || "U";
+
+  return (
+    <header className="site-header">
+      <nav id="NAV">
+        <Link
+          to="/"
+          className="nav-logo"
+        >
+          <img
+            src={LOGO}
+            alt="Edulience"
+          />
+
+          <h3>
+            EDULIENCE
+          </h3>
+        </Link>
+
+        <div className="nav-links">
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              isActive
+                ? "nav-item active"
+                : "nav-item"
+            }
+          >
+            <img
+              src={Home}
+              alt=""
+            />
+
+            <span>
+              Home
+            </span>
+          </NavLink>
+
+          <NavLink
+            to="/training"
+            className={({ isActive }) =>
+              isActive
+                ? "nav-item active"
+                : "nav-item"
+            }
+          >
+            <img
+              src={quiz}
+              alt=""
+            />
+
+            <span>
+              Training
+            </span>
+          </NavLink>
+
+          <NavLink
+            to="/library"
+            className={({ isActive }) =>
+              isActive
+                ? "nav-item active"
+                : "nav-item"
+            }
+          >
+            <img
+              src={wayofgroups}
+              alt=""
+            />
+            <span>Library</span>
+          </NavLink>
+
+          <NavLink
+            to="/shorts"
+            className={({ isActive }) =>
+              isActive
+                ? "nav-item active"
+                : "nav-item"
+            }
+          >
+            <img src={Short}/>
+            <span>Shorts</span>
+          </NavLink>
+        </div>
+
+        {user ? (
+          <div
+            className="nav-account"
+            ref={accountRef}
+          >
+            <button
+              type="button"
+              className="nav-account-button"
+              aria-expanded={accountOpen}
+              aria-haspopup="menu"
+              aria-label={`Open account menu for ${userLabel}`}
+              onClick={() => setAccountOpen((isOpen) => !isOpen)}
+            >
+              {user.photoURL ? (
+                <img
+                  className="nav-avatar"
+                  src={user.photoURL}
+                  alt=""
+                />
+              ) : (
+                <span
+                  className="nav-avatar nav-avatar-fallback"
+                  aria-hidden="true"
                 >
-                    <img
-                        src={LOGO}
-                        alt=""
-                    />
+                  {fallbackInitial}
+                </span>
+              )}
 
-                    EDULIENCE
-                </Link>
+              <span className="nav-account-name">
+                {user.displayName || user.email}
+              </span>
+            </button>
 
-
-                {/* LIBRARY */}
-
-                <NavLink
-                    to="/library"
-                    className={
-                        ({ isActive }) =>
-                            isActive
-                                ? "nav-link active"
-                                : "nav-link"
-                    }
-                >
-                    <span>
-
-                        <img
-                            src={wayofgroups}
-                            alt=""
-                        />
-
-                        Library
-
-                    </span>
-                </NavLink>
-
-                {/* TRAINING */}
-
-                <NavLink
-                    to="/training"
-                    className={
-                        ({ isActive }) =>
-                            isActive
-                                ? "nav-link active"
-                                : "nav-link"
-                    }
-                >
-                    <span>
-
-                        <img
-                            src={quiz}
-                            alt=""
-                        />
-
-                        Training
-
-                    </span>
-                </NavLink>
-
-
-                {/* CONTACT */}
-
-                <a
-                    href="#footer"
-                    className="nav-link"
-                >
-                    <span>
-
-                        <img
-                            src={contact}
-                            alt=""
-                        />
-
-                        Contact
-
-                    </span>
-                </a>
-
-
-                {/* SIGN IN */}
+            {accountOpen && (
+              <div
+                className="nav-account-menu"
+                role="menu"
+              >
+                <div className="nav-account-details">
+                  {user.displayName && (
+                    <strong>{user.displayName}</strong>
+                  )}
+                  {user.email && (
+                    <span>{user.email}</span>
+                  )}
+                </div>
 
                 <button
-                    type="button"
-                    className="nav-sign-in"
-                    onClick={async () => {
-
-                        try {
-
-                            const user =
-                                await loginWithGoogle();
-
-                            console.log(
-                                "Logged in:",
-                                user.uid,
-                                user.email
-                            );
-
-                        } catch (error) {
-
-                            console.error(
-                                "Login failed:",
-                                error
-                            );
-                        }
-
-                    }}
+                  type="button"
+                  className="nav-sign-out"
+                  role="menuitem"
+                  onClick={handleLogout}
                 >
-                    Sign in
+                  Sign out
                 </button>
-
-            </section>
-
-        </header>
-    );
+              </div>
+            )}
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="nav-sign-in"
+            onClick={handleLogin}
+          >
+            Sign in
+          </button>
+        )}
+      </nav>
+    </header>
+  );
 }
 
 export default NAV;

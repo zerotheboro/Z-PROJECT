@@ -2,12 +2,21 @@ import type {
   MultipleChoiceQuestion
 } from "../../methodEngineTypes";
 
+import {
+  useShuffledOptions
+} from "./shuffleOptions";
+
+import type {
+  RandomSource
+} from "./shuffleOptions";
+
 type Props = {
   question: MultipleChoiceQuestion;
   selectedAnswer: string | undefined;
   onSelect: (option: string) => void;
   onNext: () => void;
   nextLabel: string;
+  random?: RandomSource;
 };
 
 function MultipleChoiceRunner({
@@ -15,14 +24,22 @@ function MultipleChoiceRunner({
   selectedAnswer,
   onSelect,
   onNext,
-  nextLabel
+  nextLabel,
+  random
 }: Props) {
+  const shuffledOptions =
+    useShuffledOptions(
+      question.options,
+      question.id,
+      random
+    );
+
   return (
     <>
       <h2>{question.question}</h2>
 
       <div className="option-grid">
-        {question.options.map((option) => (
+        {shuffledOptions.map((option) => (
           <button
             type="button"
             key={option}

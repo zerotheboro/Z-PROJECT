@@ -61,7 +61,12 @@ export const TRAINING_METHOD_IDS = [
   "doodle-effect",
   "eighty-twenty-rule",
   "divide-steps",
-  "derive-basics"
+  "derive-basics",
+  "kidlin-rule",
+  "premack-principle",
+  "ten-minute-wall-stare",
+  "strooper-effect",
+  "two-x-video-speed"
 ] as const;
 
 export type TrainingMethodId =
@@ -75,10 +80,10 @@ export type MethodId =
   | "stopwatch";
 
 export function isTrainingMethodId(
-  method: MethodId
+  method: unknown
 ): method is TrainingMethodId {
   return (
-    TRAINING_METHOD_IDS as readonly MethodId[]
+    TRAINING_METHOD_IDS as readonly unknown[]
   ).includes(method);
 }
 

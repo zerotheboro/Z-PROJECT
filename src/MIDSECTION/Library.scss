@@ -1176,7 +1176,7 @@ button.sss-library-card {
   }
 
   .tip-media--image img {
-    max-height: 240px;
+    width: min(52%, 370px);
   }
 }
 

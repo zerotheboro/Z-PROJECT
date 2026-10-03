@@ -233,4 +233,49 @@ describe("assessment persistence contract", () => {
     );
     expect(assessmentId).toBe("assessment-123");
   });
+
+  it("uses the training session ID for retry-safe completed assessment writes", async () => {
+    const learningProfile = buildLearningProfile({
+      baseline,
+      methodIntroduction,
+      methodLab,
+      methodMatch,
+      reflection
+    });
+    const input = {
+      userId: "user-123",
+      sessionId: "session-stable-123",
+      learningSituation,
+      baseline,
+      methodIntroduction,
+      methodLab,
+      methodMatch,
+      reflection,
+      learningProfile
+    };
+
+    firestore.doc
+      .mockReturnValueOnce("assessment-ref")
+      .mockReturnValueOnce("user-ref")
+      .mockReturnValueOnce("assessment-ref")
+      .mockReturnValueOnce("user-ref");
+
+    await saveAssessment(input);
+    await saveAssessment(input);
+
+    expect(firestore.addDoc).not.toHaveBeenCalled();
+    expect(firestore.doc).toHaveBeenCalledWith(
+      firebase.db,
+      "users",
+      "user-123",
+      "assessments",
+      "session-stable-123"
+    );
+    expect(
+      firestore.setDoc.mock.calls.filter(
+        ([reference]) =>
+          reference === "assessment-ref"
+      )
+    ).toHaveLength(2);
+  });
 });

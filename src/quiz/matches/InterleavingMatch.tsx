@@ -1,6 +1,6 @@
 import {
-  useState
-} from "react";
+  useTrainingState as useState
+} from "../trainingProgressState";
 
 import type {
   ComparisonEngineData,

@@ -1,7 +1,10 @@
 import {
-  useMemo,
-  useState
+  useMemo
 } from "react";
+
+import {
+  useTrainingState as useState
+} from "../trainingProgressState";
 
 import {
   getMethodName
@@ -20,6 +23,8 @@ type Props = {
 
   methodMatch: MethodMatchResult;
 
+  buildsProfile?: boolean;
+
   onComplete: (
     result: ReflectionResult
   ) => void;
@@ -28,6 +33,7 @@ type Props = {
 function Reflection({
   methodLab,
   methodMatch,
+  buildsProfile = true,
   onComplete
 }: Props) {
 
@@ -160,16 +166,15 @@ function Reflection({
       </h1>
 
       <p>
-        You've now tried several
-        learning methods and tested
-        your strongest ones again.
+        {buildsProfile
+          ? "You've now tried several learning methods and tested your strongest ones again."
+          : "You've now tried your selected learning methods and tested the strongest ones again."}
       </p>
 
       <p>
-        Before we build your learning
-        profile, tell us what the
-        experience felt like from
-        your side.
+        {buildsProfile
+          ? "Before we build your learning profile, tell us what the experience felt like from your side."
+          : "Before you finish, tell us what the experience felt like from your side."}
       </p>
 
       {/* ======================= */}

@@ -1,11 +1,19 @@
 import {
-  useState
+  useEffect
 } from "react";
+
+import {
+  useTrainingState as useState
+} from "../trainingProgressState";
 
 import {
   getMethodDefinition,
   getMethodSelectionReasons
 } from "../methodRegistry";
+
+import {
+  useShuffledOptions
+} from "../engines/shared";
 
 import type {
   LearningSituation,
@@ -17,11 +25,18 @@ import type {
 type Props = {
   methods: TrainingMethodId[];
 
-  learningSituation:
+  mode?: "auto" | "manual";
+
+  learningSituation?:
     LearningSituation;
 
-  baseline:
+  baseline?:
     BaselineResult;
+
+  onProgress?: (progress: {
+    method: TrainingMethodId;
+    methodIndex: number;
+  }) => void;
 
   onComplete: (
     result:
@@ -35,8 +50,10 @@ type Stage =
 
 function MethodIntroduction({
   methods,
+  mode = "auto",
   learningSituation,
   baseline,
+  onProgress,
   onComplete
 }: Props) {
 
@@ -75,9 +92,45 @@ function MethodIntroduction({
       knowledgeMethod
     ).introduction;
 
+  const knowledgeOptions =
+    useShuffledOptions(
+      methods,
+      knowledgeMethod
+    );
+
+  useEffect(() => {
+    const index = stage === "methods"
+      ? methodIndex
+      : questionIndex;
+
+    onProgress?.({
+      method: methods[index],
+      methodIndex: index
+    });
+  }, [
+    methodIndex,
+    methods,
+    onProgress,
+    questionIndex,
+    stage
+  ]);
+
   function getReasons(
     method: TrainingMethodId
   ): string[] {
+    if (mode === "manual") {
+      return [
+        "You selected this method for this training session."
+      ];
+    }
+
+    if (
+      !learningSituation ||
+      !baseline
+    ) {
+      return [];
+    }
+
     return getMethodSelectionReasons(
       method,
       learningSituation,
@@ -314,7 +367,7 @@ function MethodIntroduction({
           <div className="option-grid">
 
             {
-              methods.map(
+              knowledgeOptions.map(
                 method => {
 
                   const info =

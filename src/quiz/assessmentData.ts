@@ -2,6 +2,28 @@ import type {
   LearningSituationQuestion
 } from "./type.ts";
 
+import type {
+  MultipleChoiceQuestion
+} from "./methodEngineTypes";
+
+export type BaselineMemoryContentSet = {
+  id: string;
+  title: string;
+  studyTime: number;
+  facts: readonly string[];
+  questions:
+    readonly MultipleChoiceQuestion[];
+};
+
+export type BaselineConceptContentSet = {
+  id: string;
+  title: string;
+  studyTime: number;
+  explanation: string;
+  questions:
+    readonly MultipleChoiceQuestion[];
+};
+
 export const learningSituationQuestions:
   LearningSituationQuestion[] = [
 
@@ -299,7 +321,145 @@ export const baselineMemoryContent = {
       correct: "3.5 Earth days"
     }
   ]
-};
+} satisfies BaselineMemoryContentSet;
+
+const emperorPenguinMemoryContent = {
+  id: "baseline-memory-02",
+  title: "Emperor penguin survival",
+  studyTime: 30,
+  facts: [
+    "Emperor penguins live around Antarctica and breed on sea ice during winter.",
+    "The female lays a single egg and transfers it to the male.",
+    "The male balances the egg on his feet beneath a warm fold of skin called a brood pouch.",
+    "Males huddle closely together to reduce heat loss during severe weather.",
+    "The female feeds at sea before returning to the colony.",
+    "Parents feed their chick by regurgitating food they collected at sea."
+  ],
+  questions: [
+    {
+      id: "bm-penguin-1",
+      question:
+        "Where do emperor penguins breed during the Antarctic winter?",
+      options: [
+        "On sea ice",
+        "In forest nests",
+        "On tropical beaches",
+        "Inside freshwater caves"
+      ],
+      correct: "On sea ice"
+    },
+    {
+      id: "bm-penguin-2",
+      question:
+        "Where does the male keep the egg while incubating it?",
+      options: [
+        "On his feet beneath a brood pouch",
+        "Under the sea ice",
+        "Inside a nest made from branches",
+        "Between rocks at the shoreline"
+      ],
+      correct:
+        "On his feet beneath a brood pouch"
+    },
+    {
+      id: "bm-penguin-3",
+      question:
+        "Why do male emperor penguins huddle together?",
+      options: [
+        "To reduce heat loss",
+        "To build a shared nest",
+        "To search for fish",
+        "To make the ice melt"
+      ],
+      correct: "To reduce heat loss"
+    },
+    {
+      id: "bm-penguin-4",
+      question:
+        "How do emperor penguin parents feed their chick?",
+      options: [
+        "By regurgitating food collected at sea",
+        "By bringing it seaweed",
+        "By teaching it to hunt immediately",
+        "By feeding it pieces of ice"
+      ],
+      correct:
+        "By regurgitating food collected at sea"
+    }
+  ]
+} satisfies BaselineMemoryContentSet;
+
+const octopusMemoryContent = {
+  id: "baseline-memory-03",
+  title: "Octopus adaptations",
+  studyTime: 30,
+  facts: [
+    "An octopus has three hearts.",
+    "Two hearts pump blood through the gills, while one pumps it around the rest of the body.",
+    "Octopus blood appears blue because it uses a copper-containing protein called hemocyanin.",
+    "Special skin cells called chromatophores help an octopus change its appearance.",
+    "A large share of an octopus's neurons are located in its arms.",
+    "Without a rigid skeleton, an octopus can squeeze through narrow openings."
+  ],
+  questions: [
+    {
+      id: "bm-octopus-1",
+      question:
+        "How many hearts does an octopus have?",
+      options: [
+        "Three",
+        "One",
+        "Two",
+        "Four"
+      ],
+      correct: "Three"
+    },
+    {
+      id: "bm-octopus-2",
+      question:
+        "What do two of an octopus's hearts pump blood through?",
+      options: [
+        "The gills",
+        "The arms only",
+        "The skin",
+        "The eyes"
+      ],
+      correct: "The gills"
+    },
+    {
+      id: "bm-octopus-3",
+      question:
+        "Why does octopus blood appear blue?",
+      options: [
+        "It contains hemocyanin",
+        "It absorbs seawater",
+        "It contains chlorophyll",
+        "It has no oxygen-carrying protein"
+      ],
+      correct: "It contains hemocyanin"
+    },
+    {
+      id: "bm-octopus-4",
+      question:
+        "What helps an octopus change its appearance?",
+      options: [
+        "Chromatophores in its skin",
+        "A rigid outer shell",
+        "Feathers around its body",
+        "Air stored in its arms"
+      ],
+      correct:
+        "Chromatophores in its skin"
+    }
+  ]
+} satisfies BaselineMemoryContentSet;
+
+export const baselineMemoryContentSets = [
+  baselineMemoryContent,
+  emperorPenguinMemoryContent,
+  octopusMemoryContent
+] as const satisfies
+  readonly BaselineMemoryContentSet[];
 
 export const baselineConceptContent = {
   id: "baseline-concept-01",
@@ -374,4 +534,131 @@ export const baselineConceptContent = {
         "The solid could become denser and sink"
     }
   ]
-};
+} satisfies BaselineConceptContentSet;
+
+const seasonsConceptContent = {
+  id: "baseline-concept-02",
+  title: "Why do seasons change?",
+  studyTime: 35,
+  explanation: `
+    Earth's axis is tilted relative to its path around
+    the Sun.
+
+    As Earth orbits the Sun, each hemisphere alternately
+    tilts toward or away from the Sun.
+
+    A hemisphere tilted toward the Sun receives more direct
+    sunlight and has longer days, producing warmer conditions.
+
+    At the same time, the opposite hemisphere receives less
+    direct sunlight and has shorter days. The seasons are not
+    primarily caused by changes in Earth's distance from the Sun.
+  `,
+  questions: [
+    {
+      id: "bc-seasons-1",
+      question:
+        "What is the main reason Earth experiences seasons?",
+      options: [
+        "Earth's axis is tilted as Earth orbits the Sun",
+        "Earth repeatedly moves much closer to the Sun",
+        "The Sun changes size during the year",
+        "Clouds permanently move between hemispheres"
+      ],
+      correct:
+        "Earth's axis is tilted as Earth orbits the Sun"
+    },
+    {
+      id: "bc-seasons-2",
+      question:
+        "What happens when a hemisphere is tilted toward the Sun?",
+      options: [
+        "It receives more direct sunlight and has longer days",
+        "It receives no sunlight",
+        "Its oceans stop absorbing energy",
+        "Its distance from the Sun doubles"
+      ],
+      correct:
+        "It receives more direct sunlight and has longer days"
+    },
+    {
+      id: "bc-seasons-3",
+      question:
+        "If the Northern Hemisphere is tilted toward the Sun, what is happening in the Southern Hemisphere?",
+      options: [
+        "It is tilted away and receives less direct sunlight",
+        "It is also tilted toward the Sun",
+        "It has no day-and-night cycle",
+        "It becomes permanently colder"
+      ],
+      correct:
+        "It is tilted away and receives less direct sunlight"
+    }
+  ]
+} satisfies BaselineConceptContentSet;
+
+const dewConceptContent = {
+  id: "baseline-concept-03",
+  title: "Why does dew form?",
+  studyTime: 35,
+  explanation: `
+    Surfaces such as grass can lose heat during the night
+    and become cooler than the surrounding air.
+
+    Air touching a cool surface also cools. Cooler air can
+    hold less water vapor than warmer air.
+
+    If that air reaches its dew point, some water vapor
+    condenses into liquid droplets on the surface.
+
+    This is why dew often appears after clear, calm nights
+    that allow surfaces to cool effectively.
+  `,
+  questions: [
+    {
+      id: "bc-dew-1",
+      question:
+        "What happens to air that touches a sufficiently cool surface?",
+      options: [
+        "The air cools",
+        "The air loses all its gases",
+        "The air immediately becomes warmer",
+        "The air stops containing water vapor"
+      ],
+      correct: "The air cools"
+    },
+    {
+      id: "bc-dew-2",
+      question:
+        "What occurs when the nearby air reaches its dew point?",
+      options: [
+        "Water vapor condenses into liquid droplets",
+        "Liquid water turns into sunlight",
+        "The surface begins producing water",
+        "All moisture disappears from the air"
+      ],
+      correct:
+        "Water vapor condenses into liquid droplets"
+    },
+    {
+      id: "bc-dew-3",
+      question:
+        "Why can a clear, calm night encourage dew formation?",
+      options: [
+        "It allows surfaces to cool effectively",
+        "It prevents surfaces from losing heat",
+        "It removes all water vapor",
+        "It keeps grass warmer than the air"
+      ],
+      correct:
+        "It allows surfaces to cool effectively"
+    }
+  ]
+} satisfies BaselineConceptContentSet;
+
+export const baselineConceptContentSets = [
+  baselineConceptContent,
+  seasonsConceptContent,
+  dewConceptContent
+] as const satisfies
+  readonly BaselineConceptContentSet[];

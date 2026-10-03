@@ -23,6 +23,8 @@ import type {
 type SaveAssessmentInput = {
   userId: string;
 
+  sessionId?: string;
+
   learningSituation:
     LearningSituation;
 
@@ -47,6 +49,7 @@ type SaveAssessmentInput = {
 
 export async function saveAssessment({
   userId,
+  sessionId,
   learningSituation,
   baseline,
   methodIntroduction,
@@ -64,10 +67,7 @@ export async function saveAssessment({
       "assessments"
     );
 
-  const docRef =
-  await addDoc(
-    assessmentsRef,
-    {
+  const assessmentData = {
       status: "completed",
 
       learningSituation,
@@ -80,8 +80,28 @@ export async function saveAssessment({
 
       createdAt:
         serverTimestamp()
-    }
-  );
+    };
+
+  const docRef = sessionId
+    ? doc(
+        db,
+        "users",
+        userId,
+        "assessments",
+        sessionId
+      )
+    : await addDoc(
+        assessmentsRef,
+        assessmentData
+      );
+
+  if (sessionId) {
+    await setDoc(
+      docRef,
+      assessmentData,
+      { merge: true }
+    );
+  }
 
   const userRef =
     doc(

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTrainingState as useState } from "../trainingProgressState";
 import { MultipleChoiceRunner, scoreMultipleChoice, StudyPanel, TextResponse, useExperimentTimer, VerificationConfidence } from "../engines/shared";
 import type { EightyTwentyEngineData, MatchEngineProps } from "../methodEngineTypes";
 type Stage = "inspect" | "identify" | "prioritize" | "study" | "test" | "confidence";

@@ -1,9 +1,26 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 
 import {
-  baselineMemoryContent,
-  baselineConceptContent
+  useTrainingState as useState
+} from "../trainingProgressState";
+
+import {
+  baselineMemoryContentSets,
+  baselineConceptContentSets
 } from "../assessmentData";
+
+import {
+  selectBaselineContent
+} from "../baselineContentSelector";
+
+import type {
+  ContentRandomSource
+} from "../baselineContentSelector";
+
+import {
+  MultipleChoiceRunner,
+  useExperimentTimer
+} from "../engines/shared";
 
 import type {
   BaselineResult,
@@ -21,16 +38,60 @@ type BaselineStage =
 
 type Props = {
   onComplete: (result: BaselineResult) => void;
+  random?: ContentRandomSource;
+  onContentSelected?: (content: {
+    memory: string;
+    understanding: string;
+  }) => void;
 };
 
 type AnswerMap = Record<string, string>;
 
 function BaselineChallenge({
-  onComplete
+  onComplete,
+  random = Math.random,
+  onContentSelected
 }: Props) {
 
   const [stage, setStage] =
     useState<BaselineStage>("intro");
+
+  const [memoryContentId] = useState(
+    () =>
+      selectBaselineContent(
+        baselineMemoryContentSets,
+        random
+      ).id
+  );
+
+  const [conceptContentId] = useState(
+    () =>
+      selectBaselineContent(
+        baselineConceptContentSets,
+        random
+      ).id
+  );
+
+  const memoryContent =
+    baselineMemoryContentSets.find(
+      content => content.id === memoryContentId
+    ) ?? baselineMemoryContentSets[0];
+
+  const conceptContent =
+    baselineConceptContentSets.find(
+      content => content.id === conceptContentId
+    ) ?? baselineConceptContentSets[0];
+
+  useEffect(() => {
+    onContentSelected?.({
+      memory: memoryContentId,
+      understanding: conceptContentId
+    });
+  }, [
+    conceptContentId,
+    memoryContentId,
+    onContentSelected
+  ]);
 
   // -------------------------
   // MEMORY
@@ -68,8 +129,16 @@ function BaselineChallenge({
   const [secondsLeft, setSecondsLeft] =
     useState(0);
 
-  const taskStartTime =
-    useRef<number | null>(null);
+  const {
+    start: startMemoryTimer,
+    elapsedMs: memoryElapsedMs,
+    isRunning: memoryTimerRunning
+  } = useExperimentTimer();
+  const {
+    start: startConceptTimer,
+    elapsedMs: conceptElapsedMs,
+    isRunning: conceptTimerRunning
+  } = useExperimentTimer();
 
   // Whenever a study stage begins,
   // configure its countdown.
@@ -84,12 +153,26 @@ function BaselineChallenge({
 
   const studyTime =
     stage === "memory-study"
-      ? baselineMemoryContent.studyTime
-      : baselineConceptContent.studyTime;
+      ? memoryContent.studyTime
+      : conceptContent.studyTime;
 
-  setSecondsLeft(studyTime);
+  setSecondsLeft(previous =>
+    previous > 0 ? previous : studyTime
+  );
 
-  taskStartTime.current = Date.now();
+  if (
+    stage === "memory-study" &&
+    !memoryTimerRunning
+  ) {
+    startMemoryTimer();
+  }
+
+  if (
+    stage === "concept-study" &&
+    !conceptTimerRunning
+  ) {
+    startConceptTimer();
+  }
 
   const timer = window.setInterval(() => {
     setSecondsLeft((prev) => {
@@ -112,7 +195,15 @@ function BaselineChallenge({
   return () => {
     window.clearInterval(timer);
   };
-}, [stage]);
+}, [
+  stage,
+  memoryContent.studyTime,
+  conceptContent.studyTime,
+  memoryTimerRunning,
+  conceptTimerRunning,
+  startMemoryTimer,
+  startConceptTimer
+]);
 
   
   // -------------------------
@@ -120,7 +211,7 @@ function BaselineChallenge({
   // -------------------------
 
   function calculateScore(
-    questions: {
+    questions: readonly {
       id: string;
       correct: string;
     }[],
@@ -166,7 +257,7 @@ function BaselineChallenge({
 
     if (
       memoryQuestionIndex <
-      baselineMemoryContent.questions.length - 1
+      memoryContent.questions.length - 1
     ) {
       setMemoryQuestionIndex(
         (prev) => prev + 1
@@ -186,15 +277,9 @@ function BaselineChallenge({
 
     const scored =
       calculateScore(
-        baselineMemoryContent.questions,
+        memoryContent.questions,
         memoryAnswers
       );
-
-    const elapsed =
-      taskStartTime.current
-        ? Date.now() -
-          taskStartTime.current
-        : 0;
 
     const result:
       BaselineTaskResult = {
@@ -203,7 +288,7 @@ function BaselineChallenge({
       correct: scored.correct,
       total: scored.total,
       confidence: memoryConfidence,
-      timeSpentMs: elapsed
+      timeSpentMs: memoryElapsedMs()
     };
 
     setMemoryResult(result);
@@ -229,7 +314,7 @@ function BaselineChallenge({
 
     if (
       conceptQuestionIndex <
-      baselineConceptContent.questions.length - 1
+      conceptContent.questions.length - 1
     ) {
 
       setConceptQuestionIndex(
@@ -253,15 +338,9 @@ function BaselineChallenge({
 
     const scored =
       calculateScore(
-        baselineConceptContent.questions,
+        conceptContent.questions,
         conceptAnswers
       );
-
-    const elapsed =
-      taskStartTime.current
-        ? Date.now() -
-          taskStartTime.current
-        : 0;
 
     const conceptResult:
       BaselineTaskResult = {
@@ -272,7 +351,7 @@ function BaselineChallenge({
       confidence:
         conceptConfidence,
       timeSpentMs:
-        elapsed
+        conceptElapsedMs()
     };
 
     const result: BaselineResult = {
@@ -294,12 +373,12 @@ function BaselineChallenge({
   // -------------------------
 
   const currentMemoryQuestion =
-    baselineMemoryContent.questions[
+    memoryContent.questions[
       memoryQuestionIndex
     ];
 
   const currentConceptQuestion =
-    baselineConceptContent.questions[
+    conceptContent.questions[
       conceptQuestionIndex
     ];
 
@@ -363,7 +442,7 @@ function BaselineChallenge({
           </div>
 
           <h2>
-            {baselineMemoryContent.title}
+            {memoryContent.title}
           </h2>
 
           <p>
@@ -373,7 +452,7 @@ function BaselineChallenge({
 
           <div className="study-content">
 
-            {baselineMemoryContent.facts.map(
+            {memoryContent.facts.map(
               (fact, index) => (
                 <p key={index}>
                   {fact}
@@ -412,73 +491,33 @@ function BaselineChallenge({
             {memoryQuestionIndex + 1}
             {" / "}
             {
-              baselineMemoryContent
+              memoryContent
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentMemoryQuestion
-                .question
-            }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentMemoryQuestion
-                .options.map(
-                  (option) => {
-
-                    const selected =
-                      memoryAnswers[
-                        currentMemoryQuestion.id
-                      ] === option;
-
-                    return (
-                      <button
-                        key={option}
-                        type="button"
-                        className={
-                          selected
-                            ? "assessment-option selected"
-                            : "assessment-option"
-                        }
-                        onClick={() =>
-                          selectMemoryAnswer(
-                            currentMemoryQuestion.id,
-                            option
-                          )
-                        }
-                      >
-                        {option}
-                      </button>
-                    );
-                  }
-                )
-            }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !memoryAnswers[
+          <MultipleChoiceRunner
+            question={currentMemoryQuestion}
+            selectedAnswer={
+              memoryAnswers[
                 currentMemoryQuestion.id
               ]
             }
-            onClick={
-              nextMemoryQuestion
+            onSelect={option =>
+              selectMemoryAnswer(
+                currentMemoryQuestion.id,
+                option
+              )
             }
-          >
-            {memoryQuestionIndex ===
-            baselineMemoryContent
-              .questions.length -
-              1
-              ? "Finish memory test"
-              : "Next question"}
-          </button>
+            onNext={nextMemoryQuestion}
+            nextLabel={
+              memoryQuestionIndex ===
+              memoryContent
+                .questions.length - 1
+                ? "Finish memory test"
+                : "Next question"
+            }
+          />
 
         </div>
       )}
@@ -564,7 +603,7 @@ function BaselineChallenge({
 
           <h2>
             {
-              baselineConceptContent
+              conceptContent
                 .title
             }
           </h2>
@@ -578,7 +617,7 @@ function BaselineChallenge({
 
             <p>
               {
-                baselineConceptContent
+                conceptContent
                   .explanation
               }
             </p>
@@ -613,73 +652,33 @@ function BaselineChallenge({
             {conceptQuestionIndex + 1}
             {" / "}
             {
-              baselineConceptContent
+              conceptContent
                 .questions.length
             }
           </p>
 
-          <h2>
-            {
-              currentConceptQuestion
-                .question
-            }
-          </h2>
-
-          <div className="option-grid">
-
-            {
-              currentConceptQuestion
-                .options.map(
-                  (option) => {
-
-                    const selected =
-                      conceptAnswers[
-                        currentConceptQuestion.id
-                      ] === option;
-
-                    return (
-                      <button
-                        key={option}
-                        type="button"
-                        className={
-                          selected
-                            ? "assessment-option selected"
-                            : "assessment-option"
-                        }
-                        onClick={() =>
-                          selectConceptAnswer(
-                            currentConceptQuestion.id,
-                            option
-                          )
-                        }
-                      >
-                        {option}
-                      </button>
-                    );
-                  }
-                )
-            }
-
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !conceptAnswers[
+          <MultipleChoiceRunner
+            question={currentConceptQuestion}
+            selectedAnswer={
+              conceptAnswers[
                 currentConceptQuestion.id
               ]
             }
-            onClick={
-              nextConceptQuestion
+            onSelect={option =>
+              selectConceptAnswer(
+                currentConceptQuestion.id,
+                option
+              )
             }
-          >
-            {conceptQuestionIndex ===
-            baselineConceptContent
-              .questions.length -
-              1
-              ? "Finish understanding test"
-              : "Next question"}
-          </button>
+            onNext={nextConceptQuestion}
+            nextLabel={
+              conceptQuestionIndex ===
+              conceptContent
+                .questions.length - 1
+                ? "Finish understanding test"
+                : "Next question"
+            }
+          />
 
         </div>
       )}

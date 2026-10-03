@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTrainingState as useState } from "../trainingProgressState";
 import type { CaptureCreateEngineData, LabEngineProps } from "../methodEngineTypes";
 import { LabRatings, MultipleChoiceRunner, scoreMultipleChoice, StudyPanel, TextResponse, useExperimentTimer } from "../engines/shared";
 

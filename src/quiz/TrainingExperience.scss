@@ -186,7 +186,7 @@
     width: min(900px, 94vw);
 
     margin:
-      0 auto;
+      var(--space-4) auto;
 
     padding:
       clamp(2rem, 5vw, 4rem);
@@ -293,6 +293,298 @@
       rgba(0,0,0,0.9);
   }
 
+
+  /* TRAINING ENTRY OPTIONS */
+
+  .training-entry-options {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: var(--space-2);
+
+    width: min(1200px, 94vw);
+
+    margin-bottom: var(--space-4);
+
+    padding: 0;
+
+    border: none;
+
+    background: transparent;
+
+    box-shadow: none;
+  }
+
+
+  .training-entry-card {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    padding:
+      clamp(1.8rem, 4vw, 3rem);
+
+    border:
+      2px solid
+      var(--lightblue);
+
+    border-radius:
+      var(--radius);
+
+    background:
+      rgba(32, 62, 95, 0.72);
+
+    box-shadow:
+      var(--shadow);
+  }
+
+
+  .training-entry-card > p:first-child {
+
+    margin: 0 0 var(--space-1);
+
+    color: var(--lightblue);
+
+    font-size: 0.76rem;
+
+    font-weight: 800;
+
+    letter-spacing: 0.13em;
+  }
+
+
+  .training-entry-card > p:not(:first-child) {
+
+    flex: 1;
+  }
+
+
+  /* MANUAL METHOD PICKER */
+
+  .method-picker {
+
+    width: min(1200px, 94vw);
+  }
+
+
+  .method-picker-heading {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: baseline;
+
+    gap: var(--space-2);
+  }
+
+
+  .method-picker-heading > p {
+
+    color: var(--energetic--yellow);
+
+    font-weight: 800;
+
+    white-space: nowrap;
+  }
+
+
+  .method-picker-grid {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 14px;
+
+    margin: var(--space-3) 0;
+  }
+
+
+  .method-picker-groups {
+
+    display: grid;
+
+    gap: var(--space-4);
+
+    margin: var(--space-3) 0;
+  }
+
+
+  .method-picker-group {
+
+    padding-top: var(--space-2);
+
+    border-top:
+      2px solid
+      rgba(245, 245, 245, 0.12);
+  }
+
+
+  .method-picker-group:first-child {
+
+    padding-top: 0;
+
+    border-top: none;
+  }
+
+
+  .method-picker-group h3 {
+
+    margin: 0;
+
+    color: var(--lightblue);
+
+    font-size:
+      clamp(1.5rem, 3vw, 2.2rem);
+
+    text-transform: capitalize;
+  }
+
+
+  .method-picker-group .method-picker-grid {
+
+    margin:
+      var(--space-2)
+      0 0;
+  }
+
+
+  .method-picker-grid .method-picker-card {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 0.75rem;
+
+    min-height: 190px;
+
+    margin: 0;
+
+    padding: var(--space-2);
+
+    text-align: left;
+
+    border-color:
+      rgba(245, 245, 245, 0.16);
+
+    background:
+      var(--darker-black);
+
+    color: var(--font-color);
+
+    box-shadow: none;
+  }
+
+
+  .method-picker-grid .method-picker-card:hover {
+
+    border-color: var(--lightblue);
+
+    background:
+      rgba(32, 178, 170, 0.13);
+
+    box-shadow: none;
+  }
+
+
+  .method-picker-grid .method-picker-card.selected {
+
+    border-color:
+      var(--energetic--yellow);
+
+    background:
+      rgba(238, 197, 80, 0.12);
+  }
+
+
+  .method-picker-card-category {
+
+    color: var(--lightblue);
+
+    font-size: 0.72rem;
+
+    font-weight: 800;
+
+    letter-spacing: 0.1em;
+
+    text-transform: uppercase;
+  }
+
+
+  .method-picker-card strong {
+
+    color: var(--energetic--yellow);
+
+    font-family: var(--font-heading);
+
+    font-size: 1.7rem;
+
+    font-weight: 400;
+
+    line-height: 1;
+  }
+
+
+  .method-picker-card > span:last-child {
+
+    color: rgba(245, 245, 245, 0.72);
+
+    font-size: 0.95rem;
+
+    font-weight: 400;
+
+    line-height: 1.5;
+  }
+
+
+  .method-picker-message {
+
+    color: var(--passion-orange);
+
+    font-weight: 800;
+  }
+
+
+  .method-picker-actions {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: var(--space-1);
+  }
+
+
+  .method-picker-actions .secondary-action {
+
+    border-color: var(--lightblue);
+
+    background: transparent;
+
+    color: var(--font-color);
+
+    box-shadow: none;
+  }
+
+
+  .method-picker-actions button:disabled {
+
+    opacity: 0.4;
+
+    cursor: not-allowed;
+  }
+
 }
 
 
@@ -301,6 +593,9 @@
    ASSESSMENT
    /training/assessment
    ========================================================= */
+a.nav-logo h3{
+  margin: 0 !important
+}
 
 .assessment.assessment-v2 {
 
@@ -1612,6 +1907,75 @@
    MOBILE
    ========================================================= */
 
+.training-resume-card,
+.training-system-message {
+  width: min(900px, 94vw);
+  margin: 0 auto var(--space-4);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid rgba(245, 245, 245, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.training-resume-card > p:first-child {
+  color: var(--lightblue);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.training-resume-actions,
+.training-dialog-actions,
+.training-save-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.training-save-toolbar {
+  width: min(1000px, 94vw);
+  margin: var(--space-2) auto 0;
+  justify-content: flex-end;
+}
+
+.training-save-toolbar > span {
+  margin-right: auto;
+  color: rgba(245, 245, 245, 0.75);
+}
+
+.training-save-error {
+  width: min(900px, 94vw);
+  margin: 0 auto var(--space-2);
+  color: #ffb7b7;
+}
+
+.training-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.training-dialog {
+  width: min(560px, 100%);
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid rgba(245, 245, 245, 0.2);
+  border-radius: 18px;
+  background: var(--darkblue, #111827);
+  color: var(--font-color);
+}
+
+.training-dialog h2 {
+  margin-top: 0;
+}
+
+.training-draft-error {
+  border-color: rgba(255, 183, 183, 0.5);
+}
+
 @media (max-width: 720px) {
 
   .training-page {
@@ -1626,6 +1990,41 @@
 
       width: 100%;
     }
+
+
+    .training-entry-options,
+    .method-picker-grid {
+
+      grid-template-columns: 1fr;
+    }
+
+
+    .method-picker-heading,
+    .method-picker-actions {
+
+      align-items: stretch;
+
+      flex-direction: column;
+    }
+
+
+    .method-picker-actions button {
+
+      width: 100%;
+    }
+  }
+
+  .training-save-toolbar,
+  .training-resume-actions,
+  .training-dialog-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .training-save-toolbar button,
+  .training-resume-actions button,
+  .training-dialog-actions button {
+    width: 100%;
   }
 
 
