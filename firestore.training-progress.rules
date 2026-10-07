@@ -7,16 +7,117 @@ match /users/{userId}/trainingProgress/{draftId} {
     && request.auth.uid == userId
     && draftId == "active";
 
-  allow create, update: if request.auth != null
+  allow create: if request.auth != null
     && request.auth.uid == userId
     && draftId == "active"
     && request.resource.data.schemaVersion == 1
     && request.resource.data.sessionId is string
     && request.resource.data.owner.kind == "user"
     && request.resource.data.owner.uid == request.auth.uid
-    && request.resource.data.mode in ["auto", "manual"];
+    && request.resource.data.mode in ["auto", "manual"]
+    && exists(
+      /databases/$(database)/documents/users/$(userId)/trainingReservations/$(request.resource.data.sessionId)
+    )
+    && get(
+      /databases/$(database)/documents/users/$(userId)/trainingReservations/$(request.resource.data.sessionId)
+    ).data.mode == request.resource.data.mode
+    && get(
+      /databases/$(database)/documents/users/$(userId)/trainingReservations/$(request.resource.data.sessionId)
+    ).data.methodIds == request.resource.data.selectedMethods;
+
+  // Existing unfinished drafts are grandfathered. They may keep updating
+  // only their original session ID, so this cannot create a new unreserved
+  // session or swap a legacy draft to a different session.
+  allow update: if request.auth != null
+    && request.auth.uid == userId
+    && draftId == "active"
+    && request.resource.data.schemaVersion == 1
+    && request.resource.data.sessionId == resource.data.sessionId
+    && request.resource.data.owner.kind == "user"
+    && request.resource.data.owner.uid == request.auth.uid
+    && request.resource.data.mode == resource.data.mode
+    && request.resource.data.mode in ["auto", "manual"]
+    && (
+      request.resource.data.selectedMethods == resource.data.selectedMethods
+      || (
+        resource.data.mode == "auto"
+        && resource.data.selectedMethods.size() == 0
+      )
+    );
 
   allow delete: if request.auth != null
     && request.auth.uid == userId
     && draftId == "active";
+}
+
+// Daily completion records are immutable after their first successful write.
+// The calendar-day document ID makes repeated same-day completions idempotent.
+match /users/{userId}/trainingActivity/{dayKey} {
+  allow read: if request.auth != null
+    && request.auth.uid == userId;
+
+  allow create: if request.auth != null
+    && request.auth.uid == userId
+    && request.resource.data.dayKey == dayKey
+    && dayKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+    && request.resource.data.firstSessionId is string
+    && request.resource.data.firstMode in ["auto", "manual"]
+    && request.resource.data.methodIds is list
+    && request.resource.data.timezone is string;
+
+  allow update, delete: if false;
+}
+
+match /users/{userId}/trainingStats/{statsId} {
+  allow read: if request.auth != null
+    && request.auth.uid == userId
+    && statsId == "streak";
+
+  allow create, update: if request.auth != null
+    && request.auth.uid == userId
+    && statsId == "streak"
+    && request.resource.data.currentStreak is int
+    && request.resource.data.currentStreak >= 1
+    && request.resource.data.longestStreak is int
+    && request.resource.data.longestStreak >= request.resource.data.currentStreak
+    && request.resource.data.lastCompletedDay is string
+    && request.resource.data.lastCompletedDay.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+    && request.resource.data.totalActiveDays is int
+    && request.resource.data.totalActiveDays >= 1;
+
+  allow delete: if false;
+}
+
+// Entitlements are written only by trusted Admin tooling now and Stripe
+// webhooks in a later phase. Browsers may never grant themselves Premium.
+match /users/{userId}/entitlements/{entitlementId} {
+  allow read: if request.auth != null
+    && request.auth.uid == userId
+    && entitlementId == "current";
+
+  allow create, update, delete: if false;
+}
+
+// Daily quota counters and their reservation records are server-owned.
+match /users/{userId}/trainingUsage/{dayKey} {
+  allow read: if request.auth != null
+    && request.auth.uid == userId;
+
+  allow create, update, delete: if false;
+}
+
+match /users/{userId}/trainingUsage/{dayKey}/reservations/{sessionId} {
+  allow read: if request.auth != null
+    && request.auth.uid == userId;
+
+  allow create, update, delete: if false;
+}
+
+// A direct index makes reservation lookup independent of the current day.
+// It also lets draft creation prove a trusted reservation exists.
+match /users/{userId}/trainingReservations/{sessionId} {
+  allow read: if request.auth != null
+    && request.auth.uid == userId;
+
+  allow create, update, delete: if false;
 }

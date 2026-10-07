@@ -1,4 +1,5 @@
 import {
+  useRef,
   useState
 } from "react";
 
@@ -8,6 +9,17 @@ import {
 
 import LearningProfileStatus
   from "../components/LearningProfileStatus";
+import TrainingAccessCard
+  from "../components/TrainingAccessCard";
+import TrainingStreakCard
+  from "../components/TrainingStreakCard";
+
+import {
+  useTrainingAccess
+} from "../hooks/useTrainingAccess";
+import {
+  useTrainingStreak
+} from "../hooks/useTrainingStreak";
 
 import NAV from "../HEADER/header";
 
@@ -17,6 +29,7 @@ import {
   getMethodName
 } from "../quiz/methodRegistry";
 import {
+  createSessionId,
   getTrainingProgressLabel
 } from "../quiz/trainingProgress";
 import {
@@ -26,6 +39,9 @@ import {
   discardTrainingDraft,
   forceDiscardTrainingDraft
 } from "../services/trainingProgress";
+import {
+  startTrainingSession
+} from "../services/startTrainingSession";
 
 function Training() {
 
@@ -39,12 +55,20 @@ function Training() {
     error: loadError,
     reload
   } = useAvailableTrainingDraft();
+  const trainingStreak = useTrainingStreak();
+  const trainingAccess = useTrainingAccess();
   const [showDiscard, setShowDiscard] =
     useState(false);
   const [discarding, setDiscarding] =
     useState(false);
   const [discardError, setDiscardError] =
     useState<string | null>(null);
+  const [starting, setStarting] =
+    useState(false);
+  const [startError, setStartError] =
+    useState<string | null>(null);
+  const pendingAutomaticSessionId =
+    useRef<string | null>(null);
 
   const draft = validation?.valid
     ? validation.draft
@@ -52,34 +76,88 @@ function Training() {
   const progress = draft
     ? getTrainingProgressLabel(draft)
     : null;
+  const accessIdentityMatches = owner?.kind === "user"
+    ? trainingAccess.user?.uid === owner.uid
+    : trainingAccess.user === null;
 
-  function start(path: string) {
+  async function clearExistingDraft(): Promise<boolean> {
     if (draft) {
       const replace = window.confirm(
         "Starting new training will discard your current unfinished session. Continue?"
       );
 
       if (!replace || !owner) {
-        return;
+        return false;
       }
 
       setDiscarding(true);
       setDiscardError(null);
-      void discardTrainingDraft(
-        owner,
-        draft.sessionId
-      )
-        .then(() => navigate(path))
-        .catch(() => {
-          setDiscardError(
-            "The current training could not be discarded. Please retry."
-          );
-        })
-        .finally(() => setDiscarding(false));
+
+      try {
+        await discardTrainingDraft(
+          owner,
+          draft.sessionId
+        );
+      } catch {
+        setDiscardError(
+          "The current training could not be discarded. Please retry."
+        );
+        return false;
+      } finally {
+        setDiscarding(false);
+      }
+    }
+
+    return true;
+  }
+
+  async function startAutomaticTraining() {
+    if (
+      !owner ||
+      starting ||
+      !accessIdentityMatches
+    ) {
       return;
     }
 
-    navigate(path);
+    setStarting(true);
+    setStartError(null);
+
+    try {
+      if (!await clearExistingDraft()) {
+        return;
+      }
+
+      pendingAutomaticSessionId.current ??=
+        createSessionId();
+
+      const created = await startTrainingSession({
+        user: trainingAccess.user,
+        owner,
+        mode: "auto",
+        methodIds: [],
+        sessionId: pendingAutomaticSessionId.current
+      });
+      trainingAccess.refreshAccess();
+      navigate(
+        `/training/assessment?resume=${encodeURIComponent(created.sessionId)}`
+      );
+    } catch (error) {
+      setStartError(
+        error instanceof Error
+          ? error.message
+          : "Training could not be started."
+      );
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  async function openMethodPicker() {
+    if (!await clearExistingDraft()) {
+      return;
+    }
+    navigate("/training/choose");
   }
 
   async function confirmDiscard() {
@@ -115,7 +193,7 @@ function Training() {
     <>
     <NAV/>
     <main className="training-page">
-      
+
       <section className="training-hero">
 
         <p>
@@ -134,6 +212,19 @@ function Training() {
         </p>
 
       </section>
+
+      <TrainingStreakCard {...trainingStreak} />
+
+      <TrainingAccessCard
+        loading={trainingAccess.loading}
+        error={trainingAccess.error}
+        plan={trainingAccess.plan}
+        unlimited={trainingAccess.unlimited}
+        testMeUsed={trainingAccess.testMeUsed}
+        testMeLimit={trainingAccess.testMeLimit}
+        manualMethodsUsed={trainingAccess.manualMethodsUsed}
+        manualMethodsLimit={trainingAccess.manualMethodsLimit}
+      />
 
       {!loading && draft && progress && (
         <section className="training-resume-card">
@@ -198,6 +289,12 @@ function Training() {
         </p>
       )}
 
+      {startError && (
+        <p className="training-save-error" role="alert">
+          {startError}
+        </p>
+      )}
+
       <section
         className="training-entry-options"
         aria-label="Choose how to start training"
@@ -217,13 +314,28 @@ function Training() {
 
           <button
             type="button"
-            disabled={discarding}
-            onClick={() => start(
-              "/training/assessment"
-            )}
+            disabled={
+              discarding ||
+              starting ||
+              trainingAccess.loading ||
+              !accessIdentityMatches ||
+              Boolean(trainingAccess.error) ||
+              (!trainingAccess.unlimited &&
+                trainingAccess.testMeRemaining === 0)
+            }
+            onClick={() => void startAutomaticTraining()}
           >
-            Start assessment
+            {!trainingAccess.unlimited &&
+            trainingAccess.testMeRemaining === 0
+              ? "Daily Test Me used"
+              : starting
+                ? "Starting..."
+                : "Start assessment"}
           </button>
+          {!trainingAccess.unlimited &&
+            trainingAccess.testMeRemaining === 0 && (
+              <p>Come back tomorrow or upgrade.</p>
+            )}
         </article>
 
         <article className="training-entry-card">
@@ -242,9 +354,7 @@ function Training() {
           <button
             type="button"
             disabled={discarding}
-            onClick={() => start(
-              "/training/choose"
-            )}
+            onClick={() => void openMethodPicker()}
           >
             Choose methods
           </button>

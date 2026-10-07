@@ -1,3 +1,7 @@
+import {
+  TRAINING_METHOD_IDS as SHARED_TRAINING_METHOD_IDS
+} from "../../trainingMethodIds.js";
+
 export type Option = {
   value: string;
   label: string;
@@ -43,31 +47,8 @@ export type BaselineResult = {
   understanding: BaselineTaskResult;
 };
 
-export const TRAINING_METHOD_IDS = [
-  "active-recall",
-  "feynman",
-  "cornell",
-  "interleaving",
-  "memory-palace",
-  "active-blurting",
-  "one-sentence",
-  "note-taking-4x4",
-  "leitner-system",
-  "story-telling",
-  "capture-create",
-  "abbreviation",
-  "header-first",
-  "prime-question",
-  "doodle-effect",
-  "eighty-twenty-rule",
-  "divide-steps",
-  "derive-basics",
-  "kidlin-rule",
-  "premack-principle",
-  "ten-minute-wall-stare",
-  "strooper-effect",
-  "two-x-video-speed"
-] as const;
+export const TRAINING_METHOD_IDS =
+  SHARED_TRAINING_METHOD_IDS;
 
 export type TrainingMethodId =
   (typeof TRAINING_METHOD_IDS)[number];

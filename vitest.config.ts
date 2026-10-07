@@ -10,7 +10,8 @@ export default defineConfig({
     include: [
       "src/**/*.test.{ts,tsx}",
       "firebaseAdmin.test.js",
-      "server.test.js"
+      "server.test.js",
+      "trainingQuota.test.js"
     ]
   }
 });

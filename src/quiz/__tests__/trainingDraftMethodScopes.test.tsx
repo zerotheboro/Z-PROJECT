@@ -28,6 +28,10 @@ import {
 import {
   TRAINING_METHOD_IDS
 } from "../type";
+import {
+  decodeFirestoreTrainingDraft,
+  encodeFirestoreTrainingDraft
+} from "../../services/trainingDraftFirestoreCodec";
 
 import type {
   TrainingInternalState
@@ -40,6 +44,37 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
 });
+
+function hasDirectNestedArray(value: unknown): boolean {
+  if (Array.isArray(value)) {
+    return (
+      value.some(Array.isArray) ||
+      value.some(hasDirectNestedArray)
+    );
+  }
+
+  if (
+    typeof value === "object" &&
+    value !== null
+  ) {
+    return Object.values(value).some(
+      hasDirectNestedArray
+    );
+  }
+
+  return false;
+}
+
+function expectCloudRoundTrip(draft: unknown) {
+  const encoded = encodeFirestoreTrainingDraft(
+    draft
+  );
+
+  expect(hasDirectNestedArray(encoded)).toBe(false);
+  expect(
+    decodeFirestoreTrainingDraft(encoded)
+  ).toEqual(draft);
+}
 
 function resultFor(method: TrainingMethodId) {
   return {
@@ -115,6 +150,7 @@ describe("method-specific resumable scope validation", () => {
       expect(validateTrainingDraft(draft)).toMatchObject({
         valid: true
       });
+      expectCloudRoundTrip(draft);
     }
   );
 
@@ -148,6 +184,7 @@ describe("method-specific resumable scope validation", () => {
       expect(validateTrainingDraft(draft)).toMatchObject({
         valid: true
       });
+      expectCloudRoundTrip(draft);
     }
   );
 });

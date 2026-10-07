@@ -27,7 +27,21 @@ export const SHORT_VIDEOS = [
     id: "short-4",
     youtubeId: "XhXGsHC7ZxA",
     title: "Edulience Short 4"
+  },
+  {
+    id: "short-4",
+    youtubeId: "z6EhhEffxRA",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-4",
+    youtubeId: "mJwDQL0D67M",
+    title: "Edulience Short 4"
   }
+
+  
+
+  
 ] as const satisfies readonly ShortVideo[];
 
 export function getShortEmbedUrl(

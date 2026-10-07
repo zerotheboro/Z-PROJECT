@@ -15,6 +15,12 @@ import {
 import NAV from "../HEADER/header";
 import { saveAssessment } from "../services/assessment";
 import {
+  reserveTrainingAccess
+} from "../services/trainingAccess";
+import {
+  recordTrainingCompletion
+} from "../services/trainingStreak";
+import {
   discardTrainingDraft,
   forceDiscardTrainingDraft,
   saveTrainingDraft,
@@ -33,13 +39,19 @@ import {
   MANUAL_TRAINING_MODE,
   readManualTrainingMethods
 } from "./trainingSession";
-import { createTrainingDraft } from "./trainingProgress";
+import {
+  createSessionId,
+  createTrainingDraft
+} from "./trainingProgress";
 import {
   TrainingProgressStateProvider,
   TrainingStateScope
 } from "./trainingProgressState";
 import { useAvailableTrainingDraft } from "./useAvailableTrainingDraft";
 
+import type {
+  User
+} from "firebase/auth";
 import type {
   TrainingDraft,
   TrainingDraftOwner,
@@ -145,21 +157,73 @@ function AssessmentProblem({
 }
 
 function NewAssessmentSession({
+  user,
   owner,
   mode,
   methods
 }: {
+  user: User | null;
   owner: TrainingDraftOwner;
   mode: "auto" | "manual";
   methods: TrainingMethodId[];
 }) {
+  const [sessionId] = useState(createSessionId);
   const [draft] = useState(() =>
     createTrainingDraft({
       owner,
       mode,
-      selectedMethods: methods
+      selectedMethods: methods,
+      sessionId
     })
   );
+  const [reservation, setReservation] = useState<
+    "checking" | "allowed" | "denied"
+  >("checking");
+  const [reservationError, setReservationError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    void reserveTrainingAccess(user, {
+      sessionId,
+      mode,
+      methodIds: methods
+    })
+      .then(() => {
+        if (active) {
+          setReservation("allowed");
+        }
+      })
+      .catch(error => {
+        if (active) {
+          setReservation("denied");
+          setReservationError(
+            error instanceof Error
+              ? error.message
+              : "Training access could not be reserved."
+          );
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [methods, mode, sessionId, user]);
+
+  if (reservation === "checking") {
+    return <LoadingAssessment />;
+  }
+
+  if (reservation === "denied") {
+    return (
+      <AssessmentProblem
+        title="Training could not start"
+        message={reservationError ??
+          "Training access could not be reserved."}
+      />
+    );
+  }
 
   return (
     <AssessmentSession
@@ -174,6 +238,7 @@ function Assessment() {
   const navigate = useNavigate();
   const {
     loading,
+    user,
     owner,
     validation,
     error: loadError,
@@ -337,6 +402,7 @@ function Assessment() {
 
   return (
     <NewAssessmentSession
+      user={user}
       owner={owner}
       mode={isManualRequest ? "manual" : "auto"}
       methods={manualMethods ?? []}
@@ -362,6 +428,7 @@ function AssessmentSession({
   const [showDiscard, setShowDiscard] = useState(false);
   const [discarding, setDiscarding] = useState(false);
   const [finalSaveError, setFinalSaveError] = useState<string | null>(null);
+  const [streakFeedback, setStreakFeedback] = useState<string | null>(null);
   const finalSaveInFlight = useRef(false);
   const checkpointRef = useRef<(() => void) | null>(null);
 
@@ -419,6 +486,10 @@ function AssessmentSession({
           setSaveStatus("conflict");
           setSaveError(error.message);
         } else {
+          console.error(
+            "Training cloud save failed",
+            error
+          );
           setSaveStatus("failed");
           setSaveError(
             draftRef.current.owner.kind === "guest"
@@ -598,6 +669,10 @@ function AssessmentSession({
   }
 
   async function finishManual(result: ReflectionResult) {
+    if (finalSaveInFlight.current) {
+      return;
+    }
+
     updateDraft(current => ({
       ...current,
       phase: "final-save",
@@ -607,8 +682,22 @@ function AssessmentSession({
         reflection: result
       }
     }));
+    finalSaveInFlight.current = true;
+    setFinalSaveError(null);
 
     try {
+      const streak = await recordTrainingCompletion({
+        owner: draft.owner,
+        sessionId: draft.sessionId,
+        mode: "manual",
+        methodIds: selectedMethods
+      });
+      setStreakFeedback(current => current ?? (
+        streak.wasNewDay
+          ? `🔥 ${streak.currentStreak} day streak! Today's training is complete.`
+          : "Training complete. You've already kept your streak today."
+      ));
+
       sessionActive.current = false;
       if (saveInFlight.current) {
         await saveInFlight.current;
@@ -622,11 +711,17 @@ function AssessmentSession({
           reflection: result
         }
       }));
-    } catch {
+    } catch (error) {
       sessionActive.current = true;
-      setFinalSaveError(
-        "Training is complete, but the active draft could not be cleared. Retry to avoid seeing it as unfinished."
+      console.error(
+        "Training completion or streak recording failed:",
+        error
       );
+      setFinalSaveError(
+        "Training is complete, but its daily activity or active draft could not be saved. Retry safely to finish."
+      );
+    } finally {
+      finalSaveInFlight.current = false;
     }
   }
 
@@ -690,6 +785,18 @@ function AssessmentSession({
         });
       }
 
+      const streak = await recordTrainingCompletion({
+        owner: draft.owner,
+        sessionId: draft.sessionId,
+        mode: "auto",
+        methodIds: selectedMethods
+      });
+      setStreakFeedback(current => current ?? (
+        streak.wasNewDay
+          ? `🔥 ${streak.currentStreak} day streak! Today's training is complete.`
+          : "Training complete. You've already kept your streak today."
+      ));
+
       sessionActive.current = false;
       if (saveInFlight.current) {
         await saveInFlight.current;
@@ -704,10 +811,14 @@ function AssessmentSession({
           learningProfile
         }
       }));
-    } catch {
+    } catch (error) {
       sessionActive.current = true;
+      console.error(
+        "Assessment completion or streak recording failed:",
+        error
+      );
       setFinalSaveError(
-        "The completed assessment could not be saved and its unfinished draft was kept. Retry when your connection is available."
+        "The completed assessment or its daily activity could not be saved, so the unfinished draft was kept. Retry safely when your connection is available."
       );
     } finally {
       finalSaveInFlight.current = false;
@@ -855,6 +966,9 @@ function AssessmentSession({
             <p>TRAINING COMPLETE</p>
             <h1>Session complete</h1>
             <p>You finished the methods you selected.</p>
+            {streakFeedback && (
+              <p role="status">{streakFeedback}</p>
+            )}
             <button type="button" onClick={() => navigate("/training")}>
               Back to training
             </button>
@@ -865,6 +979,9 @@ function AssessmentSession({
           <section className="learning-profile">
             <p>ASSESSMENT COMPLETE</p>
             <h1>Your Learning Profile</h1>
+            {streakFeedback && (
+              <p role="status">{streakFeedback}</p>
+            )}
             <button
               type="button"
               onClick={() => navigate("/training/profile")}

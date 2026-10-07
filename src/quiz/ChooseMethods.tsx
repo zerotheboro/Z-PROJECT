@@ -1,4 +1,5 @@
 import {
+  useRef,
   useState
 } from "react";
 
@@ -7,10 +8,19 @@ import {
 } from "react-router-dom";
 
 import NAV from "../HEADER/header";
+import {
+  useTrainingAccess
+} from "../hooks/useTrainingAccess";
+import {
+  startTrainingSession
+} from "../services/startTrainingSession";
 
 import {
   methodDefinitions
 } from "./methodRegistry";
+import {
+  createSessionId
+} from "./trainingProgress";
 
 import {
   MANUAL_TRAINING_MODE
@@ -55,12 +65,23 @@ const methodGroups =
 
 function ChooseMethods() {
   const navigate = useNavigate();
+  const trainingAccess = useTrainingAccess();
 
   const [selectedMethods, setSelectedMethods] =
     useState<TrainingMethodId[]>([]);
 
   const [selectionMessage, setSelectionMessage] =
     useState("");
+  const [starting, setStarting] = useState(false);
+  const pendingSessionId =
+    useRef<string | null>(null);
+
+  const selectionLimit = trainingAccess.unlimited
+    ? MAX_SELECTED_METHODS
+    : Math.min(
+        MAX_SELECTED_METHODS,
+        trainingAccess.manualMethodsRemaining ?? 0
+      );
 
   function toggleMethod(
     method: TrainingMethodId
@@ -77,11 +98,12 @@ function ChooseMethods() {
     }
 
     if (
-      selectedMethods.length >=
-      MAX_SELECTED_METHODS
+      selectedMethods.length >= selectionLimit
     ) {
       setSelectionMessage(
-        "You can choose up to 3 methods."
+        selectionLimit < MAX_SELECTED_METHODS
+          ? `You have ${selectionLimit} method test${selectionLimit === 1 ? "" : "s"} remaining today.`
+          : "You can choose up to 3 methods."
       );
       return;
     }
@@ -93,19 +115,52 @@ function ChooseMethods() {
     setSelectionMessage("");
   }
 
-  function startTraining() {
-    if (selectedMethods.length === 0) {
+  async function startTraining() {
+    if (
+      selectedMethods.length === 0 ||
+      selectedMethods.length > selectionLimit ||
+      trainingAccess.loading ||
+      starting
+    ) {
       return;
     }
 
-    const state: ManualTrainingState = {
-      selectedMethods
-    };
+    setStarting(true);
+    setSelectionMessage("");
 
-    navigate(
-      `/training/assessment?mode=${MANUAL_TRAINING_MODE}`,
-      { state }
-    );
+    try {
+      const owner = trainingAccess.user
+        ? {
+            kind: "user" as const,
+            uid: trainingAccess.user.uid
+          }
+        : { kind: "guest" as const };
+      pendingSessionId.current ??= createSessionId();
+      const created = await startTrainingSession({
+        user: trainingAccess.user,
+        owner,
+        mode: "manual",
+        methodIds: selectedMethods,
+        sessionId: pendingSessionId.current
+      });
+      const state: ManualTrainingState = {
+        selectedMethods
+      };
+
+      trainingAccess.refreshAccess();
+      navigate(
+        `/training/assessment?mode=${MANUAL_TRAINING_MODE}&resume=${encodeURIComponent(created.sessionId)}`,
+        { state }
+      );
+    } catch (error) {
+      setSelectionMessage(
+        error instanceof Error
+          ? error.message
+          : "Training could not be started."
+      );
+    } finally {
+      setStarting(false);
+    }
   }
 
   return (
@@ -125,6 +180,15 @@ function ChooseMethods() {
           <p>
             Pick up to 3 learning methods you want to practise.
           </p>
+          {!trainingAccess.loading &&
+            !trainingAccess.unlimited && (
+              <p>
+                You have {trainingAccess.manualMethodsRemaining ?? 0}
+                {" method test"}
+                {trainingAccess.manualMethodsRemaining === 1 ? "" : "s"}
+                {" remaining today."}
+              </p>
+            )}
         </section>
 
         <section className="method-picker">
@@ -174,6 +238,10 @@ function ChooseMethods() {
                             type="button"
                             role="checkbox"
                             aria-checked={selected}
+                            disabled={
+                              trainingAccess.loading ||
+                              Boolean(trainingAccess.error)
+                            }
                             className={
                               selected
                                 ? "method-picker-card selected"
@@ -186,9 +254,6 @@ function ChooseMethods() {
                               )
                             }
                           >
-                            <span className="method-picker-card-category">
-                              {definition.category}
-                            </span>
 
                             <strong>
                               {definition.name}
@@ -220,6 +285,15 @@ function ChooseMethods() {
             </p>
           )}
 
+          {trainingAccess.error && (
+            <p
+              className="method-picker-message"
+              role="alert"
+            >
+              {trainingAccess.error}
+            </p>
+          )}
+
           <div className="method-picker-actions">
             <button
               type="button"
@@ -234,11 +308,15 @@ function ChooseMethods() {
             <button
               type="button"
               disabled={
-                selectedMethods.length === 0
+                selectedMethods.length === 0 ||
+                selectedMethods.length > selectionLimit ||
+                trainingAccess.loading ||
+                Boolean(trainingAccess.error) ||
+                starting
               }
-              onClick={startTraining}
+              onClick={() => void startTraining()}
             >
-              Start training
+              {starting ? "Starting..." : "Start training"}
             </button>
           </div>
         </section>

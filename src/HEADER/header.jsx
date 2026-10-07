@@ -2,11 +2,12 @@ import LOGO from "../image/LOGO.png";
 import wayofgroups from "../image/Library.png";
 import quiz from "../image/training rock.png";
 import Home from "../image/Home button.png";
-import Short from "../image/short-icon.png"
+import Short from "../image/short-icon.png";
 
 import {
   NavLink,
-  Link
+  Link,
+  useNavigate
 } from "react-router-dom";
 
 import {
@@ -32,6 +33,7 @@ function NAV() {
   const accountRef = useRef(null);
   const [user, setUser] = useState(getCurrentUser);
   const [accountOpen, setAccountOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const nav = document.getElementById("NAV");
@@ -39,6 +41,8 @@ function NAV() {
     if (!nav) return;
 
     const navHeight = nav.offsetHeight;
+
+ 
 
     function nav_contract() {
       const currentY = window.scrollY;
@@ -212,73 +216,94 @@ function NAV() {
           </NavLink>
         </div>
 
-        {user ? (
-          <div
-            className="nav-account"
-            ref={accountRef}
-          >
-            <button
-              type="button"
-              className="nav-account-button"
-              aria-expanded={accountOpen}
-              aria-haspopup="menu"
-              aria-label={`Open account menu for ${userLabel}`}
-              onClick={() => setAccountOpen((isOpen) => !isOpen)}
+       {user ? (
+      <div
+        className="nav-account"
+        ref={accountRef}
+      >
+        {/* Avatar -> Learning Profile */}
+
+        {/* Name -> Account menu */}
+        <button
+          type="button"
+          className="nav-account-button"
+          aria-expanded={accountOpen}
+          aria-haspopup="menu"
+          aria-label={`Open account menu for ${userLabel}`}
+          onClick={() => {
+            setAccountOpen((isOpen) => !isOpen);
+          }}
+        >
+          {user.photoURL ? (
+            <img
+              className="nav-avatar"
+              src={user.photoURL}
+              alt=""
+            />
+          ) : (
+            <span
+              className="nav-avatar nav-avatar-fallback"
+              aria-hidden="true"
             >
-              {user.photoURL ? (
-                <img
-                  className="nav-avatar"
-                  src={user.photoURL}
-                  alt=""
-                />
-              ) : (
-                <span
-                  className="nav-avatar nav-avatar-fallback"
-                  aria-hidden="true"
-                >
-                  {fallbackInitial}
-                </span>
+              {fallbackInitial}
+            </span>
+          )}
+          <span className="nav-account-name">
+            {user.displayName || user.email}
+          </span>
+        </button>
+
+        {accountOpen && (
+          <div
+            className="nav-account-menu"
+            role="menu"
+          >
+            <div className="nav-account-details">
+              {user.displayName && (
+                <strong>
+                  {user.displayName}
+                </strong>
               )}
 
-              <span className="nav-account-name">
-                {user.displayName || user.email}
-              </span>
+              {user.email && (
+                <span>
+                  {user.email}
+                </span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              role="menuitem"
+              className="nav-sign-in"
+              onClick={() => {
+                navigate("/training/profile");
+                setAccountOpen(false);
+              }}
+            >
+              Learning profile
             </button>
 
-            {accountOpen && (
-              <div
-                className="nav-account-menu"
-                role="menu"
-              >
-                <div className="nav-account-details">
-                  {user.displayName && (
-                    <strong>{user.displayName}</strong>
-                  )}
-                  {user.email && (
-                    <span>{user.email}</span>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  className="nav-sign-out"
-                  role="menuitem"
-                  onClick={handleLogout}
-                >
-                  Sign out
-                </button>
-              </div>
-            )}
+            <button
+              type="button"
+              className="nav-sign-out"
+              role="menuitem"
+              onClick={handleLogout}
+            >
+              Sign out
+            </button>
           </div>
-        ) : (
-          <button
-            type="button"
-            className="nav-sign-in"
-            onClick={handleLogin}
-          >
-            Sign in
-          </button>
         )}
+      </div>
+    ) : (
+      <button
+        type="button"
+        className="nav-sign-in"
+        onClick={handleLogin}
+      >
+        Sign in
+      </button>
+    )}
       </nav>
     </header>
   );

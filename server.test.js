@@ -165,6 +165,36 @@ function postRecommendation(baseUrl, body, headers = {}) {
   });
 }
 
+function createTrainingQuotaManager() {
+  return {
+    getAccess: vi.fn().mockResolvedValue({
+      plan: "free",
+      limits: {
+        testMePerDay: 1,
+        manualMethodsPerDay: 3
+      },
+      usage: {
+        testMeStarted: 0,
+        manualMethodsStarted: 0
+      },
+      remaining: {
+        testMe: 1,
+        manualMethods: 3
+      },
+      unlimited: false,
+      dayKey: "2026-10-06",
+      timezone: "Asia/Ho_Chi_Minh"
+    }),
+    reserve: vi.fn().mockResolvedValue({
+      allowed: true,
+      idempotent: false,
+      sessionId: "session-0001",
+      dayKey: "2026-10-06",
+      plan: "free"
+    })
+  };
+}
+
 function expectSchemaCompatibleRecommendation(result) {
   expect(typeof result.user_problem).toBe("string");
   expect(result.recommended_methods.length).toBeGreaterThanOrEqual(1);
@@ -664,6 +694,127 @@ describe("recommendation backend safety", () => {
       success: false
     });
     expect(logEntry).not.toContain("PRIVATE FAILURE DETAILS");
+  });
+});
+
+describe("Training entitlement endpoints", () => {
+  it("requires a verified Firebase bearer token", async () => {
+    const trainingQuotaManager =
+      createTrainingQuotaManager();
+    const baseUrl = await startTestServer({
+      trainingQuotaManager,
+      logger: createLogger()
+    });
+
+    const response = await fetch(
+      `${baseUrl}/api/training/access?timezone=Asia%2FHo_Chi_Minh`
+    );
+
+    expect(response.status).toBe(401);
+    expect(trainingQuotaManager.getAccess)
+      .not.toHaveBeenCalled();
+  });
+
+  it("returns 401 for an invalid Firebase bearer", async () => {
+    const trainingQuotaManager =
+      createTrainingQuotaManager();
+    const baseUrl = await startTestServer({
+      trainingQuotaManager,
+      verifyFirebaseToken: vi.fn().mockRejectedValue(
+        new Error("invalid")
+      ),
+      logger: createLogger()
+    });
+
+    const response = await fetch(
+      `${baseUrl}/api/training/access?timezone=Asia%2FHo_Chi_Minh`,
+      {
+        headers: {
+          Authorization: "Bearer invalid-token"
+        }
+      }
+    );
+
+    expect(response.status).toBe(401);
+    expect(trainingQuotaManager.getAccess)
+      .not.toHaveBeenCalled();
+  });
+
+  it("returns 503 when Firebase Admin authentication is unavailable", async () => {
+    const trainingQuotaManager =
+      createTrainingQuotaManager();
+    const baseUrl = await startTestServer({
+      trainingQuotaManager,
+      verifyFirebaseToken: vi.fn().mockRejectedValue(
+        new FirebaseAdminConfigurationError(
+          "firebase_admin_credentials_missing",
+          "missing"
+        )
+      ),
+      logger: createLogger()
+    });
+
+    const response = await fetch(
+      `${baseUrl}/api/training/access?timezone=UTC`,
+      {
+        headers: {
+          Authorization: "Bearer token"
+        }
+      }
+    );
+
+    expect(response.status).toBe(503);
+  });
+
+  it("uses the verified UID for access and reservation", async () => {
+    const trainingQuotaManager =
+      createTrainingQuotaManager();
+    const baseUrl = await startTestServer({
+      trainingQuotaManager,
+      verifyFirebaseToken: vi.fn().mockResolvedValue({
+        uid: "verified-user"
+      }),
+      logger: createLogger()
+    });
+    const headers = {
+      Authorization: "Bearer valid-token",
+      "Content-Type": "application/json"
+    };
+
+    const access = await fetch(
+      `${baseUrl}/api/training/access?timezone=Asia%2FHo_Chi_Minh`,
+      { headers }
+    );
+    const reserve = await fetch(
+      `${baseUrl}/api/training/reserve`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          sessionId: "session-0001",
+          mode: "auto",
+          methodIds: [],
+          timezone: "Asia/Ho_Chi_Minh",
+          plan: "premium",
+          uid: "attacker"
+        })
+      }
+    );
+
+    expect(access.status).toBe(200);
+    expect(reserve.status).toBe(200);
+    expect(trainingQuotaManager.getAccess)
+      .toHaveBeenCalledWith(
+        "verified-user",
+        "Asia/Ho_Chi_Minh"
+      );
+    expect(trainingQuotaManager.reserve)
+      .toHaveBeenCalledWith(
+        "verified-user",
+        expect.objectContaining({
+          sessionId: "session-0001"
+        })
+      );
   });
 });
 

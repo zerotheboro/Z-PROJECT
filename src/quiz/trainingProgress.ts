@@ -125,17 +125,19 @@ export function createSessionId(): string {
 export function createTrainingDraft({
   owner,
   mode,
-  selectedMethods = []
+  selectedMethods = [],
+  sessionId = createSessionId()
 }: {
   owner: TrainingDraftOwner;
   mode: TrainingMode;
   selectedMethods?: TrainingMethodId[];
+  sessionId?: string;
 }): TrainingDraft {
   const now = new Date().toISOString();
 
   return {
     schemaVersion: TRAINING_DRAFT_SCHEMA_VERSION,
-    sessionId: createSessionId(),
+    sessionId,
     owner,
     mode,
     phase: mode === "manual"

@@ -228,6 +228,10 @@ export async function verifyFirebaseIdToken(idToken) {
   return firebaseAdminManager.verifyIdToken(idToken);
 }
 
+export function getFirebaseAdminFirestore() {
+  return firebaseAdminManager.getFirestore();
+}
+
 export class DailyRecommendationLimitError extends Error {
   constructor(limit, utcDate) {
     super(`Daily recommendation limit of ${limit} reached for ${utcDate}`);

@@ -21,6 +21,9 @@ import {
   readLocalTrainingDraft,
   writeLocalTrainingDraft
 } from "../../services/trainingProgress";
+import {
+  GUEST_TRAINING_STREAK_STORAGE_KEY
+} from "../../services/trainingStreak";
 
 describe("training progress contracts", () => {
   beforeEach(() => {
@@ -171,6 +174,10 @@ describe("training progress contracts", () => {
       "edulience.preferences",
       "keep-me"
     );
+    window.localStorage.setItem(
+      GUEST_TRAINING_STREAK_STORAGE_KEY,
+      "keep-streak"
+    );
     writeLocalTrainingDraft(draft);
     deleteLocalTrainingDraft(owner, draft.sessionId);
 
@@ -179,6 +186,11 @@ describe("training progress contracts", () => {
         "edulience.preferences"
       )
     ).toBe("keep-me");
+    expect(
+      window.localStorage.getItem(
+        GUEST_TRAINING_STREAK_STORAGE_KEY
+      )
+    ).toBe("keep-streak");
   });
 
   it.each([

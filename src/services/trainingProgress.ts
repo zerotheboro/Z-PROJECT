@@ -19,6 +19,10 @@ import type {
   TrainingDraft,
   TrainingDraftOwner
 } from "../quiz/trainingProgress";
+import {
+  decodeFirestoreTrainingDraft,
+  encodeFirestoreTrainingDraft
+} from "./trainingDraftFirestoreCodec";
 
 export const TRAINING_DRAFT_CLOUD_PATH =
   "users/{uid}/trainingProgress/active";
@@ -48,6 +52,17 @@ function safeSerializableDraft(
   return JSON.parse(
     JSON.stringify(draft)
   ) as TrainingDraft;
+}
+
+function cloudApplicationDraft(
+  value: Record<string, unknown>
+): unknown {
+  const {
+    cloudUpdatedAt: _cloudUpdatedAt,
+    ...storedDraft
+  } = value;
+
+  return decodeFirestoreTrainingDraft(storedDraft);
 }
 
 export function readLocalTrainingDraft(
@@ -203,7 +218,7 @@ export async function loadTrainingDraft(
 
     if (snapshot.exists()) {
       return validateTrainingDraft(
-        snapshot.data(),
+        cloudApplicationDraft(snapshot.data()),
         owner
       );
     }
@@ -235,6 +250,9 @@ export async function saveTrainingDraft(
   }
 
   const reference = cloudRef(draft.owner.uid);
+  const cloudDraft = encodeFirestoreTrainingDraft(
+    serializable
+  ) as Record<string, unknown>;
 
   try {
     await runTransaction(db, async transaction => {
@@ -252,7 +270,7 @@ export async function saveTrainingDraft(
       }
 
       transaction.set(reference, {
-        ...serializable,
+        ...cloudDraft,
         cloudUpdatedAt: serverTimestamp()
       });
     });

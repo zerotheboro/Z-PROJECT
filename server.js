@@ -8,11 +8,18 @@ import OpenAI from "openai";
 import {
   createFirebaseDailyUsageLimiter,
   DailyRecommendationLimitError,
+  getFirebaseAdminFirestore,
   initializeFirebaseAdmin,
   isFirebaseAdminConfigurationError,
   verifyFirebaseIdToken
 } from "./firebaseAdmin.js";
 import { METHOD_POOL } from "./methodPool.js";
+import {
+  createFirebaseTrainingQuotaManager,
+  TrainingQuotaExceededError,
+  TrainingQuotaValidationError,
+  TrainingReservationConflictError
+} from "./trainingQuota.js";
 
 dotenv.config();
 
@@ -27,6 +34,7 @@ export const SIGNED_IN_RATE_LIMIT = 3;
 export const ANONYMOUS_RATE_LIMIT = 2;
 export const RECOMMEND_RATE_WINDOW_MS = 60_000;
 export const SIGNED_IN_DAILY_LIMIT = 20;
+export const TRAINING_ACCESS_RATE_LIMIT = 30;
 export const INPUT_LIMITS = Object.freeze({
   biggestProblem: 300,
   methodQuestion: 300,
@@ -266,7 +274,7 @@ function createFirebaseAuthMiddleware({
         event: configurationFailure
           ? "firebase_admin_unavailable"
           : "firebase_auth_verification_failed",
-        endpoint: ENDPOINT,
+        endpoint: req.path,
         auth_status: "invalid",
         user_id: null,
         firebase_uid: null,
@@ -296,6 +304,93 @@ function createFirebaseAuthMiddleware({
 
     next();
   };
+}
+
+function requireVerifiedTrainingAuth(req, res, next) {
+  const authContext = getAuthContext(req);
+
+  if (!authContext.verified) {
+    res.status(401).json({
+      error: "Authentication required"
+    });
+    return;
+  }
+
+  next();
+}
+
+function createTrainingRateLimitMiddleware({
+  limit,
+  windowMs,
+  now
+}) {
+  const identities = new Map();
+
+  return (req, res, next) => {
+    const uid = getAuthContext(req).uid;
+    const currentTime = now();
+    const current = identities.get(uid);
+
+    if (!current || currentTime >= current.resetAt) {
+      identities.set(uid, {
+        count: 1,
+        resetAt: currentTime + windowMs
+      });
+      next();
+      return;
+    }
+
+    if (current.count >= limit) {
+      res.set(
+        "Retry-After",
+        String(Math.max(
+          1,
+          Math.ceil(
+            (current.resetAt - currentTime) / 1000
+          )
+        ))
+      );
+      res.status(429).json({
+        error: "Too many training access requests"
+      });
+      return;
+    }
+
+    current.count += 1;
+    next();
+  };
+}
+
+function sendTrainingQuotaError(res, error) {
+  if (error instanceof TrainingQuotaExceededError) {
+    res.status(403).json({
+      error: "Daily training limit reached",
+      code: error.code,
+      quota: error.quota,
+      access: error.access
+    });
+    return;
+  }
+
+  if (error instanceof TrainingQuotaValidationError) {
+    res.status(400).json({
+      error: error.message,
+      code: error.code
+    });
+    return;
+  }
+
+  if (error instanceof TrainingReservationConflictError) {
+    res.status(409).json({
+      error: error.message,
+      code: error.code
+    });
+    return;
+  }
+
+  res.status(503).json({
+    error: "Training access service unavailable"
+  });
 }
 
 function createRateLimitMiddleware({
@@ -348,7 +443,8 @@ function createRateLimitMiddleware({
 
 function createOpenAIClient() {
   return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+    apiKey: process.env.OPENAI_API_KEY,
+    maxRetries: 0
   });
 }
 
@@ -356,6 +452,7 @@ export function createRecommendationApp({
   openAIClient,
   verifyFirebaseToken = verifyFirebaseIdToken,
   dailyUsageLimiter,
+  trainingQuotaManager,
   logger = console,
   now = Date.now,
   signedInRateLimit = SIGNED_IN_RATE_LIMIT,
@@ -369,6 +466,11 @@ export function createRecommendationApp({
       limit: SIGNED_IN_DAILY_LIMIT,
       now
     });
+  const trainingQuota = trainingQuotaManager
+    ?? createFirebaseTrainingQuotaManager({
+      now,
+      getFirestore: getFirebaseAdminFirestore
+    });
 
   app.set("trust proxy", 1);
   app.use(cors());
@@ -378,6 +480,47 @@ export function createRecommendationApp({
     now
   }));
   app.use(express.json({ limit: "16kb" }));
+
+  const trainingRateLimit =
+    createTrainingRateLimitMiddleware({
+      limit: TRAINING_ACCESS_RATE_LIMIT,
+      windowMs: RECOMMEND_RATE_WINDOW_MS,
+      now
+    });
+
+  app.get(
+    "/api/training/access",
+    requireVerifiedTrainingAuth,
+    trainingRateLimit,
+    async (req, res) => {
+      try {
+        const access = await trainingQuota.getAccess(
+          getAuthContext(req).uid,
+          req.query.timezone
+        );
+        res.json(access);
+      } catch (error) {
+        sendTrainingQuotaError(res, error);
+      }
+    }
+  );
+
+  app.post(
+    "/api/training/reserve",
+    requireVerifiedTrainingAuth,
+    trainingRateLimit,
+    async (req, res) => {
+      try {
+        const reservation = await trainingQuota.reserve(
+          getAuthContext(req).uid,
+          req.body
+        );
+        res.json(reservation);
+      } catch (error) {
+        sendTrainingQuotaError(res, error);
+      }
+    }
+  );
 
   app.post(
     ENDPOINT,

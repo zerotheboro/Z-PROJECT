@@ -19,11 +19,30 @@ import {
 
 import {
   afterEach,
+  beforeEach,
   describe,
   expect,
   it,
   vi
 } from "vitest";
+
+const accessMocks = vi.hoisted(() => ({
+  state: {
+    loading: false,
+    error: null as string | null,
+    user: null,
+    plan: "free" as "free" | "premium",
+    unlimited: false,
+    testMeUsed: 0,
+    testMeLimit: 1,
+    testMeRemaining: 1 as number | null,
+    manualMethodsUsed: 0,
+    manualMethodsLimit: 3,
+    manualMethodsRemaining: 3 as number | null,
+    refreshAccess: vi.fn()
+  },
+  start: vi.fn()
+}));
 
 import {
   methodDefinitions
@@ -37,10 +56,32 @@ vi.mock("../HEADER/header", () => ({
   default: () => <nav>Navigation</nav>
 }));
 
+vi.mock("../hooks/useTrainingAccess", () => ({
+  useTrainingAccess: () => accessMocks.state
+}));
+
+vi.mock("../services/startTrainingSession", () => ({
+  startTrainingSession: accessMocks.start
+}));
+
 import ChooseMethods from "./ChooseMethods";
 
 afterEach(() => {
   cleanup();
+});
+
+beforeEach(() => {
+  accessMocks.state.loading = false;
+  accessMocks.state.error = null;
+  accessMocks.state.user = null;
+  accessMocks.state.plan = "free";
+  accessMocks.state.unlimited = false;
+  accessMocks.state.manualMethodsRemaining = 3;
+  accessMocks.state.refreshAccess.mockReset();
+  accessMocks.start.mockReset();
+  accessMocks.start.mockResolvedValue({
+    sessionId: "session-0001"
+  });
 });
 
 function AssessmentDestination() {
@@ -206,7 +247,7 @@ describe("manual method picker", () => {
     ).toBe("false");
   });
 
-  it("passes the selected registry IDs into manual assessment state", () => {
+  it("passes the selected registry IDs into manual assessment state", async () => {
     renderPicker();
 
     fireEvent.click(
@@ -222,17 +263,62 @@ describe("manual method picker", () => {
     );
 
     expect(
-      screen.getByText(
+      await screen.findByText(
         "Manual assessment route"
       )
     ).toBeTruthy();
     expect(
-      screen.getByText("?mode=manual")
+      screen.getByText(
+        "?mode=manual&resume=session-0001"
+      )
     ).toBeTruthy();
     expect(
       screen.getByText(
         "active-recall,cornell"
       )
     ).toBeTruthy();
+  });
+
+  it("limits selection to the remaining daily method count", () => {
+    accessMocks.state.manualMethodsRemaining = 1;
+    renderPicker();
+
+    fireEvent.click(methodCheckbox("Active Recall"));
+    fireEvent.click(methodCheckbox("Feynman Technique"));
+
+    expect(screen.getByRole("alert").textContent)
+      .toBe("You have 1 method test remaining today.");
+    expect(methodCheckbox("Active Recall").getAttribute(
+      "aria-checked"
+    )).toBe("true");
+    expect(methodCheckbox("Feynman Technique").getAttribute(
+      "aria-checked"
+    )).toBe("false");
+  });
+
+  it("reuses the pending session ID when manual startup is retried", async () => {
+    accessMocks.start
+      .mockRejectedValueOnce(
+        new Error("Network interrupted")
+      )
+      .mockResolvedValueOnce({
+        sessionId: "session-0001"
+      });
+    renderPicker();
+
+    fireEvent.click(methodCheckbox("Active Recall"));
+    fireEvent.click(screen.getByRole("button", {
+      name: "Start training"
+    }));
+    await screen.findByText("Network interrupted");
+    fireEvent.click(screen.getByRole("button", {
+      name: "Start training"
+    }));
+
+    expect(await screen.findByText("Manual assessment route"))
+      .toBeTruthy();
+    expect(accessMocks.start).toHaveBeenCalledTimes(2);
+    expect(accessMocks.start.mock.calls[1][0].sessionId)
+      .toBe(accessMocks.start.mock.calls[0][0].sessionId);
   });
 });

@@ -1989,8 +1989,7 @@ export function Customize({ setCustomize_list }){
                                     ...prev,
                                     ...element.tips.map(tip => tip.header.eng)
                                   ])
-                                ]);
-                        console.log(element.tips)
+                                ])
                       }}>
                     <div className="answer">{element.answer}</div>
                 </button>
