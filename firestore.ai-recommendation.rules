@@ -75,3 +75,9 @@ match /users/{userId}/aiRecommendations/{recommendationId} {
 
   allow delete: if false;
 }
+
+// Daily AI quota is authoritative backend state. Firebase Admin bypasses
+// client rules; browsers must never read or alter these counters directly.
+match /aiRecommendationDailyUsage/{usageId} {
+  allow read, create, update, delete: if false;
+}

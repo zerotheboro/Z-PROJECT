@@ -16,6 +16,9 @@ import TrainingStreakCard
   from "../components/TrainingStreakCard";
 
 import {
+  useAIRecommendationAccess
+} from "../hooks/useAIRecommendationAccess";
+import {
   useTrainingAccess
 } from "../hooks/useTrainingAccess";
 import {
@@ -64,6 +67,8 @@ function Training() {
   } = useAvailableTrainingDraft();
   const trainingStreak = useTrainingStreak();
   const trainingAccess = useTrainingAccess();
+  const aiRecommendationAccess =
+    useAIRecommendationAccess();
   const [showDiscard, setShowDiscard] =
     useState(false);
   const [discarding, setDiscarding] =
@@ -340,6 +345,23 @@ function Training() {
         testMeLimit={trainingAccess.testMeLimit}
         manualMethodsUsed={trainingAccess.manualMethodsUsed}
         manualMethodsLimit={trainingAccess.manualMethodsLimit}
+        aiRecommendationsLoading={
+          aiRecommendationAccess.loading
+        }
+        aiRecommendationsError={
+          aiRecommendationAccess.error
+        }
+        aiRecommendationsUsed={
+          aiRecommendationAccess.access?.used ?? 0
+        }
+        aiRecommendationsLimit={
+          aiRecommendationAccess.access?.limit
+            ?? (trainingAccess.unlimited
+              ? 16
+              : trainingAccess.user
+                ? 7
+                : 2)
+        }
         billingBusy={billingBusy}
         billingError={billingError}
         billingMessage={billingMessage}

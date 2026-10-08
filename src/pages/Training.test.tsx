@@ -66,6 +66,23 @@ const accessMocks = vi.hoisted(() => ({
   start: vi.fn()
 }));
 
+const aiAccessMocks = vi.hoisted(() => ({
+  state: {
+    loading: false,
+    error: null as string | null,
+    user: null as { uid: string } | null,
+    access: {
+      limit: 2,
+      used: 0,
+      remaining: 2,
+      plan: "guest" as "guest" | "free" | "premium",
+      dayKey: "2026-10-08",
+      timezone: "UTC" as const
+    },
+    refreshAccess: vi.fn()
+  }
+}));
+
 const billingMocks = vi.hoisted(() => ({
   checkout: vi.fn(),
   open: vi.fn(),
@@ -101,6 +118,10 @@ vi.mock("../hooks/useTrainingStreak", () => ({
 
 vi.mock("../hooks/useTrainingAccess", () => ({
   useTrainingAccess: () => accessMocks.state
+}));
+
+vi.mock("../hooks/useAIRecommendationAccess", () => ({
+  useAIRecommendationAccess: () => aiAccessMocks.state
 }));
 
 vi.mock("../quiz/useAvailableTrainingDraft", () => ({
@@ -151,6 +172,14 @@ beforeEach(() => {
   accessMocks.state.manualMethodsUsed = 0;
   accessMocks.state.manualMethodsRemaining = 3;
   accessMocks.state.refreshAccess.mockReset();
+  aiAccessMocks.state.loading = false;
+  aiAccessMocks.state.error = null;
+  aiAccessMocks.state.user = null;
+  aiAccessMocks.state.access.limit = 2;
+  aiAccessMocks.state.access.used = 0;
+  aiAccessMocks.state.access.remaining = 2;
+  aiAccessMocks.state.access.plan = "guest";
+  aiAccessMocks.state.refreshAccess.mockReset();
   accessMocks.start.mockReset();
   accessMocks.start.mockResolvedValue({
     sessionId: "session-0001"
@@ -250,6 +279,10 @@ describe("training entry choices", () => {
     accessMocks.state.testMeRemaining = 0;
     accessMocks.state.manualMethodsUsed = 2;
     accessMocks.state.manualMethodsRemaining = 1;
+    aiAccessMocks.state.access.limit = 7;
+    aiAccessMocks.state.access.used = 3;
+    aiAccessMocks.state.access.remaining = 4;
+    aiAccessMocks.state.access.plan = "free";
 
     renderTraining();
 
@@ -257,6 +290,8 @@ describe("training entry choices", () => {
     expect(screen.getByText("1 / 1 used today"))
       .toBeTruthy();
     expect(screen.getByText("2 / 3 used today"))
+      .toBeTruthy();
+    expect(screen.getByText("3 / 7 used today"))
       .toBeTruthy();
     expect((screen.getByRole("button", {
       name: "Daily Test Me used"
@@ -270,6 +305,10 @@ describe("training entry choices", () => {
     accessMocks.state.unlimited = true;
     accessMocks.state.testMeRemaining = null;
     accessMocks.state.manualMethodsRemaining = null;
+    aiAccessMocks.state.access.limit = 16;
+    aiAccessMocks.state.access.used = 5;
+    aiAccessMocks.state.access.remaining = 11;
+    aiAccessMocks.state.access.plan = "premium";
 
     renderTraining();
 
@@ -279,6 +318,8 @@ describe("training entry choices", () => {
     expect(screen.getAllByText("Unlimited", {
       selector: "strong"
     })).toHaveLength(2);
+    expect(screen.getByText("5 / 16 used today"))
+      .toBeTruthy();
   });
 
   it("opens Paddle Checkout with a server-created transaction", async () => {

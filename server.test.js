@@ -1,16 +1,18 @@
 import { once } from "node:events";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  DailyRecommendationLimitError,
   FirebaseAdminConfigurationError
 } from "./firebaseAdmin.js";
+import {
+  AIRecommendationQuotaExceededError
+} from "./aiRecommendationQuota.js";
 import {
   ALLOWED_MODELS,
   ANONYMOUS_MODEL,
   ANONYMOUS_RATE_LIMIT,
   INPUT_LIMITS,
   MAX_OUTPUT_TOKENS,
-  SIGNED_IN_DAILY_LIMIT,
+  FREE_AI_DAILY_LIMIT,
   SIGNED_IN_MODEL,
   SIGNED_IN_RATE_LIMIT,
   createRecommendationApp
@@ -128,13 +130,24 @@ function createLogger() {
   };
 }
 
-function createDailyUsageLimiter() {
+function createAIRecommendationQuotaManager() {
   return {
-    reserve: vi.fn().mockResolvedValue({
-      uid: "verified-user",
-      utcDate: "2026-09-25"
+    getAccess: vi.fn().mockResolvedValue({
+      limit: 2,
+      used: 0,
+      remaining: 2,
+      plan: "guest",
+      dayKey: "2026-09-25",
+      timezone: "UTC"
     }),
-    release: vi.fn().mockResolvedValue(undefined)
+    consume: vi.fn().mockResolvedValue({
+      limit: 7,
+      used: 1,
+      remaining: 6,
+      plan: "free",
+      dayKey: "2026-09-25",
+      timezone: "UTC"
+    })
   };
 }
 
@@ -143,7 +156,8 @@ async function startTestServer(options = {}) {
     verifyFirebaseToken: vi.fn().mockRejectedValue(
       new Error("Invalid Firebase token")
     ),
-    dailyUsageLimiter: createDailyUsageLimiter(),
+    aiRecommendationQuotaManager:
+      createAIRecommendationQuotaManager(),
     ...options
   });
   const server = app.listen(0, "127.0.0.1");
@@ -369,12 +383,13 @@ describe("recommendation backend safety", () => {
     const verifyFirebaseToken = vi.fn().mockResolvedValue({
       uid: "verified-user"
     });
-    const dailyUsageLimiter = createDailyUsageLimiter();
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
     const logger = createLogger();
     const baseUrl = await startTestServer({
       openAIClient: client,
       verifyFirebaseToken,
-      dailyUsageLimiter,
+      aiRecommendationQuotaManager,
       logger
     });
 
@@ -392,8 +407,10 @@ describe("recommendation backend safety", () => {
     expect(response.status).toBe(200);
     expect(verifyFirebaseToken).toHaveBeenCalledWith("valid-firebase-token");
     expect(create.mock.calls[0][0].model).toBe(SIGNED_IN_MODEL);
-    expect(dailyUsageLimiter.reserve).toHaveBeenCalledWith("verified-user");
-    expect(dailyUsageLimiter.release).not.toHaveBeenCalled();
+    expect(aiRecommendationQuotaManager.getAccess)
+      .toHaveBeenCalledWith({ uid: "verified-user" });
+    expect(aiRecommendationQuotaManager.consume)
+      .toHaveBeenCalledWith({ uid: "verified-user" });
 
     const logEntry = JSON.parse(logger.info.mock.calls[0][0]);
     expect(logEntry).toMatchObject({
@@ -521,17 +538,22 @@ describe("recommendation backend safety", () => {
 
   it("blocks a verified user when the persistent daily limit is reached", async () => {
     const { client, create } = createFakeOpenAI({ model: SIGNED_IN_MODEL });
-    const dailyUsageLimiter = createDailyUsageLimiter();
-    dailyUsageLimiter.reserve.mockRejectedValue(
-      new DailyRecommendationLimitError(
-        SIGNED_IN_DAILY_LIMIT,
-        "2026-09-25"
-      )
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
+    aiRecommendationQuotaManager.getAccess.mockResolvedValue(
+      {
+        limit: FREE_AI_DAILY_LIMIT,
+        used: FREE_AI_DAILY_LIMIT,
+        remaining: 0,
+        plan: "free",
+        dayKey: "2026-09-25",
+        timezone: "UTC"
+      }
     );
     const baseUrl = await startTestServer({
       openAIClient: client,
       verifyFirebaseToken: vi.fn().mockResolvedValue({ uid: "limited-user" }),
-      dailyUsageLimiter,
+      aiRecommendationQuotaManager,
       logger: createLogger()
     });
 
@@ -543,22 +565,110 @@ describe("recommendation backend safety", () => {
 
     expect(response.status).toBe(429);
     expect(await response.json()).toEqual({
-      error: "Daily recommendation limit reached"
+      error: "Daily recommendation limit reached",
+      code: "ai_daily_quota_exceeded",
+      limit: 7,
+      used: 7,
+      remaining: 0,
+      plan: "free",
+      dayKey: "2026-09-25",
+      timezone: "UTC"
     });
     expect(create).not.toHaveBeenCalled();
   });
 
+  it("returns machine-readable guest daily quota denial", async () => {
+    const { client, create } = createFakeOpenAI();
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
+    aiRecommendationQuotaManager.getAccess.mockResolvedValue(
+      {
+        limit: 2,
+        used: 2,
+        remaining: 0,
+        plan: "guest",
+        dayKey: "2026-09-25",
+        timezone: "UTC"
+      }
+    );
+    const baseUrl = await startTestServer({
+      openAIClient: client,
+      aiRecommendationQuotaManager,
+      logger: createLogger(),
+      anonymousRateLimit: 10
+    });
+
+    const response = await postRecommendation(
+      baseUrl,
+      { plan: "premium", limit: 16, used: 0 },
+      { "X-Forwarded-For": "203.0.113.77" }
+    );
+
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({
+      error: "Daily recommendation limit reached",
+      code: "ai_daily_quota_exceeded",
+      limit: 2,
+      used: 2,
+      remaining: 0,
+      plan: "guest",
+      dayKey: "2026-09-25",
+      timezone: "UTC"
+    });
+    expect(aiRecommendationQuotaManager.getAccess)
+      .toHaveBeenCalledWith({ ip: "203.0.113.77" });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("blocks a concurrent boundary request if quota fills during generation", async () => {
+    const { client, create } = createFakeOpenAI();
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
+    aiRecommendationQuotaManager.getAccess
+      .mockResolvedValue({
+        limit: 2,
+        used: 1,
+        remaining: 1,
+        plan: "guest",
+        dayKey: "2026-09-25",
+        timezone: "UTC"
+      });
+    aiRecommendationQuotaManager.consume.mockRejectedValue(
+      new AIRecommendationQuotaExceededError({
+        limit: 2,
+        used: 2,
+        remaining: 0,
+        plan: "guest",
+        dayKey: "2026-09-25",
+        timezone: "UTC"
+      })
+    );
+    const baseUrl = await startTestServer({
+      openAIClient: client,
+      aiRecommendationQuotaManager,
+      logger: createLogger()
+    });
+
+    const response = await postRecommendation(baseUrl, {});
+
+    expect(response.status).toBe(429);
+    expect((await response.json()).code)
+      .toBe("ai_daily_quota_exceeded");
+    expect(create).toHaveBeenCalledOnce();
+  });
+
   it("fails closed when the signed-in daily usage store is unavailable", async () => {
     const { client, create } = createFakeOpenAI({ model: SIGNED_IN_MODEL });
-    const dailyUsageLimiter = createDailyUsageLimiter();
-    dailyUsageLimiter.reserve.mockRejectedValue(
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
+    aiRecommendationQuotaManager.getAccess.mockRejectedValue(
       new Error("Firestore unavailable")
     );
     const logger = createLogger();
     const baseUrl = await startTestServer({
       openAIClient: client,
       verifyFirebaseToken: vi.fn().mockResolvedValue({ uid: "verified-user" }),
-      dailyUsageLimiter,
+      aiRecommendationQuotaManager,
       logger
     });
 
@@ -649,7 +759,7 @@ describe("recommendation backend safety", () => {
     });
   });
 
-  it("logs OpenAI error metadata and releases a signed-in daily reservation", async () => {
+  it("logs OpenAI error metadata without consuming signed-in daily quota", async () => {
     const error = Object.assign(new Error("OpenAI unavailable"), {
       status: 503,
       code: "service_unavailable",
@@ -659,11 +769,12 @@ describe("recommendation backend safety", () => {
       withResponse: vi.fn().mockRejectedValue(error)
     }));
     const logger = createLogger();
-    const dailyUsageLimiter = createDailyUsageLimiter();
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
     const baseUrl = await startTestServer({
       openAIClient: { responses: { create } },
       verifyFirebaseToken: vi.fn().mockResolvedValue({ uid: "verified-user" }),
-      dailyUsageLimiter,
+      aiRecommendationQuotaManager,
       logger
     });
 
@@ -674,10 +785,8 @@ describe("recommendation backend safety", () => {
     );
 
     expect(response.status).toBe(500);
-    expect(dailyUsageLimiter.release).toHaveBeenCalledWith({
-      uid: "verified-user",
-      utcDate: "2026-09-25"
-    });
+    expect(aiRecommendationQuotaManager.consume)
+      .not.toHaveBeenCalled();
     const logEntry = logger.error.mock.calls
       .map(([entry]) => entry)
       .find((entry) => JSON.parse(entry).event === "openai_request_failed");
@@ -694,6 +803,158 @@ describe("recommendation backend safety", () => {
       success: false
     });
     expect(logEntry).not.toContain("PRIVATE FAILURE DETAILS");
+  });
+
+  it("does not consume quota when OpenAI returns malformed recommendation JSON", async () => {
+    const { client, create } = createFakeOpenAI({
+      result: {
+        user_problem: "Missing required result fields"
+      }
+    });
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
+    const baseUrl = await startTestServer({
+      openAIClient: client,
+      aiRecommendationQuotaManager,
+      logger: createLogger()
+    });
+
+    const response = await postRecommendation(baseUrl, {});
+
+    expect(response.status).toBe(500);
+    expect(create).toHaveBeenCalledOnce();
+    expect(aiRecommendationQuotaManager.consume)
+      .not.toHaveBeenCalled();
+  });
+
+  it("does not check or consume quota when Firebase authentication fails", async () => {
+    const { client, create } = createFakeOpenAI();
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
+    const baseUrl = await startTestServer({
+      openAIClient: client,
+      verifyFirebaseToken: vi.fn().mockRejectedValue(
+        new Error("invalid token")
+      ),
+      aiRecommendationQuotaManager,
+      logger: createLogger()
+    });
+
+    const response = await postRecommendation(
+      baseUrl,
+      {},
+      { Authorization: "Bearer invalid-token" }
+    );
+
+    expect(response.status).toBe(401);
+    expect(aiRecommendationQuotaManager.getAccess)
+      .not.toHaveBeenCalled();
+    expect(aiRecommendationQuotaManager.consume)
+      .not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("does not check or consume quota for malformed recommendation input", async () => {
+    const { client, create } = createFakeOpenAI();
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
+    const baseUrl = await startTestServer({
+      openAIClient: client,
+      aiRecommendationQuotaManager,
+      logger: createLogger()
+    });
+
+    const response = await postRecommendation(baseUrl, {
+      biggestProblem: 42
+    });
+
+    expect(response.status).toBe(400);
+    expect(aiRecommendationQuotaManager.getAccess)
+      .not.toHaveBeenCalled();
+    expect(aiRecommendationQuotaManager.consume)
+      .not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+  });
+});
+
+describe("AI recommendation access endpoint", () => {
+  it("returns safe guest quota data keyed by client IP", async () => {
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
+    aiRecommendationQuotaManager.getAccess
+      .mockResolvedValue({
+        limit: 2,
+        used: 1,
+        remaining: 1,
+        plan: "guest",
+        dayKey: "2026-09-25",
+        timezone: "UTC"
+      });
+    const baseUrl = await startTestServer({
+      aiRecommendationQuotaManager,
+      logger: createLogger()
+    });
+
+    const response = await fetch(
+      `${baseUrl}/api/recommend/access`,
+      {
+        headers: {
+          "X-Forwarded-For": "198.51.100.22"
+        }
+      }
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      limit: 2,
+      used: 1,
+      remaining: 1,
+      plan: "guest",
+      dayKey: "2026-09-25",
+      timezone: "UTC"
+    });
+    expect(aiRecommendationQuotaManager.getAccess)
+      .toHaveBeenCalledWith({ ip: "198.51.100.22" });
+  });
+
+  it("uses only a verified Firebase UID for signed-in access", async () => {
+    const aiRecommendationQuotaManager =
+      createAIRecommendationQuotaManager();
+    aiRecommendationQuotaManager.getAccess
+      .mockResolvedValue({
+        limit: 16,
+        used: 5,
+        remaining: 11,
+        plan: "premium",
+        dayKey: "2026-09-25",
+        timezone: "UTC"
+      });
+    const baseUrl = await startTestServer({
+      verifyFirebaseToken: vi.fn().mockResolvedValue({
+        uid: "premium-user"
+      }),
+      aiRecommendationQuotaManager,
+      logger: createLogger()
+    });
+
+    const response = await fetch(
+      `${baseUrl}/api/recommend/access?uid=attacker&plan=premium`,
+      {
+        headers: {
+          Authorization: "Bearer valid-token"
+        }
+      }
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      limit: 16,
+      used: 5,
+      remaining: 11,
+      plan: "premium"
+    });
+    expect(aiRecommendationQuotaManager.getAccess)
+      .toHaveBeenCalledWith({ uid: "premium-user" });
   });
 });
 

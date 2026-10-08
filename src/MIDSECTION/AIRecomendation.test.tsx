@@ -164,6 +164,29 @@ async function completeForm() {
   }));
 }
 
+function quotaResponse(
+  plan: "guest" | "free" | "premium",
+  remaining: number
+) {
+  const limit = plan === "guest"
+    ? 2
+    : plan === "premium"
+      ? 16
+      : 7;
+
+  return new Response(JSON.stringify({
+    limit,
+    used: limit - remaining,
+    remaining,
+    plan,
+    dayKey: "2026-10-08",
+    timezone: "UTC"
+  }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+}
+
 let AIRecommendation: ComponentType;
 
 beforeAll(async () => {
@@ -180,7 +203,6 @@ beforeAll(async () => {
     }
   });
   vi.stubGlobal("React", React);
-  window.localStorage.setItem("AI_credits", "100");
   AIRecommendation = (
     await import("./AIRecomendation.jsx")
   ).default;
@@ -189,7 +211,6 @@ beforeAll(async () => {
 beforeEach(() => {
   vi.stubGlobal("React", React);
   window.localStorage.clear();
-  window.localStorage.setItem("AI_credits", "100");
 
   authMocks.currentUser = null;
   authMocks.listener = null;
@@ -330,6 +351,11 @@ describe("AIRecommendation persistence", () => {
     expect(window.localStorage.getItem(
       "edulience.aiRecommendation.latest.v1"
     )).toBe(raw);
+    expect(vi.mocked(fetch).mock.calls.some(
+      ([url, init]) =>
+        String(url).endsWith("/api/recommend")
+        && init?.method === "POST"
+    )).toBe(false);
   });
 
   it("does not overwrite the previous save after a failed request", async () => {
@@ -390,7 +416,7 @@ describe("AIRecommendation persistence", () => {
     )).toBeNull();
   });
 
-  it("restores without calling the backend or consuming local credits", async () => {
+  it("restores without posting a new recommendation or consuming quota", async () => {
     window.localStorage.setItem(
       "edulience.aiRecommendation.latest.v1",
       JSON.stringify({
@@ -398,15 +424,20 @@ describe("AIRecommendation persistence", () => {
         updatedAt: new Date().toISOString()
       })
     );
-    window.localStorage.setItem("AI_credits", "2");
+    vi.mocked(fetch).mockResolvedValue(
+      quotaResponse("guest", 1)
+    );
     render(<AIRecommendation />);
 
     await emitAuth(null);
 
     await screen.findByText(recommendation.user_problem);
-    expect(fetch).not.toHaveBeenCalled();
-    expect(window.localStorage.getItem("AI_credits"))
-      .toBe("2");
+    expect(vi.mocked(fetch).mock.calls.some(
+      ([url, init]) =>
+        String(url).endsWith("/api/recommend")
+        && init?.method === "POST"
+    )).toBe(false);
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it("waits for Firebase auth before loading guest state", async () => {
@@ -536,5 +567,45 @@ describe("AIRecommendation persistence", () => {
       "edulience.aiRecommendation.latest.v1"
     )).toBeNull();
     expect(firestore.setDoc).not.toHaveBeenCalled();
+  });
+
+  it("cannot increase signed-in quota by editing legacy localStorage credits", async () => {
+    window.localStorage.setItem("AI_credits", "999999");
+    vi.mocked(fetch).mockResolvedValue(
+      quotaResponse("free", 0)
+    );
+    render(<AIRecommendation />);
+    await emitAuth(user("user-a"));
+
+    fireEvent.click(screen.getByRole("button", {
+      name: /Start/
+    }));
+    fireEvent.change(screen.getByPlaceholderText(
+      "I get distracted easily and forget what I study..."
+    ), {
+      target: { value: inputValues.biggestProblem }
+    });
+    fireEvent.click(screen.getByRole("button", {
+      name: /Continue/
+    }));
+    fireEvent.change(screen.getByPlaceholderText(
+      "Which study methods would work best for me?"
+    ), {
+      target: { value: inputValues.methodQuestion }
+    });
+    fireEvent.click(screen.getByRole("button", {
+      name: /Continue/
+    }));
+
+    await waitFor(() => {
+      expect((screen.getByRole("button", {
+        name: /Get My Recommendations/
+      }) as HTMLButtonElement).disabled).toBe(true);
+    });
+    expect(vi.mocked(fetch).mock.calls.some(
+      ([url, init]) =>
+        String(url).endsWith("/api/recommend")
+        && init?.method === "POST"
+    )).toBe(false);
   });
 });

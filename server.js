@@ -18,13 +18,18 @@ import {
   resolvePaddleConfiguration
 } from "./billing.js";
 import {
-  createFirebaseDailyUsageLimiter,
-  DailyRecommendationLimitError,
   getFirebaseAdminFirestore,
   initializeFirebaseAdmin,
   isFirebaseAdminConfigurationError,
   verifyFirebaseIdToken
 } from "./firebaseAdmin.js";
+import {
+  AIRecommendationQuotaExceededError,
+  createFirebaseAIRecommendationQuotaManager,
+  FREE_AI_DAILY_LIMIT,
+  GUEST_AI_DAILY_LIMIT,
+  PREMIUM_AI_DAILY_LIMIT
+} from "./aiRecommendationQuota.js";
 import { METHOD_POOL } from "./methodPool.js";
 import {
   createFirebaseTrainingQuotaManager,
@@ -45,8 +50,13 @@ export const MAX_OUTPUT_TOKENS = 2000;
 export const SIGNED_IN_RATE_LIMIT = 3;
 export const ANONYMOUS_RATE_LIMIT = 2;
 export const RECOMMEND_RATE_WINDOW_MS = 60_000;
-export const SIGNED_IN_DAILY_LIMIT = 20;
+export {
+  FREE_AI_DAILY_LIMIT,
+  GUEST_AI_DAILY_LIMIT,
+  PREMIUM_AI_DAILY_LIMIT
+};
 export const TRAINING_ACCESS_RATE_LIMIT = 30;
+export const RECOMMEND_ACCESS_RATE_LIMIT = 30;
 export const INPUT_LIMITS = Object.freeze({
   biggestProblem: 300,
   methodQuestion: 300,
@@ -154,6 +164,14 @@ function getClientIp(req) {
   return req.ip || req.socket?.remoteAddress || "unknown";
 }
 
+function getAIQuotaIdentity(req) {
+  const authContext = getAuthContext(req);
+
+  return authContext.verified
+    ? { uid: authContext.uid }
+    : { ip: getClientIp(req) };
+}
+
 function selectModel(authContext) {
   const model = authContext.verified
     ? SIGNED_IN_MODEL
@@ -208,6 +226,30 @@ function logRejectedRequest(logger, now, req, {
   });
 }
 
+function sendAIQuotaExceeded(
+  logger,
+  now,
+  req,
+  res,
+  error
+) {
+  logRejectedRequest(logger, now, req, {
+    status: 429,
+    errorMessage: error.message,
+    event: "daily_recommendation_limit_reached"
+  });
+  res.status(429).json({
+    error: "Daily recommendation limit reached",
+    code: error.code,
+    limit: error.access.limit,
+    used: error.access.used,
+    remaining: error.access.remaining,
+    plan: error.access.plan,
+    dayKey: error.access.dayKey,
+    timezone: error.access.timezone
+  });
+}
+
 function validateRecommendationInput(body) {
   const source = body && typeof body === "object" && !Array.isArray(body)
     ? body
@@ -234,6 +276,32 @@ function validateRecommendationInput(body) {
   }
 
   return { value: validated };
+}
+
+function isRecommendationResult(value) {
+  if (
+    !value
+    || typeof value !== "object"
+    || Array.isArray(value)
+    || typeof value.user_problem !== "string"
+    || !Array.isArray(value.recommended_methods)
+    || value.recommended_methods.length < 1
+    || value.recommended_methods.length > 3
+    || typeof value.study_plan !== "string"
+    || typeof value.final_note !== "string"
+  ) {
+    return false;
+  }
+
+  return value.recommended_methods.every(method =>
+    method
+    && typeof method === "object"
+    && !Array.isArray(method)
+    && typeof method.name === "string"
+    && typeof method.branch === "string"
+    && typeof method.reason === "string"
+    && typeof method.warning === "string"
+  );
 }
 
 function getBearerToken(req) {
@@ -368,6 +436,51 @@ function createTrainingRateLimitMiddleware({
       );
       res.status(429).json({
         error: "Too many training access requests"
+      });
+      return;
+    }
+
+    current.count += 1;
+    next();
+  };
+}
+
+function createRecommendationAccessRateLimitMiddleware({
+  limit,
+  windowMs,
+  now
+}) {
+  const identities = new Map();
+
+  return (req, res, next) => {
+    const authContext = getAuthContext(req);
+    const identity = authContext.verified
+      ? `user:${authContext.uid}`
+      : `ip:${getClientIp(req)}`;
+    const currentTime = now();
+    const current = identities.get(identity);
+
+    if (!current || currentTime >= current.resetAt) {
+      identities.set(identity, {
+        count: 1,
+        resetAt: currentTime + windowMs
+      });
+      next();
+      return;
+    }
+
+    if (current.count >= limit) {
+      res.set(
+        "Retry-After",
+        String(Math.max(
+          1,
+          Math.ceil(
+            (current.resetAt - currentTime) / 1000
+          )
+        ))
+      );
+      res.status(429).json({
+        error: "Too many AI access requests"
       });
       return;
     }
@@ -512,7 +625,7 @@ function createOpenAIClient() {
 export function createRecommendationApp({
   openAIClient,
   verifyFirebaseToken = verifyFirebaseIdToken,
-  dailyUsageLimiter,
+  aiRecommendationQuotaManager,
   trainingQuotaManager,
   paddleClient,
   billingRepository,
@@ -526,10 +639,11 @@ export function createRecommendationApp({
 } = {}) {
   const app = express();
   const client = openAIClient ?? createOpenAIClient();
-  const signedInDailyUsage = dailyUsageLimiter
-    ?? createFirebaseDailyUsageLimiter({
-      limit: SIGNED_IN_DAILY_LIMIT,
-      now
+  const aiRecommendationQuota =
+    aiRecommendationQuotaManager
+    ?? createFirebaseAIRecommendationQuotaManager({
+      now,
+      getFirestore: getFirebaseAdminFirestore
     });
   const trainingQuota = trainingQuotaManager
     ?? createFirebaseTrainingQuotaManager({
@@ -633,6 +747,44 @@ export function createRecommendationApp({
       windowMs: RECOMMEND_RATE_WINDOW_MS,
       now
     });
+  const recommendationAccessRateLimit =
+    createRecommendationAccessRateLimitMiddleware({
+      limit: RECOMMEND_ACCESS_RATE_LIMIT,
+      windowMs: RECOMMEND_RATE_WINDOW_MS,
+      now
+    });
+
+  app.get(
+    "/api/recommend/access",
+    recommendationAccessRateLimit,
+    async (req, res) => {
+      try {
+        res.json(
+          await aiRecommendationQuota.getAccess(
+            getAIQuotaIdentity(req)
+          )
+        );
+      } catch (error) {
+        writeLog(logger, "error", {
+          timestamp: new Date(now()).toISOString(),
+          severity: "high",
+          event: "ai_daily_usage_access_failed",
+          endpoint: req.path,
+          auth_status: getAuthContext(req).status,
+          firebase_uid: getAuthContext(req).uid,
+          anonymous: !getAuthContext(req).verified,
+          status: 503,
+          error_message: error instanceof Error
+            ? error.message
+            : "AI daily usage access failed",
+          success: false
+        });
+        res.status(503).json({
+          error: "AI recommendation access is unavailable"
+        });
+      }
+    }
+  );
 
   app.get(
     "/api/training/access",
@@ -737,41 +889,54 @@ export function createRecommendationApp({
         return;
       }
 
-      let dailyReservation = null;
+      const quotaIdentity = getAIQuotaIdentity(req);
 
-      if (authContext.verified) {
-        try {
-          dailyReservation = await signedInDailyUsage.reserve(authContext.uid);
-        } catch (error) {
-          if (error instanceof DailyRecommendationLimitError) {
-            logRejectedRequest(logger, now, req, {
-              status: 429,
-              errorMessage: error.message,
-              event: "daily_recommendation_limit_reached"
-            });
-            res.status(429).json({ error: "Daily recommendation limit reached" });
-            return;
-          }
+      try {
+        const access =
+          await aiRecommendationQuota.getAccess(
+            quotaIdentity
+          );
 
-          writeLog(logger, "error", {
-            timestamp: new Date(now()).toISOString(),
-            severity: "high",
-            event: "daily_usage_check_failed",
-            ...logContext,
-            model_returned: null,
-            openai_request_id: null,
-            input_tokens: null,
-            output_tokens: null,
-            total_tokens: null,
-            status: 503,
-            error_message: error instanceof Error
-              ? error.message
-              : "Daily usage check failed",
-            success: false
-          });
-          res.status(503).json({ error: "Failed to get recommendation" });
+        if (access.remaining === 0) {
+          throw new AIRecommendationQuotaExceededError(
+            access
+          );
+        }
+      } catch (error) {
+        if (
+          error instanceof
+            AIRecommendationQuotaExceededError
+        ) {
+          sendAIQuotaExceeded(
+            logger,
+            now,
+            req,
+            res,
+            error
+          );
           return;
         }
+
+        writeLog(logger, "error", {
+          timestamp: new Date(now()).toISOString(),
+          severity: "high",
+          event: "daily_usage_check_failed",
+          ...logContext,
+          model_returned: null,
+          openai_request_id: null,
+          input_tokens: null,
+          output_tokens: null,
+          total_tokens: null,
+          status: 503,
+          error_message: error instanceof Error
+            ? error.message
+            : "Daily usage check failed",
+          success: false
+        });
+        res.status(503).json({
+          error: "Failed to get recommendation"
+        });
+        return;
       }
 
       try {
@@ -831,25 +996,51 @@ export function createRecommendationApp({
         }
 
         const result = JSON.parse(response.output_text);
-        res.json(result);
-      } catch (error) {
-        if (dailyReservation) {
-          try {
-            await signedInDailyUsage.release(dailyReservation);
-          } catch (releaseError) {
-            writeLog(logger, "error", {
-              timestamp: new Date(now()).toISOString(),
-              severity: "high",
-              event: "daily_usage_reservation_release_failed",
-              ...logContext,
-              status: 500,
-              error_message: releaseError instanceof Error
-                ? releaseError.message
-                : "Daily usage reservation release failed"
-            });
-          }
+
+        if (!isRecommendationResult(result)) {
+          throw new Error(
+            "OpenAI returned an invalid recommendation payload"
+          );
         }
 
+        try {
+          await aiRecommendationQuota.consume(
+            quotaIdentity
+          );
+        } catch (error) {
+          if (
+            error instanceof
+              AIRecommendationQuotaExceededError
+          ) {
+            sendAIQuotaExceeded(
+              logger,
+              now,
+              req,
+              res,
+              error
+            );
+            return;
+          }
+
+          writeLog(logger, "error", {
+            timestamp: new Date(now()).toISOString(),
+            severity: "high",
+            event: "daily_usage_commit_failed",
+            ...logContext,
+            status: 503,
+            error_message: error instanceof Error
+              ? error.message
+              : "Daily usage commit failed",
+            success: false
+          });
+          res.status(503).json({
+            error: "Failed to get recommendation"
+          });
+          return;
+        }
+
+        res.json(result);
+      } catch (error) {
         writeLog(logger, "error", {
           timestamp: new Date(now()).toISOString(),
           event: "openai_request_failed",

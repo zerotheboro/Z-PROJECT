@@ -9,6 +9,10 @@ type Props = {
   testMeLimit: number;
   manualMethodsUsed: number;
   manualMethodsLimit: number;
+  aiRecommendationsLoading: boolean;
+  aiRecommendationsError: string | null;
+  aiRecommendationsUsed: number;
+  aiRecommendationsLimit: number;
   billingBusy: boolean;
   billingError: string | null;
   billingMessage: string | null;
@@ -27,12 +31,22 @@ function TrainingAccessCard({
   testMeLimit,
   manualMethodsUsed,
   manualMethodsLimit,
+  aiRecommendationsLoading,
+  aiRecommendationsError,
+  aiRecommendationsUsed,
+  aiRecommendationsLimit,
   billingBusy,
   billingError,
   billingMessage,
   onUpgrade,
   onManageSubscription
 }: Props) {
+  const aiUsage = aiRecommendationsLoading
+    ? "Checking..."
+    : aiRecommendationsError
+      ? "Unavailable"
+      : `${aiRecommendationsUsed} / ${aiRecommendationsLimit} used today`;
+
   return (
     <section
       className={`training-access-card ${unlimited ? "premium" : "free"}`}
@@ -58,6 +72,10 @@ function TrainingAccessCard({
         <div className="training-access-usage">
           <p><strong>Unlimited</strong> Test Me</p>
           <p><strong>Unlimited</strong> method testing</p>
+          <p>
+            <span>AI Deep Suggestions</span>
+            <strong>{aiUsage}</strong>
+          </p>
         </div>
       )}
 
@@ -74,6 +92,10 @@ function TrainingAccessCard({
             <strong>
               {manualMethodsUsed} / {manualMethodsLimit} used today
             </strong>
+          </p>
+          <p>
+            <span>AI Deep Suggestions</span>
+            <strong>{aiUsage}</strong>
           </p>
         </div>
       )}

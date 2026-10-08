@@ -10,6 +10,7 @@ export default defineConfig({
     include: [
       "src/**/*.test.{ts,tsx}",
       "firebaseAdmin.test.js",
+      "aiRecommendationQuota.test.js",
       "billing.test.js",
       "billingServer.test.js",
       "server.test.js",

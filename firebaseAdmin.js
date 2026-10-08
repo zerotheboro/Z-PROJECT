@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import process from "node:process";
 import {
   applicationDefault,
@@ -7,11 +6,10 @@ import {
   initializeApp
 } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { getFirestore } from "firebase-admin/firestore";
 
 const ADMIN_APP_NAME = "edulience-backend";
 const DEFAULT_FIREBASE_PROJECT_ID = "edulience-920ba";
-const DAILY_USAGE_COLLECTION = "aiRecommendationDailyUsage";
 const REQUIRED_SERVICE_ACCOUNT_FIELDS = Object.freeze([
   "type",
   "project_id",
@@ -230,91 +228,4 @@ export async function verifyFirebaseIdToken(idToken) {
 
 export function getFirebaseAdminFirestore() {
   return firebaseAdminManager.getFirestore();
-}
-
-export class DailyRecommendationLimitError extends Error {
-  constructor(limit, utcDate) {
-    super(`Daily recommendation limit of ${limit} reached for ${utcDate}`);
-    this.name = "DailyRecommendationLimitError";
-    this.code = "daily_recommendation_limit_reached";
-    this.status = 429;
-  }
-}
-
-function getUtcDate(nowValue) {
-  return new Date(nowValue).toISOString().slice(0, 10);
-}
-
-function getUsageDocumentId(uid, utcDate) {
-  const hashedUid = createHash("sha256").update(uid).digest("hex");
-  return `${utcDate}_${hashedUid}`;
-}
-
-export function createFirebaseDailyUsageLimiter({
-  limit,
-  now = Date.now,
-  adminManager = firebaseAdminManager
-}) {
-  function getDocument(uid, nowValue) {
-    const utcDate = getUtcDate(nowValue);
-    const documentId = getUsageDocumentId(uid, utcDate);
-    const firestore = adminManager.getFirestore();
-
-    return {
-      firestore,
-      reference: firestore.collection(DAILY_USAGE_COLLECTION).doc(documentId),
-      utcDate
-    };
-  }
-
-  return {
-    async reserve(uid) {
-      const nowValue = now();
-      const { firestore, reference, utcDate } = getDocument(uid, nowValue);
-
-      await firestore.runTransaction(async (transaction) => {
-        const snapshot = await transaction.get(reference);
-        const currentCount = snapshot.exists
-          ? snapshot.data()?.requestCount ?? 0
-          : 0;
-
-        if (currentCount >= limit) {
-          throw new DailyRecommendationLimitError(limit, utcDate);
-        }
-
-        transaction.set(
-          reference,
-          {
-            utcDate,
-            requestCount: currentCount + 1,
-            updatedAt: FieldValue.serverTimestamp()
-          },
-          { merge: true }
-        );
-      });
-
-      return { uid, utcDate };
-    },
-
-    async release({ uid, utcDate }) {
-      const { firestore, reference } = getDocument(
-        uid,
-        Date.parse(`${utcDate}T00:00:00.000Z`)
-      );
-
-      await firestore.runTransaction(async (transaction) => {
-        const snapshot = await transaction.get(reference);
-
-        if (!snapshot.exists) {
-          return;
-        }
-
-        const currentCount = snapshot.data()?.requestCount ?? 0;
-        transaction.update(reference, {
-          requestCount: Math.max(0, currentCount - 1),
-          updatedAt: FieldValue.serverTimestamp()
-        });
-      });
-    }
-  };
 }

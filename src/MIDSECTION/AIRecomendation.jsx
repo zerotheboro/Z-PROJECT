@@ -2,16 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { auth } from "../firebase";
 import { subscribeToAuth } from "../services/auth";
 import {
+  loadAIRecommendationAccess,
+  validateAIRecommendationAccess
+} from "../services/aiRecommendationAccess";
+import {
   loadAIRecommendation,
   saveAIRecommendation,
   validateRecommendationResult
 } from "../services/aiRecommendationPersistence";
 import './AISTYLE.scss';
-
-
-let AI_credit = JSON.parse(localStorage.getItem("AI_credits"));
-
-if(AI_credit === null){ localStorage.setItem("AI_credits", "2");  AI_credit = 2};
 
 
 
@@ -25,8 +24,10 @@ export default function AIRecommendation() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [quotaAccess, setQuotaAccess] = useState(null);
 
   const ownerRef = useRef(null);
+  const userRef = useRef(null);
   const identityVersionRef = useRef(0);
   const restoreVersionRef = useRef(0);
 
@@ -45,6 +46,7 @@ export default function AIRecommendation() {
       identityVersionRef.current = identityVersion;
       restoreVersionRef.current = restoreVersion;
       ownerRef.current = owner;
+      userRef.current = user;
 
       setBiggestProblem("");
       setMethodQuestion("");
@@ -52,7 +54,32 @@ export default function AIRecommendation() {
       setResult(null);
       setError("");
       setLoading(false);
+      setQuotaAccess(null);
       setStep(0);
+
+      void loadAIRecommendationAccess(user)
+        .then((access) => {
+          if (
+            mounted
+            && identityVersionRef.current
+              === identityVersion
+          ) {
+            setQuotaAccess(access);
+          }
+        })
+        .catch((accessError) => {
+          if (
+            mounted
+            && identityVersionRef.current
+              === identityVersion
+            && import.meta.env.DEV
+          ) {
+            console.error(
+              "Could not load AI recommendation access.",
+              accessError
+            );
+          }
+        });
 
       void loadAIRecommendation(owner)
         .then((saved) => {
@@ -99,6 +126,7 @@ export default function AIRecommendation() {
       identityVersionRef.current += 1;
       restoreVersionRef.current += 1;
       ownerRef.current = null;
+      userRef.current = null;
       unsubscribe();
     };
   }, []);
@@ -122,9 +150,6 @@ export default function AIRecommendation() {
       methodQuestion,
       extraContext
     };
-
-    AI_credit -= 1;
-    localStorage.setItem("AI_credits", JSON.stringify(AI_credit));
     try {
       setLoading(true);
       setError("");
@@ -156,11 +181,21 @@ export default function AIRecommendation() {
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
+        const rejectedAccess =
+          data?.code === "ai_daily_quota_exceeded"
+            ? validateAIRecommendationAccess(data)
+            : null;
+
+        if (rejectedAccess) {
+          setQuotaAccess(rejectedAccess);
+        }
+
         throw new Error("Failed to get recommendation");
       }
 
-      const data = await response.json();
       const validatedResult =
         validateRecommendationResult(data);
 
@@ -179,6 +214,24 @@ export default function AIRecommendation() {
 
       setResult(validatedResult);
       setStep(4);
+
+      void loadAIRecommendationAccess(userRef.current)
+        .then((access) => {
+          if (
+            identityVersionRef.current
+              === requestIdentityVersion
+          ) {
+            setQuotaAccess(access);
+          }
+        })
+        .catch((accessError) => {
+          if (import.meta.env.DEV) {
+            console.error(
+              "Could not refresh AI recommendation access.",
+              accessError
+            );
+          }
+        });
 
       try {
         await saveAIRecommendation(
@@ -387,7 +440,10 @@ export default function AIRecommendation() {
                 <button
                   className="primary-button ai-submit"
                   onClick={handleAskAI}
-                  disabled={loading || AI_credit === 0}
+                  disabled={
+                    loading
+                    || quotaAccess?.remaining === 0
+                  }
                 >
                   {loading
                     ? "Finding your methods..."
