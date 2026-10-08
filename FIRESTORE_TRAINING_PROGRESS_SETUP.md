@@ -72,7 +72,7 @@ The trusted backend uses these paths:
 - `users/{uid}/trainingUsage/{YYYY-MM-DD}/reservations/{sessionId}`
 - `users/{uid}/trainingReservations/{sessionId}`
 
-Missing entitlement data means Free. To test Premium before Stripe, create
+Missing entitlement data means Free. To test Premium before Paddle, create
 or edit `users/{uid}/entitlements/current` through Firebase Console/Admin
 tooling only:
 

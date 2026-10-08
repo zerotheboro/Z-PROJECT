@@ -322,7 +322,7 @@ function handleClickfor1(section_id){
           methods worth trying.
         </p>
 
-        <a href="#AI-recommendation">
+        <a href="#/library">
           Ask AI →
         </a>
 

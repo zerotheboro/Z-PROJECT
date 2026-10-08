@@ -23,9 +23,14 @@ const DEFAULT_API_BASE =
   "https://z-project-ba3t.onrender.com";
 
 export type TrainingPlan = "free" | "premium";
+export type TrainingPlanSource =
+  | "default"
+  | "manual"
+  | "paddle";
 
 export type TrainingAccessStatus = {
   plan: TrainingPlan;
+  planSource: TrainingPlanSource;
   limits: {
     testMePerDay: number;
     manualMethodsPerDay: number;
@@ -185,6 +190,7 @@ function guestAccess(
 
   return {
     plan: "free",
+    planSource: "default",
     limits: {
       testMePerDay: FREE_TEST_ME_LIMIT,
       manualMethodsPerDay:

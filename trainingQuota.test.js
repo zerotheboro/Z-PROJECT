@@ -136,6 +136,7 @@ describe("server-authoritative Training quotas", () => {
       manager.getAccess("user-a", TIMEZONE)
     ).resolves.toMatchObject({
       plan: "free",
+      planSource: "default",
       unlimited: false,
       remaining: { testMe: 1, manualMethods: 3 }
     });
@@ -422,5 +423,29 @@ describe("server-authoritative Training quotas", () => {
       plan: "free",
       unlimited: false
     });
+  });
+
+  it("returns only the safe Paddle plan source", async () => {
+    const { firestore, manager } = setup();
+    firestore.seed(entitlementPath(), {
+      plan: "premium",
+      source: "paddle",
+      paddleCustomerId: "must-not-leak",
+      paddleSubscriptionId: "must-not-leak"
+    });
+
+    const access = await manager.getAccess(
+      "user-a",
+      TIMEZONE
+    );
+
+    expect(access).toMatchObject({
+      plan: "premium",
+      planSource: "paddle",
+      unlimited: true
+    });
+    expect(JSON.stringify(access)).not.toContain(
+      "must-not-leak"
+    );
   });
 });

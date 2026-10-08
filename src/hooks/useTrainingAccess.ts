@@ -25,6 +25,7 @@ type TrainingAccessHook = {
   user: User | null;
   access: TrainingAccessStatus | null;
   plan: "free" | "premium";
+  planSource: "default" | "manual" | "paddle";
   unlimited: boolean;
   testMeUsed: number;
   testMeLimit: number;
@@ -106,6 +107,7 @@ export function useTrainingAccess(): TrainingAccessHook {
   return {
     ...state,
     plan: access?.plan ?? "free",
+    planSource: access?.planSource ?? "default",
     unlimited: access?.unlimited ?? false,
     testMeUsed: access?.usage.testMeStarted ?? 0,
     testMeLimit: access?.limits.testMePerDay ?? 1,

@@ -1,31 +1,38 @@
-import {
-  useState
-} from "react";
-
 type Props = {
   loading: boolean;
   error: string | null;
   plan: "free" | "premium";
+  planSource: "default" | "manual" | "paddle";
+  signedIn: boolean;
   unlimited: boolean;
   testMeUsed: number;
   testMeLimit: number;
   manualMethodsUsed: number;
   manualMethodsLimit: number;
+  billingBusy: boolean;
+  billingError: string | null;
+  billingMessage: string | null;
+  onUpgrade: () => void;
+  onManageSubscription: () => void;
 };
 
 function TrainingAccessCard({
   loading,
   error,
   plan,
+  planSource,
+  signedIn,
   unlimited,
   testMeUsed,
   testMeLimit,
   manualMethodsUsed,
-  manualMethodsLimit
+  manualMethodsLimit,
+  billingBusy,
+  billingError,
+  billingMessage,
+  onUpgrade,
+  onManageSubscription
 }: Props) {
-  const [showComingSoon, setShowComingSoon] =
-    useState(false);
-
   return (
     <section
       className={`training-access-card ${unlimited ? "premium" : "free"}`}
@@ -71,22 +78,42 @@ function TrainingAccessCard({
         </div>
       )}
 
-      {!unlimited && (
+      {planSource === "paddle" ? (
+        <div className="training-upgrade-cta">
+          <button
+            type="button"
+            className="secondary-action"
+            disabled={billingBusy}
+            onClick={onManageSubscription}
+          >
+            {billingBusy
+              ? "Opening subscription..."
+              : "Manage subscription"}
+          </button>
+        </div>
+      ) : !unlimited && (
         <div className="training-upgrade-cta">
           <p>Upgrade for unlimited Training.</p>
           <button
             type="button"
             className="secondary-action"
-            onClick={() => setShowComingSoon(true)}
+            disabled={billingBusy}
+            onClick={onUpgrade}
           >
-            Upgrade
+            {billingBusy
+              ? "Opening checkout..."
+              : signedIn
+                ? "Upgrade to Premium"
+                : "Sign in to upgrade"}
           </button>
-          {showComingSoon && (
-            <p role="status">
-              Premium checkout is coming next.
-            </p>
-          )}
         </div>
+      )}
+
+      {billingError && (
+        <p role="alert">{billingError}</p>
+      )}
+      {billingMessage && (
+        <p role="status">{billingMessage}</p>
       )}
     </section>
   );

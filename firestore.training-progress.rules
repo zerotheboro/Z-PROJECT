@@ -88,8 +88,8 @@ match /users/{userId}/trainingStats/{statsId} {
   allow delete: if false;
 }
 
-// Entitlements are written only by trusted Admin tooling now and Stripe
-// webhooks in a later phase. Browsers may never grant themselves Premium.
+// Entitlements are written only by trusted Admin tooling and verified Paddle
+// webhooks. Browsers may never grant themselves Premium.
 match /users/{userId}/entitlements/{entitlementId} {
   allow read: if request.auth != null
     && request.auth.uid == userId

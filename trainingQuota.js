@@ -132,8 +132,16 @@ export function resolveTrainingPlan(
     : "free";
 }
 
+export function resolveTrainingPlanSource(entitlement) {
+  return entitlement?.source === "manual" ||
+    entitlement?.source === "paddle"
+    ? entitlement.source
+    : "default";
+}
+
 function accessResponse({
   plan,
+  planSource,
   usage,
   dayKey,
   timeZone
@@ -148,6 +156,7 @@ function accessResponse({
 
   return {
     plan,
+    planSource,
     limits: {
       testMePerDay: FREE_TEST_ME_DAILY_LIMIT,
       manualMethodsPerDay:
@@ -336,6 +345,11 @@ export function createFirebaseTrainingQuotaManager({
       ]);
 
       return accessResponse({
+        planSource: resolveTrainingPlanSource(
+          entitlement.exists
+            ? entitlement.data()
+            : null
+        ),
         plan: resolveTrainingPlan(
           entitlement.exists
             ? entitlement.data()
@@ -382,7 +396,8 @@ export function createFirebaseTrainingQuotaManager({
               idempotent: true,
               sessionId: input.sessionId,
               dayKey: stored.dayKey,
-              plan: stored.plan ?? "free"
+              plan: stored.plan ?? "free",
+              planSource: stored.planSource ?? "default"
             };
           }
 
@@ -392,17 +407,22 @@ export function createFirebaseTrainingQuotaManager({
           const usageSnapshot = await transaction.get(
             refs.usage
           );
+          const entitlementData = entitlement.exists
+            ? entitlement.data()
+            : null;
           const plan = resolveTrainingPlan(
-            entitlement.exists
-              ? entitlement.data()
-              : null,
+            entitlementData,
             nowValue
+          );
+          const planSource = resolveTrainingPlanSource(
+            entitlementData
           );
           const usage = usageSnapshot.exists
             ? usageSnapshot.data()
             : null;
           const access = accessResponse({
             plan,
+            planSource,
             usage,
             dayKey,
             timeZone: input.timezone
@@ -457,6 +477,7 @@ export function createFirebaseTrainingQuotaManager({
             dayKey,
             timezone: input.timezone,
             plan,
+            planSource,
             createdAt: FieldValue.serverTimestamp()
           };
 
@@ -476,8 +497,10 @@ export function createFirebaseTrainingQuotaManager({
             sessionId: input.sessionId,
             dayKey,
             plan,
+            planSource,
             access: accessResponse({
               plan,
+              planSource,
               usage: nextUsage,
               dayKey,
               timeZone: input.timezone

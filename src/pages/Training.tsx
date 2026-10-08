@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useRef,
   useState
 } from "react";
@@ -36,6 +37,12 @@ import {
   useAvailableTrainingDraft
 } from "../quiz/useAvailableTrainingDraft";
 import {
+  createCheckoutTransaction,
+  createPortalSession,
+  openPaddleCheckout,
+  redirectToBillingUrl
+} from "../services/billing";
+import {
   discardTrainingDraft,
   forceDiscardTrainingDraft
 } from "../services/trainingProgress";
@@ -67,6 +74,12 @@ function Training() {
     useState(false);
   const [startError, setStartError] =
     useState<string | null>(null);
+  const [billingBusy, setBillingBusy] =
+    useState(false);
+  const [billingError, setBillingError] =
+    useState<string | null>(null);
+  const [billingConfirmationAttempt,
+    setBillingConfirmationAttempt] = useState(0);
   const pendingAutomaticSessionId =
     useRef<string | null>(null);
 
@@ -79,6 +92,37 @@ function Training() {
   const accessIdentityMatches = owner?.kind === "user"
     ? trainingAccess.user?.uid === owner.uid
     : trainingAccess.user === null;
+  const billingConfirmationActive =
+    billingConfirmationAttempt > 0;
+  const billingMessage = billingConfirmationActive
+    ? trainingAccess.plan === "premium"
+      ? "Edulience Premium is active."
+      : billingConfirmationAttempt < 5
+        ? "Confirming Premium..."
+        : "Payment is still being confirmed. Refresh shortly."
+    : null;
+
+  useEffect(() => {
+    if (
+      !billingConfirmationActive ||
+      trainingAccess.plan === "premium" ||
+      billingConfirmationAttempt >= 5
+    ) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setBillingConfirmationAttempt(value => value + 1);
+      trainingAccess.refreshAccess();
+    }, 1_500);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    billingConfirmationActive,
+    billingConfirmationAttempt,
+    trainingAccess.plan,
+    trainingAccess.refreshAccess
+  ]);
 
   async function clearExistingDraft(): Promise<boolean> {
     if (draft) {
@@ -189,6 +233,76 @@ function Training() {
     }
   }
 
+  async function openUpgrade() {
+    if (billingBusy) {
+      return;
+    }
+    if (!trainingAccess.user) {
+      setBillingError(
+        "Sign in to upgrade to Edulience Premium."
+      );
+      return;
+    }
+
+    setBillingBusy(true);
+    setBillingError(null);
+
+    try {
+      const transactionId =
+        await createCheckoutTransaction(
+          trainingAccess.user
+        );
+      await openPaddleCheckout(transactionId, {
+        onCompleted: () => {
+          setBillingBusy(false);
+          setBillingConfirmationAttempt(1);
+          trainingAccess.refreshAccess();
+        },
+        onClosed: () => setBillingBusy(false),
+        onError: message => {
+          setBillingBusy(false);
+          setBillingError(message);
+        }
+      });
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error("Billing request failed", error);
+      }
+      setBillingError(
+        error instanceof Error
+          ? error.message
+          : "Billing is temporarily unavailable."
+      );
+      setBillingBusy(false);
+    }
+  }
+
+  async function openPortal() {
+    if (billingBusy || !trainingAccess.user) {
+      return;
+    }
+
+    setBillingBusy(true);
+    setBillingError(null);
+    try {
+      const url = await createPortalSession(
+        trainingAccess.user
+      );
+      redirectToBillingUrl(url);
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error("Billing request failed", error);
+      }
+      setBillingError(
+        error instanceof Error
+          ? error.message
+          : "Billing is temporarily unavailable."
+      );
+    } finally {
+      setBillingBusy(false);
+    }
+  }
+
   return (
     <>
     <NAV/>
@@ -219,11 +333,18 @@ function Training() {
         loading={trainingAccess.loading}
         error={trainingAccess.error}
         plan={trainingAccess.plan}
+        planSource={trainingAccess.planSource}
+        signedIn={Boolean(trainingAccess.user)}
         unlimited={trainingAccess.unlimited}
         testMeUsed={trainingAccess.testMeUsed}
         testMeLimit={trainingAccess.testMeLimit}
         manualMethodsUsed={trainingAccess.manualMethodsUsed}
         manualMethodsLimit={trainingAccess.manualMethodsLimit}
+        billingBusy={billingBusy}
+        billingError={billingError}
+        billingMessage={billingMessage}
+        onUpgrade={() => void openUpgrade()}
+        onManageSubscription={() => void openPortal()}
       />
 
       {!loading && draft && progress && (

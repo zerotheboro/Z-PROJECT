@@ -3,6 +3,7 @@
 import React from "react";
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -31,8 +32,10 @@ import {
 const draftMocks = vi.hoisted(() => ({
   state: {
     loading: false,
-    user: null,
-    owner: { kind: "guest" } as const,
+    user: null as { uid: string } | null,
+    owner: { kind: "guest" } as
+      | { kind: "guest" }
+      | { kind: "user"; uid: string },
     validation: null as ReturnType<
       typeof import("../quiz/trainingProgress").validateTrainingDraft
     > | null,
@@ -47,8 +50,10 @@ const accessMocks = vi.hoisted(() => ({
   state: {
     loading: false,
     error: null as string | null,
-    user: null,
+    user: null as { uid: string } | null,
     plan: "free" as "free" | "premium",
+    planSource: "default" as
+      "default" | "manual" | "paddle",
     unlimited: false,
     testMeUsed: 0,
     testMeLimit: 1,
@@ -59,6 +64,13 @@ const accessMocks = vi.hoisted(() => ({
     refreshAccess: vi.fn()
   },
   start: vi.fn()
+}));
+
+const billingMocks = vi.hoisted(() => ({
+  checkout: vi.fn(),
+  open: vi.fn(),
+  portal: vi.fn(),
+  redirect: vi.fn()
 }));
 
 vi.mock("../HEADER/header", () => ({
@@ -104,6 +116,13 @@ vi.mock("../services/startTrainingSession", () => ({
   startTrainingSession: accessMocks.start
 }));
 
+vi.mock("../services/billing", () => ({
+  createCheckoutTransaction: billingMocks.checkout,
+  openPaddleCheckout: billingMocks.open,
+  createPortalSession: billingMocks.portal,
+  redirectToBillingUrl: billingMocks.redirect
+}));
+
 import Training from "./Training";
 
 afterEach(() => {
@@ -125,6 +144,7 @@ beforeEach(() => {
   accessMocks.state.error = null;
   accessMocks.state.user = null;
   accessMocks.state.plan = "free";
+  accessMocks.state.planSource = "default";
   accessMocks.state.unlimited = false;
   accessMocks.state.testMeUsed = 0;
   accessMocks.state.testMeRemaining = 1;
@@ -135,6 +155,17 @@ beforeEach(() => {
   accessMocks.start.mockResolvedValue({
     sessionId: "session-0001"
   });
+  billingMocks.checkout.mockReset();
+  billingMocks.checkout.mockResolvedValue(
+    "txn_test"
+  );
+  billingMocks.open.mockReset();
+  billingMocks.open.mockResolvedValue(undefined);
+  billingMocks.portal.mockReset();
+  billingMocks.portal.mockResolvedValue(
+    "https://customer-portal.paddle.com/test"
+  );
+  billingMocks.redirect.mockReset();
 });
 
 function renderTraining() {
@@ -248,6 +279,217 @@ describe("training entry choices", () => {
     expect(screen.getAllByText("Unlimited", {
       selector: "strong"
     })).toHaveLength(2);
+  });
+
+  it("opens Paddle Checkout with a server-created transaction", async () => {
+    const user = { uid: "user-a" };
+    accessMocks.state.user = user;
+    draftMocks.state.owner = {
+      kind: "user",
+      uid: "user-a"
+    };
+    renderTraining();
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Upgrade to Premium"
+    }));
+
+    expect(billingMocks.checkout)
+      .toHaveBeenCalledWith(user);
+    await vi.waitFor(() => {
+      expect(billingMocks.open).toHaveBeenCalledWith(
+        "txn_test",
+        expect.objectContaining({
+          onCompleted: expect.any(Function),
+          onClosed: expect.any(Function),
+          onError: expect.any(Function)
+        })
+      );
+    });
+    expect(billingMocks.redirect).not.toHaveBeenCalled();
+  });
+
+  it("disables duplicate Upgrade clicks while Checkout is loading", async () => {
+    let resolveCheckout: (id: string) => void = () => undefined;
+    billingMocks.checkout.mockReturnValue(
+      new Promise<string>(resolve => {
+        resolveCheckout = resolve;
+      })
+    );
+    accessMocks.state.user = { uid: "user-a" };
+    draftMocks.state.owner = {
+      kind: "user",
+      uid: "user-a"
+    };
+    renderTraining();
+
+    const upgrade = screen.getByRole("button", {
+      name: "Upgrade to Premium"
+    });
+    fireEvent.click(upgrade);
+    fireEvent.click(upgrade);
+
+    expect(billingMocks.checkout).toHaveBeenCalledTimes(1);
+    expect((screen.getByRole("button", {
+      name: "Opening checkout..."
+    }) as HTMLButtonElement).disabled).toBe(true);
+    resolveCheckout("txn_test");
+  });
+
+  it("uses Paddle completion only to refresh authoritative access", async () => {
+    let completeCheckout: () => void = () => undefined;
+    billingMocks.open.mockImplementation(
+      async (
+        _transactionId: string,
+        callbacks: { onCompleted: () => void }
+      ) => {
+        completeCheckout = callbacks.onCompleted;
+      }
+    );
+    accessMocks.state.user = { uid: "user-a" };
+    draftMocks.state.owner = {
+      kind: "user",
+      uid: "user-a"
+    };
+    renderTraining();
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Upgrade to Premium"
+    }));
+    await vi.waitFor(() => {
+      expect(billingMocks.open).toHaveBeenCalled();
+    });
+    act(() => completeCheckout());
+
+    expect(accessMocks.state.plan).toBe("free");
+    expect(screen.getByText("FREE PLAN")).toBeTruthy();
+    expect(screen.getByRole("status").textContent)
+      .toContain("Confirming Premium");
+    expect(accessMocks.state.refreshAccess)
+      .toHaveBeenCalledTimes(1);
+  });
+
+  it("bounds Paddle entitlement confirmation to five access checks", async () => {
+    vi.useFakeTimers();
+    try {
+      let completeCheckout: () => void = () => undefined;
+      billingMocks.open.mockImplementation(
+        async (
+          _transactionId: string,
+          callbacks: { onCompleted: () => void }
+        ) => {
+          completeCheckout = callbacks.onCompleted;
+        }
+      );
+      accessMocks.state.user = { uid: "user-a" };
+      draftMocks.state.owner = {
+        kind: "user",
+        uid: "user-a"
+      };
+      renderTraining();
+
+      fireEvent.click(screen.getByRole("button", {
+        name: "Upgrade to Premium"
+      }));
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      act(() => completeCheckout());
+
+      for (let attempt = 1; attempt < 5; attempt += 1) {
+        await act(async () => {
+          vi.advanceTimersByTime(1_500);
+          await Promise.resolve();
+        });
+      }
+      expect(accessMocks.state.refreshAccess)
+        .toHaveBeenCalledTimes(5);
+      expect(screen.getByRole("status").textContent)
+        .toContain("still being confirmed");
+
+      await act(async () => {
+        vi.advanceTimersByTime(10_000);
+        await Promise.resolve();
+      });
+      expect(accessMocks.state.refreshAccess)
+        .toHaveBeenCalledTimes(5);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("requires a guest to sign in instead of creating Checkout", () => {
+    renderTraining();
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Sign in to upgrade"
+    }));
+
+    expect(screen.getByRole("alert").textContent)
+      .toContain("Sign in to upgrade");
+    expect(billingMocks.checkout).not.toHaveBeenCalled();
+  });
+
+  it("keeps a failed Checkout request on the Free plan", async () => {
+    billingMocks.checkout.mockRejectedValue(
+      new Error("Billing is temporarily unavailable")
+    );
+    accessMocks.state.user = { uid: "user-a" };
+    draftMocks.state.owner = {
+      kind: "user",
+      uid: "user-a"
+    };
+    renderTraining();
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Upgrade to Premium"
+    }));
+
+    expect((await screen.findByRole("alert")).textContent)
+      .toContain("Billing is temporarily unavailable");
+    expect(screen.getByText("FREE PLAN")).toBeTruthy();
+    expect(billingMocks.redirect).not.toHaveBeenCalled();
+  });
+
+  it("shows Manage subscription only for Paddle-derived billing", async () => {
+    accessMocks.state.user = { uid: "user-a" };
+    accessMocks.state.plan = "premium";
+    accessMocks.state.planSource = "paddle";
+    accessMocks.state.unlimited = true;
+    draftMocks.state.owner = {
+      kind: "user",
+      uid: "user-a"
+    };
+    renderTraining();
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Manage subscription"
+    }));
+
+    expect(billingMocks.portal)
+      .toHaveBeenCalledWith(accessMocks.state.user);
+    await vi.waitFor(() => {
+      expect(billingMocks.redirect).toHaveBeenCalledWith(
+        "https://customer-portal.paddle.com/test"
+      );
+    });
+  });
+
+  it("does not show Paddle management for manual Premium", () => {
+    accessMocks.state.user = { uid: "user-a" };
+    accessMocks.state.plan = "premium";
+    accessMocks.state.planSource = "manual";
+    accessMocks.state.unlimited = true;
+    draftMocks.state.owner = {
+      kind: "user",
+      uid: "user-a"
+    };
+    renderTraining();
+
+    expect(screen.queryByRole("button", {
+      name: "Manage subscription"
+    })).toBeNull();
   });
 
   it("does not navigate when authoritative reservation fails", async () => {

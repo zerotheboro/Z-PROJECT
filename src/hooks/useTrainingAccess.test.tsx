@@ -53,6 +53,7 @@ function deferred<T>() {
 function access(plan: "free" | "premium") {
   return {
     plan,
+    planSource: "default" as const,
     limits: {
       testMePerDay: 1,
       manualMethodsPerDay: 3

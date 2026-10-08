@@ -6,6 +6,18 @@ import cors from "cors";
 import dotenv from "dotenv";
 import OpenAI from "openai";
 import {
+  Environment,
+  Paddle
+} from "@paddle/paddle-node-sdk";
+import {
+  BillingConfigurationError,
+  BillingMappingError,
+  BillingRequestError,
+  createFirebaseBillingRepository,
+  createPaddleBillingService,
+  resolvePaddleConfiguration
+} from "./billing.js";
+import {
   createFirebaseDailyUsageLimiter,
   DailyRecommendationLimitError,
   getFirebaseAdminFirestore,
@@ -133,7 +145,8 @@ function getAuthContext(req) {
   return req.auth ?? {
     status: "anonymous",
     verified: false,
-    uid: null
+    uid: null,
+    email: null
   };
 }
 
@@ -262,7 +275,10 @@ function createFirebaseAuthMiddleware({
       req.auth = {
         status: "verified",
         verified: true,
-        uid: decodedToken.uid
+        uid: decodedToken.uid,
+        email: typeof decodedToken.email === "string"
+          ? decodedToken.email
+          : null
       };
     } catch (error) {
       const configurationFailure = isFirebaseAdminConfigurationError(error);
@@ -393,6 +409,51 @@ function sendTrainingQuotaError(res, error) {
   });
 }
 
+function sendBillingError(
+  res,
+  error,
+  { logger, now, endpoint, uid }
+) {
+  const configurationFailure =
+    error instanceof BillingConfigurationError;
+  const requestFailure =
+    error instanceof BillingRequestError;
+  const mappingFailure =
+    error instanceof BillingMappingError;
+  const status = configurationFailure
+    ? 503
+    : requestFailure
+      ? error.status
+      : mappingFailure
+        ? 500
+        : 502;
+
+  writeLog(logger, "error", {
+    timestamp: new Date(now()).toISOString(),
+    event: mappingFailure
+      ? "paddle_mapping_mismatch"
+      : "paddle_billing_error",
+    ...(mappingFailure ? { severity: "high" } : {}),
+    endpoint,
+    firebase_uid: uid ?? null,
+    billing_error_code: error?.code ?? null,
+    status,
+    error_message: error instanceof Error
+      ? error.message
+      : "Billing request failed",
+    success: false
+  });
+
+  res.status(status).json({
+    error: configurationFailure
+      ? "Billing is temporarily unavailable"
+      : requestFailure
+        ? error.message
+        : "Billing request could not be completed",
+    ...(error?.code ? { code: error.code } : {})
+  });
+}
+
 function createRateLimitMiddleware({
   signedInLimit,
   anonymousLimit,
@@ -453,6 +514,10 @@ export function createRecommendationApp({
   verifyFirebaseToken = verifyFirebaseIdToken,
   dailyUsageLimiter,
   trainingQuotaManager,
+  paddleClient,
+  billingRepository,
+  billingConfig,
+  billingService,
   logger = console,
   now = Date.now,
   signedInRateLimit = SIGNED_IN_RATE_LIMIT,
@@ -471,9 +536,90 @@ export function createRecommendationApp({
       now,
       getFirestore: getFirebaseAdminFirestore
     });
+  const resolvedBillingConfig = billingConfig ??
+    resolvePaddleConfiguration();
+  const resolvedPaddleClient = paddleClient ??
+    (resolvedBillingConfig.available
+      ? new Paddle(resolvedBillingConfig.apiKey, {
+          environment: Environment.sandbox
+        })
+      : null);
+  const resolvedBillingRepository = billingRepository ??
+    createFirebaseBillingRepository({
+      getFirestore: getFirebaseAdminFirestore
+    });
+  const billing = billingService ??
+    createPaddleBillingService({
+      paddle: resolvedPaddleClient,
+      repository: resolvedBillingRepository,
+      config: resolvedBillingConfig,
+      logger,
+      now
+    });
 
   app.set("trust proxy", 1);
   app.use(cors());
+  app.post(
+    "/api/billing/paddle-webhook",
+    express.raw({
+      type: "application/json",
+      limit: "1mb"
+    }),
+    async (req, res) => {
+      let event;
+
+      try {
+        event = await billing.constructWebhookEvent(
+          req.body.toString("utf8"),
+          req.get("paddle-signature")
+        );
+      } catch (error) {
+        if (error instanceof BillingConfigurationError) {
+          sendBillingError(res, error, {
+            logger,
+            now,
+            endpoint: req.path,
+            uid: null
+          });
+          return;
+        }
+
+        writeLog(logger, "warn", {
+          timestamp: new Date(now()).toISOString(),
+          event: "paddle_billing_error",
+          endpoint: req.path,
+          billing_error_code: "invalid_paddle_signature",
+          status: 400,
+          error_message: "Paddle webhook signature verification failed",
+          success: false
+        });
+        res.status(400).json({
+          error: "Invalid Paddle webhook signature"
+        });
+        return;
+      }
+
+      writeLog(logger, "info", {
+        timestamp: new Date(now()).toISOString(),
+        event: "paddle_webhook_verified",
+        paddle_event_id: event.eventId,
+        paddle_event_type: event.eventType,
+        success: true
+      });
+
+      try {
+        const result = await billing.handleWebhookEvent(event);
+        res.json({ received: true, ...result });
+      } catch (error) {
+        sendBillingError(res, error, {
+          logger,
+          now,
+          endpoint: req.path,
+          uid: null
+        });
+      }
+    }
+  );
   app.use(createFirebaseAuthMiddleware({
     verifyToken: verifyFirebaseToken,
     logger,
@@ -518,6 +664,51 @@ export function createRecommendationApp({
         res.json(reservation);
       } catch (error) {
         sendTrainingQuotaError(res, error);
+      }
+    }
+  );
+
+  app.post(
+    "/api/billing/create-checkout-transaction",
+    requireVerifiedTrainingAuth,
+    trainingRateLimit,
+    async (req, res) => {
+      const uid = getAuthContext(req).uid;
+      try {
+        res.json(
+          await billing.createCheckoutTransaction({
+            uid,
+            email: getAuthContext(req).email
+          })
+        );
+      } catch (error) {
+        sendBillingError(res, error, {
+          logger,
+          now,
+          endpoint: req.path,
+          uid
+        });
+      }
+    }
+  );
+
+  app.post(
+    "/api/billing/create-portal-session",
+    requireVerifiedTrainingAuth,
+    trainingRateLimit,
+    async (req, res) => {
+      const uid = getAuthContext(req).uid;
+      try {
+        res.json(
+          await billing.createPortalSession(uid)
+        );
+      } catch (error) {
+        sendBillingError(res, error, {
+          logger,
+          now,
+          endpoint: req.path,
+          uid
+        });
       }
     }
   );
@@ -727,6 +918,18 @@ if (entryFile === currentFile) {
       error_message: isFirebaseAdminConfigurationError(error)
         ? error.message
         : "Firebase Admin initialization failed",
+      success: false
+    });
+  }
+
+  const paddleConfiguration =
+    resolvePaddleConfiguration();
+  if (!paddleConfiguration.available) {
+    writeLog(console, "warn", {
+      timestamp: new Date().toISOString(),
+      event: "paddle_billing_unavailable",
+      missing_configuration:
+        paddleConfiguration.missing,
       success: false
     });
   }
