@@ -1,0 +1,77 @@
+// Merge this scoped match into the project's existing
+// match /databases/{database}/documents block before deployment.
+// It grants no cross-user access and does not affect training, billing,
+// assessment, profile, or backend AI-usage collections.
+match /users/{userId}/aiRecommendations/{recommendationId} {
+  function validMethod(method) {
+    return method is map
+      && method.keys().hasOnly(["name", "branch", "reason", "warning"])
+      && method.name is string
+      && method.name.size() <= 160
+      && method.branch is string
+      && method.branch.size() <= 160
+      && method.reason is string
+      && method.reason.size() <= 2000
+      && method.warning is string
+      && method.warning.size() <= 2000;
+  }
+
+  function validRecommendation(data) {
+    return data.keys().hasOnly([
+        "schemaVersion",
+        "inputs",
+        "result",
+        "updatedAt"
+      ])
+      && data.schemaVersion == 1
+      && data.updatedAt is timestamp
+      && data.inputs is map
+      && data.inputs.keys().hasOnly([
+        "biggestProblem",
+        "methodQuestion",
+        "extraContext"
+      ])
+      && data.inputs.biggestProblem is string
+      && data.inputs.biggestProblem.size() <= 300
+      && data.inputs.methodQuestion is string
+      && data.inputs.methodQuestion.size() <= 300
+      && data.inputs.extraContext is string
+      && data.inputs.extraContext.size() <= 1000
+      && data.result is map
+      && data.result.keys().hasOnly([
+        "user_problem",
+        "recommended_methods",
+        "study_plan",
+        "final_note"
+      ])
+      && data.result.user_problem is string
+      && data.result.user_problem.size() <= 2000
+      && data.result.recommended_methods is list
+      && data.result.recommended_methods.size() >= 1
+      && data.result.recommended_methods.size() <= 3
+      && validMethod(data.result.recommended_methods[0])
+      && (
+        data.result.recommended_methods.size() < 2
+        || validMethod(data.result.recommended_methods[1])
+      )
+      && (
+        data.result.recommended_methods.size() < 3
+        || validMethod(data.result.recommended_methods[2])
+      )
+      && data.result.study_plan is string
+      && data.result.study_plan.size() <= 5000
+      && data.result.final_note is string
+      && data.result.final_note.size() <= 3000;
+  }
+
+  allow read: if request.auth != null
+    && request.auth.uid == userId
+    && recommendationId == "latest";
+
+  allow create, update: if request.auth != null
+    && request.auth.uid == userId
+    && recommendationId == "latest"
+    && validRecommendation(request.resource.data);
+
+  allow delete: if false;
+}

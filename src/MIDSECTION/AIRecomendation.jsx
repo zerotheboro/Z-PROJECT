@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { auth } from "../firebase";
+import { subscribeToAuth } from "../services/auth";
+import {
+  loadAIRecommendation,
+  saveAIRecommendation,
+  validateRecommendationResult
+} from "../services/aiRecommendationPersistence";
 import './AISTYLE.scss';
 
 
@@ -20,15 +26,116 @@ export default function AIRecommendation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const ownerRef = useRef(null);
+  const identityVersionRef = useRef(0);
+  const restoreVersionRef = useRef(0);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const unsubscribe = subscribeToAuth((user) => {
+      const owner = user
+        ? { kind: "user", uid: user.uid }
+        : { kind: "guest" };
+      const identityVersion =
+        identityVersionRef.current + 1;
+      const restoreVersion =
+        restoreVersionRef.current + 1;
+
+      identityVersionRef.current = identityVersion;
+      restoreVersionRef.current = restoreVersion;
+      ownerRef.current = owner;
+
+      setBiggestProblem("");
+      setMethodQuestion("");
+      setExtraContext("");
+      setResult(null);
+      setError("");
+      setLoading(false);
+      setStep(0);
+
+      void loadAIRecommendation(owner)
+        .then((saved) => {
+          if (
+            !mounted
+            || identityVersionRef.current
+              !== identityVersion
+            || restoreVersionRef.current
+              !== restoreVersion
+            || !saved
+          ) {
+            return;
+          }
+
+          setBiggestProblem(
+            saved.inputs.biggestProblem
+          );
+          setMethodQuestion(
+            saved.inputs.methodQuestion
+          );
+          setExtraContext(
+            saved.inputs.extraContext
+          );
+          setResult(saved.result);
+          setStep(4);
+        })
+        .catch((loadError) => {
+          if (
+            mounted
+            && identityVersionRef.current
+              === identityVersion
+            && import.meta.env.DEV
+          ) {
+            console.error(
+              "Could not restore the saved AI recommendation.",
+              loadError
+            );
+          }
+        });
+    });
+
+    return () => {
+      mounted = false;
+      identityVersionRef.current += 1;
+      restoreVersionRef.current += 1;
+      ownerRef.current = null;
+      unsubscribe();
+    };
+  }, []);
+
+  function markInteraction() {
+    restoreVersionRef.current += 1;
+  }
+
   async function handleAskAI() {
+    const owner = ownerRef.current;
+
+    if (!owner) {
+      setError("Could not get an AI recommendation.");
+      return;
+    }
+
+    const requestIdentityVersion =
+      identityVersionRef.current;
+    const inputs = {
+      biggestProblem,
+      methodQuestion,
+      extraContext
+    };
+
     AI_credit -= 1;
     localStorage.setItem("AI_credits", JSON.stringify(AI_credit));
     try {
       setLoading(true);
       setError("");
 
-      const idToken = auth.currentUser
-        ? await auth.currentUser.getIdToken()
+      const authenticatedUser =
+        owner.kind === "user"
+        && auth.currentUser?.uid === owner.uid
+          ? auth.currentUser
+          : null;
+      const idToken = authenticatedUser
+        ? await authenticatedUser.getIdToken()
         : null;
 
       const response = await fetch(
@@ -54,9 +161,39 @@ export default function AIRecommendation() {
       }
 
       const data = await response.json();
+      const validatedResult =
+        validateRecommendationResult(data);
 
-      setResult(data);
+      if (!validatedResult) {
+        throw new Error(
+          "The recommendation response was malformed."
+        );
+      }
+
+      if (
+        identityVersionRef.current
+          !== requestIdentityVersion
+      ) {
+        return;
+      }
+
+      setResult(validatedResult);
       setStep(4);
+
+      try {
+        await saveAIRecommendation(
+          owner,
+          inputs,
+          validatedResult
+        );
+      } catch (saveError) {
+        if (import.meta.env.DEV) {
+          console.error(
+            "Could not save the AI recommendation.",
+            saveError
+          );
+        }
+      }
     } catch (err) {
       console.error(err);
       setError("Could not get an AI recommendation.");
@@ -66,6 +203,7 @@ export default function AIRecommendation() {
   }
 
   function restart() {
+    markInteraction();
     setBiggestProblem("");
     setMethodQuestion("");
     setExtraContext("");
@@ -105,7 +243,10 @@ export default function AIRecommendation() {
               <div className="button-area">
                 <button
                   className="primary-button"
-                  onClick={() => setStep(1)}
+                  onClick={() => {
+                    markInteraction();
+                    setStep(1);
+                  }}
                 >
                   Start →
                 </button>
@@ -128,16 +269,20 @@ export default function AIRecommendation() {
 
               <textarea
                 value={biggestProblem}
-                onChange={(e) =>
-                  setBiggestProblem(e.target.value)
-                }
+                onChange={(e) => {
+                  markInteraction();
+                  setBiggestProblem(e.target.value);
+                }}
                 placeholder="I get distracted easily and forget what I study..."
               />
 
               <div className="button-area">
                 <button
                   className="secondary-button"
-                  onClick={() => setStep(0)}
+                  onClick={() => {
+                    markInteraction();
+                    setStep(0);
+                  }}
                 >
                   ← Back
                 </button>
@@ -145,7 +290,10 @@ export default function AIRecommendation() {
                 <button
                   className="primary-button"
                   disabled={!biggestProblem.trim() || biggestProblem.length < 16 || biggestProblem.length > 300}
-                  onClick={() => setStep(2)}
+                  onClick={() => {
+                    markInteraction();
+                    setStep(2);
+                  }}
                 >
                   Continue →
                 </button>
@@ -170,16 +318,20 @@ export default function AIRecommendation() {
                 minLength="10" 
                 maxlength="300" 
                 value={methodQuestion}
-                onChange={(e) =>
-                  setMethodQuestion(e.target.value)
-                }
+                onChange={(e) => {
+                  markInteraction();
+                  setMethodQuestion(e.target.value);
+                }}
                 placeholder="Which study methods would work best for me?"
               />
 
               <div className="button-area">
                 <button
                   className="secondary-button"
-                  onClick={() => setStep(1)}
+                  onClick={() => {
+                    markInteraction();
+                    setStep(1);
+                  }}
                 >
                   ← Back
                 </button>
@@ -187,7 +339,10 @@ export default function AIRecommendation() {
                 <button
                   className="primary-button"
                   disabled={!methodQuestion.trim() || methodQuestion.length < 16 || methodQuestion.length > 300}
-                  onClick={() => setStep(3)}
+                  onClick={() => {
+                    markInteraction();
+                    setStep(3);
+                  }}
                 >
                   Continue →
                 </button>
@@ -211,16 +366,20 @@ export default function AIRecommendation() {
               <textarea
             
                 value={extraContext}
-                onChange={(e) =>
-                  setExtraContext(e.target.value)
-                }
+                onChange={(e) => {
+                  markInteraction();
+                  setExtraContext(e.target.value);
+                }}
                 placeholder="I mainly study from textbooks and videos..."
               />
 
               <div className="button-area">
                 <button
                   className="secondary-button"
-                  onClick={() => setStep(2)}
+                  onClick={() => {
+                    markInteraction();
+                    setStep(2);
+                  }}
                 >
                   ← Back
                 </button>
