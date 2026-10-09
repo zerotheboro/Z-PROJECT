@@ -80,9 +80,14 @@ export function resolvePaddleConfiguration(
     env.PADDLE_ENVIRONMENT
   ).toLowerCase();
   const missing = [];
+  const apiKeyPrefix = environment === "sandbox"
+    ? "pdl_sdbx_apikey_"
+    : environment === "production"
+      ? "pdl_live_apikey_"
+      : null;
 
-  if (!apiKey.includes("_sdbx_")) {
-    missing.push("PADDLE_API_KEY_SANDBOX");
+  if (!apiKeyPrefix || !apiKey.startsWith(apiKeyPrefix)) {
+    missing.push("PADDLE_API_KEY");
   }
   if (!webhookSecret.startsWith("pdl_ntfset_")) {
     missing.push("PADDLE_WEBHOOK_SECRET");
@@ -90,8 +95,11 @@ export function resolvePaddleConfiguration(
   if (!premiumPriceId.startsWith("pri_")) {
     missing.push("PADDLE_PREMIUM_PRICE_ID");
   }
-  if (environment !== "sandbox") {
-    missing.push("PADDLE_ENVIRONMENT_SANDBOX");
+  if (
+    environment !== "sandbox" &&
+    environment !== "production"
+  ) {
+    missing.push("PADDLE_ENVIRONMENT");
   }
 
   return {

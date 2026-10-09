@@ -655,7 +655,10 @@ export function createRecommendationApp({
   const resolvedPaddleClient = paddleClient ??
     (resolvedBillingConfig.available
       ? new Paddle(resolvedBillingConfig.apiKey, {
-          environment: Environment.sandbox
+          environment:
+            resolvedBillingConfig.environment === "production"
+              ? Environment.production
+              : Environment.sandbox
         })
       : null);
   const resolvedBillingRepository = billingRepository ??

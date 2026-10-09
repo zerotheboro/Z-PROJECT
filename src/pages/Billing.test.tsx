@@ -1,4 +1,5 @@
 import {
+  afterEach,
   beforeEach,
   describe,
   expect,
@@ -22,12 +23,9 @@ vi.mock("@paddle/paddle-js", () => ({
   initializePaddle: paddleMocks.initialize
 }));
 
-import {
-  openPaddleCheckout
-} from "../services/billing";
-
 describe("Paddle Checkout overlay", () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.stubEnv(
       "VITE_PADDLE_CLIENT_TOKEN",
       "test_client_token"
@@ -47,7 +45,14 @@ describe("Paddle Checkout overlay", () => {
     );
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("initializes Paddle sandbox once and opens server-created transactions", async () => {
+    const { openPaddleCheckout } = await import(
+      "../services/billing"
+    );
     const firstCompleted = vi.fn();
     const secondCompleted = vi.fn();
 
@@ -78,7 +83,60 @@ describe("Paddle Checkout overlay", () => {
     );
   });
 
+  it("initializes Paddle production with a live client token", async () => {
+    vi.stubEnv(
+      "VITE_PADDLE_CLIENT_TOKEN",
+      "live_client_token"
+    );
+    vi.stubEnv(
+      "VITE_PADDLE_ENVIRONMENT",
+      "production"
+    );
+    const { openPaddleCheckout } = await import(
+      "../services/billing"
+    );
+
+    await openPaddleCheckout(
+      "txn_production",
+      { onCompleted: vi.fn() }
+    );
+
+    expect(paddleMocks.initialize).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token: "live_client_token",
+        environment: "production",
+        eventCallback: expect.any(Function)
+      })
+    );
+  });
+
+  it.each([
+    ["live_client_token", "sandbox"],
+    ["test_client_token", "production"]
+  ])(
+    "rejects token %s in the %s environment",
+    async (token, environment) => {
+      vi.stubEnv("VITE_PADDLE_CLIENT_TOKEN", token);
+      vi.stubEnv("VITE_PADDLE_ENVIRONMENT", environment);
+      const { openPaddleCheckout } = await import(
+        "../services/billing"
+      );
+
+      await expect(openPaddleCheckout(
+        "txn_mismatch",
+        { onCompleted: vi.fn() }
+      )).rejects.toMatchObject({
+        name: "BillingClientError"
+      });
+      expect(paddleMocks.initialize)
+        .not.toHaveBeenCalled();
+    }
+  );
+
   it("treats frontend completion only as a confirmation callback", async () => {
+    const { openPaddleCheckout } = await import(
+      "../services/billing"
+    );
     const onCompleted = vi.fn();
 
     await openPaddleCheckout(

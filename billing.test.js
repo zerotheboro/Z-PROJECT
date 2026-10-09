@@ -176,7 +176,7 @@ function webhook(
 }
 
 describe("Paddle billing configuration", () => {
-  it("requires sandbox-only server configuration", () => {
+  it("accepts matching sandbox server configuration", () => {
     expect(resolvePaddleConfiguration({
       PADDLE_API_KEY:
         "pdl_sdbx_apikey_01234567890123456789012345_secret",
@@ -188,22 +188,39 @@ describe("Paddle billing configuration", () => {
       available: true,
       environment: "sandbox"
     });
+  });
 
+  it("accepts matching production server configuration", () => {
     expect(resolvePaddleConfiguration({
-      PADDLE_API_KEY: "pdl_live_apikey_secret",
-      PADDLE_WEBHOOK_SECRET: "",
-      PADDLE_PREMIUM_PRICE_ID: "price_wrong",
+      PADDLE_API_KEY:
+        "pdl_live_apikey_01234567890123456789012345_secret",
+      PADDLE_WEBHOOK_SECRET:
+        "pdl_ntfset_01234567890123456789012345_secret",
+      PADDLE_PREMIUM_PRICE_ID: PRICE_ID,
       PADDLE_ENVIRONMENT: "production"
     })).toMatchObject({
-      available: false,
-      missing: [
-        "PADDLE_API_KEY_SANDBOX",
-        "PADDLE_WEBHOOK_SECRET",
-        "PADDLE_PREMIUM_PRICE_ID",
-        "PADDLE_ENVIRONMENT_SANDBOX"
-      ]
+      available: true,
+      environment: "production"
     });
   });
+
+  it.each([
+    ["pdl_live_apikey_secret", "sandbox"],
+    ["pdl_sdbx_apikey_secret", "production"]
+  ])(
+    "rejects a %s key in the %s environment",
+    (apiKey, environment) => {
+      expect(resolvePaddleConfiguration({
+        PADDLE_API_KEY: apiKey,
+        PADDLE_WEBHOOK_SECRET: "pdl_ntfset_secret",
+        PADDLE_PREMIUM_PRICE_ID: PRICE_ID,
+        PADDLE_ENVIRONMENT: environment
+      })).toMatchObject({
+        available: false,
+        missing: ["PADDLE_API_KEY"]
+      });
+    }
+  );
 
   it("uses an explicit Premium status allowlist", () => {
     expect(isPaddlePremiumStatus("active")).toBe(true);

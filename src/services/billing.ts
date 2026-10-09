@@ -28,6 +28,11 @@ type ActiveCheckout = PaddleCheckoutCallbacks & {
   completed: boolean;
 };
 
+type PaddleClientConfiguration = {
+  token: string;
+  environment: "sandbox" | "production";
+};
+
 let paddlePromise: Promise<Paddle> | null = null;
 let activeCheckout: ActiveCheckout | null = null;
 
@@ -175,28 +180,50 @@ function handlePaddleEvent(event: PaddleEventData) {
   }
 }
 
+export function resolvePaddleClientConfiguration(
+  tokenValue: string | undefined,
+  environmentValue: string | undefined
+): PaddleClientConfiguration {
+  const token = tokenValue?.trim() ?? "";
+  const environment =
+    environmentValue?.trim().toLowerCase() ?? "";
+
+  if (
+    environment !== "sandbox" &&
+    environment !== "production"
+  ) {
+    throw new BillingClientError(
+      "Paddle Checkout is not configured."
+    );
+  }
+
+  const tokenPrefix = environment === "sandbox"
+    ? "test_"
+    : "live_";
+
+  if (!token.startsWith(tokenPrefix)) {
+    throw new BillingClientError(
+      "Paddle Checkout is not configured."
+    );
+  }
+
+  return { token, environment };
+}
+
 function getPaddle(): Promise<Paddle> {
   if (paddlePromise) {
     return paddlePromise;
   }
 
-  const token =
-    import.meta.env.VITE_PADDLE_CLIENT_TOKEN?.trim();
-  const environment =
-    import.meta.env.VITE_PADDLE_ENVIRONMENT?.trim();
-
-  if (
-    !token?.startsWith("test_") ||
-    environment !== "sandbox"
-  ) {
-    throw new BillingClientError(
-      "Paddle Checkout is not configured for sandbox."
+  const { token, environment } =
+    resolvePaddleClientConfiguration(
+      import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
+      import.meta.env.VITE_PADDLE_ENVIRONMENT
     );
-  }
 
   paddlePromise = initializePaddle({
     token,
-    environment: "sandbox",
+    environment,
     eventCallback: handlePaddleEvent
   }).then(paddle => {
     if (!paddle) {
