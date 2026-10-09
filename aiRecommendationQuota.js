@@ -9,7 +9,7 @@ import {
 } from "./trainingQuota.js";
 
 export const GUEST_AI_DAILY_LIMIT = 2;
-export const FREE_AI_DAILY_LIMIT = 7;
+export const FREE_AI_DAILY_LIMIT = 4;
 export const PREMIUM_AI_DAILY_LIMIT = 16;
 export const AI_QUOTA_TIMEZONE = "UTC";
 export const AI_DAILY_USAGE_COLLECTION =
