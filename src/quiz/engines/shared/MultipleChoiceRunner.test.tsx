@@ -92,6 +92,8 @@ function RunnerHarness({
       question={question}
       selectedAnswer={selectedAnswer}
       onSelect={setSelectedAnswer}
+      onBack={() => undefined}
+      backDisabled
       onNext={() => {
         if (selectedAnswer) {
           onFinish(selectedAnswer);
@@ -104,9 +106,13 @@ function RunnerHarness({
 }
 
 function QuestionSequenceHarness({
-  random
+  random,
+  onNext = () => undefined,
+  onBack = () => undefined
 }: {
   random: () => number;
+  onNext?: () => void;
+  onBack?: () => void;
 }) {
   const questions = [
     question,
@@ -121,26 +127,47 @@ function QuestionSequenceHarness({
   const currentQuestion =
     questions[questionIndex];
 
+  const score = scoreMultipleChoice(
+    questions,
+    answers
+  );
+
   return (
-    <MultipleChoiceRunner
-      question={currentQuestion}
-      selectedAnswer={
-        answers[currentQuestion.id]
-      }
-      onSelect={option =>
-        setAnswers(previous => ({
-          ...previous,
-          [currentQuestion.id]: option
-        }))
-      }
-      onNext={() =>
-        setQuestionIndex(previous =>
-          previous + 1
-        )
-      }
-      nextLabel="Next question"
-      random={random}
-    />
+    <>
+      <output aria-label="question index">
+        {questionIndex}
+      </output>
+      <output aria-label="current score">
+        {score.correct}
+      </output>
+      <MultipleChoiceRunner
+        question={currentQuestion}
+        selectedAnswer={
+          answers[currentQuestion.id]
+        }
+        onSelect={option =>
+          setAnswers(previous => ({
+            ...previous,
+            [currentQuestion.id]: option
+          }))
+        }
+        onBack={() => {
+          onBack();
+          setQuestionIndex(previous =>
+            Math.max(0, previous - 1)
+          );
+        }}
+        backDisabled={questionIndex === 0}
+        onNext={() => {
+          onNext();
+          setQuestionIndex(previous =>
+            previous + 1
+          );
+        }}
+        nextLabel="Next question"
+        random={random}
+      />
+    </>
   );
 }
 
@@ -336,6 +363,111 @@ describe("multiple-choice option shuffling", () => {
     );
     expect(authoredCorrectIndex).toBe(0);
     expect(displayedCorrectIndex).toBe(3);
+    expect(random).toHaveBeenCalledTimes(6);
+  });
+
+  it("makes Back unavailable on the first question", () => {
+    const onBack = vi.fn();
+
+    render(
+      <QuestionSequenceHarness
+        random={keepOrder}
+        onBack={onBack}
+      />
+    );
+
+    const backButton = screen.getByRole(
+      "button",
+      { name: "Back" }
+    );
+
+    expect(
+      (backButton as HTMLButtonElement)
+        .disabled
+    ).toBe(true);
+    fireEvent.click(backButton);
+    expect(onBack).not.toHaveBeenCalled();
+    expect(
+      screen.getByLabelText("question index")
+        .textContent
+    ).toBe("0");
+  });
+
+  it("returns one question without clearing the answer, score, or option order", () => {
+    const randomValues = [
+      0.999,
+      0.999,
+      0.999,
+      0,
+      0,
+      0
+    ];
+    const random = vi.fn(
+      () => randomValues.shift() ?? 0
+    );
+    const onNext = vi.fn();
+    const onBack = vi.fn();
+
+    render(
+      <QuestionSequenceHarness
+        random={random}
+        onNext={onNext}
+        onBack={onBack}
+      />
+    );
+
+    const firstOrder = renderedOptionOrder();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: question.correct
+      })
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Next question"
+      })
+    );
+
+    expect(
+      screen.getByLabelText("question index")
+        .textContent
+    ).toBe("1");
+    expect(onNext).toHaveBeenCalledTimes(1);
+    expect((screen.getByRole("button", {
+      name: "Back"
+    }) as HTMLButtonElement).disabled).toBe(
+      false
+    );
+
+    const scoreBeforeBack =
+      screen.getByLabelText("current score")
+        .textContent;
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Back"
+      })
+    );
+
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(onNext).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByLabelText("question index")
+        .textContent
+    ).toBe("0");
+    expect(
+      screen.getByLabelText("current score")
+        .textContent
+    ).toBe(scoreBeforeBack);
+    expect(screen.getByRole("button", {
+      name: question.correct
+    }).classList.contains("selected")).toBe(
+      true
+    );
+    expect(renderedOptionOrder()).toEqual(
+      firstOrder
+    );
     expect(random).toHaveBeenCalledTimes(6);
   });
 

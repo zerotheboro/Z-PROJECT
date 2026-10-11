@@ -228,6 +228,12 @@ function InterleavingMatch({
                 [currentPractice.id]: option
               }))
             }
+            onBack={() =>
+              setPracticeIndex(previous =>
+                Math.max(0, previous - 1)
+              )
+            }
+            backDisabled={practiceIndex === 0}
             onNext={nextPractice}
             nextLabel={
               practiceIndex ===
@@ -270,6 +276,12 @@ function InterleavingMatch({
                 [currentTest.id]: option
               }))
             }
+            onBack={() =>
+              setTestIndex(previous =>
+                Math.max(0, previous - 1)
+              )
+            }
+            backDisabled={testIndex === 0}
             onNext={nextTest}
             nextLabel={
               testIndex ===

@@ -33,6 +33,7 @@ function LeitnerSystemMatch({ method, data, originalScore, onComplete }: Props) 
     {stage === "recall" && <div><p>RECALL {practiceIndex + 1}{" / "}{data.practice.length}</p>
       <MultipleChoiceRunner question={currentPractice} selectedAnswer={practiceAnswers[currentPractice.id]}
         onSelect={(option) => setPracticeAnswers((previous) => ({ ...previous, [currentPractice.id]: option }))}
+        onBack={() => setPracticeIndex((value) => Math.max(0, value - 1))} backDisabled={practiceIndex === 0}
         onNext={() => practiceIndex < data.practice.length - 1 ? setPracticeIndex((value) => value + 1) : setStage("organize")}
         nextLabel={practiceIndex === data.practice.length - 1 ? "Organize levels" : "Next card"} /></div>}
     {stage === "organize" && <div><p>LEITNER LEVELS</p><h2>Review weak items before the final test.</h2>
@@ -41,11 +42,13 @@ function LeitnerSystemMatch({ method, data, originalScore, onComplete }: Props) 
     {stage === "retest" && currentRetest && <div><p>RETEST {retestIndex + 1}{" / "}{weakItems.length}</p>
       <MultipleChoiceRunner question={currentRetest} selectedAnswer={retestAnswers[currentRetest.id]}
         onSelect={(option) => setRetestAnswers((previous) => ({ ...previous, [currentRetest.id]: option }))}
+        onBack={() => setRetestIndex((value) => Math.max(0, value - 1))} backDisabled={retestIndex === 0}
         onNext={() => retestIndex < weakItems.length - 1 ? setRetestIndex((value) => value + 1) : setStage("test")}
         nextLabel={retestIndex === weakItems.length - 1 ? "Continue to final test" : "Next weak item"} /></div>}
     {stage === "test" && <div><p>VERIFICATION TEST</p><p>Question {testIndex + 1}{" / "}{data.test.length}</p>
       <MultipleChoiceRunner question={currentTest} selectedAnswer={testAnswers[currentTest.id]}
         onSelect={(option) => setTestAnswers((previous) => ({ ...previous, [currentTest.id]: option }))}
+        onBack={() => setTestIndex((value) => Math.max(0, value - 1))} backDisabled={testIndex === 0}
         onNext={() => testIndex < data.test.length - 1 ? setTestIndex((value) => value + 1) : setStage("confidence")}
         nextLabel={testIndex === data.test.length - 1 ? "Finish test" : "Next question"} /></div>}
     {stage === "confidence" && <div><VerificationConfidence prompt="How confident are you in what you remembered?" value={confidence} onChange={setConfidence} completeLabel="Complete verification" onComplete={finish} /></div>}

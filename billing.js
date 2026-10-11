@@ -29,6 +29,12 @@ const SUBSCRIPTION_EVENT_TYPES = new Set([
 const TRANSACTION_COMPLETED = "transaction.completed";
 const CREATION_LOCK_MS = 60_000;
 const PENDING_TRANSACTION_MS = 24 * 60 * 60 * 1000;
+const LEGACY_PADDLE_ENVIRONMENT = "sandbox";
+const PADDLE_NOT_FOUND_CODES = new Set([
+  "entity_not_found",
+  "not_found",
+  "resource_not_found"
+]);
 
 export class BillingConfigurationError extends Error {
   constructor(message = "Billing is unavailable") {
@@ -118,6 +124,58 @@ function snapshotData(snapshot) {
     : null;
 }
 
+function storedPaddleEnvironment(record) {
+  if (!record) {
+    return null;
+  }
+  if (record.paddleEnvironment === undefined) {
+    return LEGACY_PADDLE_ENVIRONMENT;
+  }
+  return record.paddleEnvironment === "sandbox" ||
+    record.paddleEnvironment === "production"
+    ? record.paddleEnvironment
+    : null;
+}
+
+function belongsToPaddleEnvironment(
+  record,
+  environment
+) {
+  return storedPaddleEnvironment(record) === environment;
+}
+
+function isPaddleEntityNotFound(error) {
+  const code = trimmed(error?.code).toLowerCase();
+  return PADDLE_NOT_FOUND_CODES.has(code) ||
+    code.endsWith("_not_found") ||
+    error?.status === 404 ||
+    error?.statusCode === 404;
+}
+
+function clearPaddleSubscriptionState() {
+  return {
+    paddleSubscriptionId: FieldValue.delete(),
+    paddlePriceId: FieldValue.delete(),
+    subscriptionStatus: FieldValue.delete(),
+    scheduledChange: FieldValue.delete(),
+    currentBillingPeriodEnd: FieldValue.delete(),
+    lastPaddleEventId: FieldValue.delete()
+  };
+}
+
+function clearPaddleEnvironmentState() {
+  return {
+    paddleCustomerId: FieldValue.delete(),
+    ...clearPaddleSubscriptionState(),
+    pendingTransactionId: FieldValue.delete(),
+    pendingTransactionCreatedAt: FieldValue.delete(),
+    customerProvisioningToken: FieldValue.delete(),
+    customerProvisioningStartedAt: FieldValue.delete(),
+    transactionProvisioningToken: FieldValue.delete(),
+    transactionProvisioningStartedAt: FieldValue.delete()
+  };
+}
+
 function references(firestore, uid, customerId) {
   return {
     billingAccount: firestore
@@ -181,7 +239,8 @@ function pendingIsCurrent(createdAt, nowValue) {
 }
 
 export function createFirebaseBillingRepository({
-  getFirestore
+  getFirestore,
+  environment = LEGACY_PADDLE_ENVIRONMENT
 }) {
   return {
     async getBillingAccount(uid) {
@@ -189,7 +248,13 @@ export function createFirebaseBillingRepository({
         .collection("billingAccounts")
         .doc(uid)
         .get();
-      return snapshotData(snapshot);
+      const account = snapshotData(snapshot);
+      return belongsToPaddleEnvironment(
+        account,
+        environment
+      )
+        ? account
+        : null;
     },
 
     async getCustomerMapping(customerId) {
@@ -197,7 +262,71 @@ export function createFirebaseBillingRepository({
         .collection("paddleCustomers")
         .doc(customerId)
         .get();
-      return snapshotData(snapshot);
+      const mapping = snapshotData(snapshot);
+      return belongsToPaddleEnvironment(
+        mapping,
+        environment
+      )
+        ? mapping
+        : null;
+    },
+
+    async clearStaleCustomerMapping(uid, customerId) {
+      const firestore = getFirestore();
+      const reference = firestore
+        .collection("billingAccounts")
+        .doc(uid);
+
+      return firestore.runTransaction(async transaction => {
+        const snapshot = await transaction.get(reference);
+        const account = snapshotData(snapshot);
+        if (
+          !belongsToPaddleEnvironment(account, environment) ||
+          account?.firebaseUid !== uid ||
+          account?.paddleCustomerId !== customerId
+        ) {
+          return false;
+        }
+
+        transaction.set(reference, {
+          ...clearPaddleEnvironmentState(),
+          firebaseUid: uid,
+          provider: "paddle",
+          paddleEnvironment: environment,
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+        return true;
+      });
+    },
+
+    async clearStaleSubscriptionMapping(
+      uid,
+      customerId,
+      subscriptionId
+    ) {
+      const firestore = getFirestore();
+      const reference = firestore
+        .collection("billingAccounts")
+        .doc(uid);
+
+      return firestore.runTransaction(async transaction => {
+        const snapshot = await transaction.get(reference);
+        const account = snapshotData(snapshot);
+        if (
+          !belongsToPaddleEnvironment(account, environment) ||
+          account?.firebaseUid !== uid ||
+          account?.paddleCustomerId !== customerId ||
+          account?.paddleSubscriptionId !== subscriptionId
+        ) {
+          return false;
+        }
+
+        transaction.set(reference, {
+          ...clearPaddleSubscriptionState(),
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+        return true;
+      });
     },
 
     async claimCustomerCreation(uid, token, nowValue) {
@@ -209,14 +338,16 @@ export function createFirebaseBillingRepository({
       return firestore.runTransaction(async transaction => {
         const snapshot = await transaction.get(reference);
         const account = snapshotData(snapshot);
+        const currentEnvironment =
+          belongsToPaddleEnvironment(account, environment);
 
-        if (account?.paddleCustomerId) {
+        if (currentEnvironment && account?.paddleCustomerId) {
           return {
             customerId: account.paddleCustomerId,
             claimed: false
           };
         }
-        if (lockIsCurrent(
+        if (currentEnvironment && lockIsCurrent(
           account?.customerProvisioningStartedAt,
           nowValue
         )) {
@@ -224,8 +355,12 @@ export function createFirebaseBillingRepository({
         }
 
         transaction.set(reference, {
+          ...(!currentEnvironment && account
+            ? clearPaddleEnvironmentState()
+            : {}),
           firebaseUid: uid,
           provider: "paddle",
+          paddleEnvironment: environment,
           customerProvisioningToken: token,
           customerProvisioningStartedAt: new Date(nowValue),
           updatedAt: FieldValue.serverTimestamp()
@@ -247,14 +382,20 @@ export function createFirebaseBillingRepository({
           ]);
         const account = snapshotData(accountSnapshot);
         const mapping = snapshotData(mappingSnapshot);
+        const currentAccountEnvironment =
+          belongsToPaddleEnvironment(account, environment);
+        const currentMappingEnvironment =
+          belongsToPaddleEnvironment(mapping, environment);
 
         if (
+          !currentAccountEnvironment ||
           account?.paddleCustomerId &&
           account.paddleCustomerId !== customerId
         ) {
           throw new BillingMappingError();
         }
         if (
+          currentMappingEnvironment &&
           mapping?.firebaseUid &&
           mapping.firebaseUid !== uid
         ) {
@@ -272,6 +413,7 @@ export function createFirebaseBillingRepository({
         transaction.set(refs.billingAccount, {
           firebaseUid: uid,
           provider: "paddle",
+          paddleEnvironment: environment,
           paddleCustomerId: customerId,
           customerProvisioningToken: FieldValue.delete(),
           customerProvisioningStartedAt: FieldValue.delete(),
@@ -279,6 +421,7 @@ export function createFirebaseBillingRepository({
         }, { merge: true });
         transaction.set(refs.customer, {
           firebaseUid: uid,
+          paddleEnvironment: environment,
           updatedAt: FieldValue.serverTimestamp()
         }, { merge: true });
 
@@ -286,6 +429,7 @@ export function createFirebaseBillingRepository({
           ...(account ?? {}),
           firebaseUid: uid,
           provider: "paddle",
+          paddleEnvironment: environment,
           paddleCustomerId: customerId
         };
       });
@@ -299,7 +443,10 @@ export function createFirebaseBillingRepository({
       await firestore.runTransaction(async transaction => {
         const snapshot = await transaction.get(reference);
         const account = snapshotData(snapshot);
-        if (account?.customerProvisioningToken !== token) {
+        if (
+          !belongsToPaddleEnvironment(account, environment) ||
+          account?.customerProvisioningToken !== token
+        ) {
           return;
         }
         transaction.set(reference, {
@@ -319,7 +466,10 @@ export function createFirebaseBillingRepository({
         const snapshot = await transaction.get(reference);
         const account = snapshotData(snapshot);
 
-        if (!account?.paddleCustomerId) {
+        if (
+          !belongsToPaddleEnvironment(account, environment) ||
+          !account?.paddleCustomerId
+        ) {
           throw new BillingMappingError();
         }
         if (
@@ -365,6 +515,7 @@ export function createFirebaseBillingRepository({
         const snapshot = await transaction.get(reference);
         const account = snapshotData(snapshot);
         if (
+          !belongsToPaddleEnvironment(account, environment) ||
           account?.paddleCustomerId !== customerId ||
           account?.transactionProvisioningToken !== token
         ) {
@@ -388,7 +539,10 @@ export function createFirebaseBillingRepository({
       await firestore.runTransaction(async transaction => {
         const snapshot = await transaction.get(reference);
         const account = snapshotData(snapshot);
-        if (account?.transactionProvisioningToken !== token) {
+        if (
+          !belongsToPaddleEnvironment(account, environment) ||
+          account?.transactionProvisioningToken !== token
+        ) {
           return;
         }
         transaction.set(reference, {
@@ -441,6 +595,7 @@ export function createFirebaseBillingRepository({
         );
 
         if (
+          !belongsToPaddleEnvironment(account, environment) ||
           account?.paddleCustomerId !== customerId ||
           account?.firebaseUid !== uid
         ) {
@@ -457,6 +612,7 @@ export function createFirebaseBillingRepository({
           ...billingState,
           firebaseUid: uid,
           provider: "paddle",
+          paddleEnvironment: environment,
           paddleCustomerId: customerId,
           pendingTransactionId: FieldValue.delete(),
           pendingTransactionCreatedAt: FieldValue.delete(),
@@ -538,20 +694,91 @@ export function createPaddleBillingService({
       const mapping = await repository.getCustomerMapping(
         account.paddleCustomerId
       );
-      if (mapping?.firebaseUid !== uid) {
+      if (mapping && mapping.firebaseUid !== uid) {
         throw new BillingMappingError();
       }
-      billingLog(
-        logger,
-        now,
-        "info",
-        "paddle_customer_reused",
-        {
-          firebase_uid: uid,
-          paddle_customer_id: account.paddleCustomerId
+
+      let customer;
+      if (!mapping) {
+        await repository.clearStaleCustomerMapping(
+          uid,
+          account.paddleCustomerId
+        );
+        billingLog(
+          logger,
+          now,
+          "warn",
+          "paddle_customer_reverse_mapping_stale",
+          {
+            firebase_uid: uid,
+            paddle_environment: config.environment,
+            paddle_customer_id: account.paddleCustomerId
+          }
+        );
+      } else {
+        try {
+          customer = await paddle.customers.get(
+            account.paddleCustomerId
+          );
+        } catch (error) {
+          if (!isPaddleEntityNotFound(error)) {
+            throw error;
+          }
+          await repository.clearStaleCustomerMapping(
+            uid,
+            account.paddleCustomerId
+          );
+          billingLog(
+            logger,
+            now,
+            "warn",
+            "paddle_customer_mapping_stale",
+            {
+              firebase_uid: uid,
+              paddle_environment: config.environment,
+              paddle_customer_id: account.paddleCustomerId
+            }
+          );
         }
-      );
-      return account.paddleCustomerId;
+      }
+
+      if (customer) {
+        const metadataUid =
+          customer.customData?.firebaseUid;
+        if (metadataUid && metadataUid !== uid) {
+          throw new BillingMappingError();
+        }
+        if (customer.status !== "archived") {
+          billingLog(
+            logger,
+            now,
+            "info",
+            "paddle_customer_reused",
+            {
+              firebase_uid: uid,
+              paddle_environment: config.environment,
+              paddle_customer_id: account.paddleCustomerId
+            }
+          );
+          return account.paddleCustomerId;
+        }
+
+        await repository.clearStaleCustomerMapping(
+          uid,
+          account.paddleCustomerId
+        );
+        billingLog(
+          logger,
+          now,
+          "warn",
+          "paddle_customer_mapping_archived",
+          {
+            firebase_uid: uid,
+            paddle_environment: config.environment,
+            paddle_customer_id: account.paddleCustomerId
+          }
+        );
+      }
     }
 
     if (!email) {
@@ -817,23 +1044,80 @@ export function createPaddleBillingService({
       const account = await repository.getBillingAccount(uid);
 
       if (account?.paddleSubscriptionId) {
-        const subscription = await paddle.subscriptions.get(
-          account.paddleSubscriptionId
-        );
-        if (
-          isPaddlePremiumStatus(subscription.status) &&
-          priceMatches(
-            subscription.items,
-            config.premiumPriceId
-          )
-        ) {
-          throw new BillingRequestError(
-            "A Paddle subscription already exists. Use Manage subscription.",
+        let subscription;
+        try {
+          subscription = await paddle.subscriptions.get(
+            account.paddleSubscriptionId
+          );
+        } catch (error) {
+          if (!isPaddleEntityNotFound(error)) {
+            throw error;
+          }
+          await repository.clearStaleSubscriptionMapping(
+            uid,
+            account.paddleCustomerId,
+            account.paddleSubscriptionId
+          );
+          billingLog(
+            logger,
+            now,
+            "warn",
+            "paddle_subscription_mapping_stale",
             {
-              code: "paddle_subscription_exists",
-              status: 409
+              firebase_uid: uid,
+              paddle_environment: config.environment,
+              paddle_customer_id:
+                account.paddleCustomerId ?? null,
+              paddle_subscription_id:
+                account.paddleSubscriptionId
             }
           );
+        }
+
+        if (subscription) {
+          const metadataUid =
+            subscription.customData?.firebaseUid;
+          const mappingMatches =
+            subscription.customerId ===
+              account.paddleCustomerId &&
+            (!metadataUid || metadataUid === uid);
+
+          if (!mappingMatches) {
+            await repository.clearStaleSubscriptionMapping(
+              uid,
+              account.paddleCustomerId,
+              account.paddleSubscriptionId
+            );
+            billingLog(
+              logger,
+              now,
+              "error",
+              "paddle_subscription_mapping_stale",
+              {
+                severity: "high",
+                firebase_uid: uid,
+                paddle_environment: config.environment,
+                paddle_customer_id:
+                  account.paddleCustomerId ?? null,
+                paddle_subscription_id:
+                  account.paddleSubscriptionId
+              }
+            );
+          } else if (
+            isPaddlePremiumStatus(subscription.status) &&
+            priceMatches(
+              subscription.items,
+              config.premiumPriceId
+            )
+          ) {
+            throw new BillingRequestError(
+              "A Paddle subscription already exists. Use Manage subscription.",
+              {
+                code: "paddle_subscription_exists",
+                status: 409
+              }
+            );
+          }
         }
       }
 

@@ -141,9 +141,9 @@ function createAIRecommendationQuotaManager() {
       timezone: "UTC"
     }),
     consume: vi.fn().mockResolvedValue({
-      limit: 7,
+      limit: 4,
       used: 1,
-      remaining: 6,
+      remaining: 3,
       plan: "free",
       dayKey: "2026-09-25",
       timezone: "UTC"
@@ -567,8 +567,8 @@ describe("recommendation backend safety", () => {
     expect(await response.json()).toEqual({
       error: "Daily recommendation limit reached",
       code: "ai_daily_quota_exceeded",
-      limit: 7,
-      used: 7,
+      limit: 4,
+      used: 4,
       remaining: 0,
       plan: "free",
       dayKey: "2026-09-25",
@@ -600,7 +600,7 @@ describe("recommendation backend safety", () => {
 
     const response = await postRecommendation(
       baseUrl,
-      { plan: "premium", limit: 16, used: 0 },
+      { plan: "premium", limit: 10, used: 0 },
       { "X-Forwarded-For": "203.0.113.77" }
     );
 
@@ -922,9 +922,9 @@ describe("AI recommendation access endpoint", () => {
       createAIRecommendationQuotaManager();
     aiRecommendationQuotaManager.getAccess
       .mockResolvedValue({
-        limit: 16,
+        limit: 10,
         used: 5,
-        remaining: 11,
+        remaining: 5,
         plan: "premium",
         dayKey: "2026-09-25",
         timezone: "UTC"
@@ -948,9 +948,9 @@ describe("AI recommendation access endpoint", () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
-      limit: 16,
+      limit: 10,
       used: 5,
-      remaining: 11,
+      remaining: 5,
       plan: "premium"
     });
     expect(aiRecommendationQuotaManager.getAccess)

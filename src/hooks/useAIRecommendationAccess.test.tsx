@@ -49,8 +49,8 @@ function access(plan: "guest" | "free" | "premium") {
   const limit = plan === "guest"
     ? 2
     : plan === "premium"
-      ? 16
-      : 7;
+      ? 10
+      : 4;
 
   return {
     plan,
@@ -95,10 +95,10 @@ describe("useAIRecommendationAccess identity isolation", () => {
     second.resolve(access("free"));
 
     await waitFor(() => {
-      expect(screen.getByText("user-b:free:7"))
+      expect(screen.getByText("user-b:free:4"))
         .toBeTruthy();
     });
-    expect(screen.queryByText("user-a:premium:16"))
+    expect(screen.queryByText("user-a:premium:10"))
       .toBeNull();
   });
 
@@ -109,7 +109,7 @@ describe("useAIRecommendationAccess identity isolation", () => {
     render(<Probe />);
 
     mocks.authCallback?.({ uid: "user-a" } as User);
-    await screen.findByText("user-a:premium:16");
+    await screen.findByText("user-a:premium:10");
     mocks.authCallback?.(null);
 
     expect(await screen.findByText("guest:guest:2"))

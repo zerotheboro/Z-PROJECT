@@ -1,8 +1,8 @@
 import type { User } from "firebase/auth";
 
 export const GUEST_AI_RECOMMENDATION_LIMIT = 2;
-export const FREE_AI_RECOMMENDATION_LIMIT = 7;
-export const PREMIUM_AI_RECOMMENDATION_LIMIT = 16;
+export const FREE_AI_RECOMMENDATION_LIMIT = 4;
+export const PREMIUM_AI_RECOMMENDATION_LIMIT = 10;
 
 const DEFAULT_API_BASE =
   "https://z-project-ba3t.onrender.com";

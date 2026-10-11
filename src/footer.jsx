@@ -49,7 +49,7 @@ function Footer(){
                 <a href='https://forms.gle/dfjrofp26qWphvJK7' target='_blank'><img src={SURVEY}></img></a>
             </span>
             <span>
-                <h1>Your privacy policy</h1>
+                <h1>Your legal policy</h1>
                 <a href='/privacy-policy.html' target='_blank'><img src={PRIVATE}></img></a>
             </span>
             <span>

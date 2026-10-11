@@ -25,6 +25,12 @@ import {
   useTrainingStreak
 } from "../hooks/useTrainingStreak";
 
+import {
+  FREE_AI_RECOMMENDATION_LIMIT,
+  GUEST_AI_RECOMMENDATION_LIMIT,
+  PREMIUM_AI_RECOMMENDATION_LIMIT
+} from "../services/aiRecommendationAccess";
+
 import NAV from "../HEADER/header";
 
 import DiscardTrainingDialog
@@ -357,10 +363,10 @@ function Training() {
         aiRecommendationsLimit={
           aiRecommendationAccess.access?.limit
             ?? (trainingAccess.unlimited
-              ? 16
+              ? PREMIUM_AI_RECOMMENDATION_LIMIT
               : trainingAccess.user
-                ? 7
-                : 2)
+                ? FREE_AI_RECOMMENDATION_LIMIT
+                : GUEST_AI_RECOMMENDATION_LIMIT)
         }
         billingBusy={billingBusy}
         billingError={billingError}

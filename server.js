@@ -663,7 +663,8 @@ export function createRecommendationApp({
       : null);
   const resolvedBillingRepository = billingRepository ??
     createFirebaseBillingRepository({
-      getFirestore: getFirebaseAdminFirestore
+      getFirestore: getFirebaseAdminFirestore,
+      environment: resolvedBillingConfig.environment
     });
   const billing = billingService ??
     createPaddleBillingService({

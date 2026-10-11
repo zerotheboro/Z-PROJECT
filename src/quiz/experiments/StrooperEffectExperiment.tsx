@@ -143,6 +143,12 @@ function StrooperEffectExperiment({
               [current.id]: option
             }))
           }
+          onBack={() =>
+            setIndex(value =>
+              Math.max(0, value - 1)
+            )
+          }
+          backDisabled={index === 0}
           onNext={() =>
             index < data.questions.length - 1
               ? setIndex(value => value + 1)

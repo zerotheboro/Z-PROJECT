@@ -161,7 +161,7 @@ describe("server-authoritative AI recommendation quota", () => {
       );
   });
 
-  it("allows seven signed-in Free successes and blocks the eighth", async () => {
+  it("allows four signed-in Free successes and blocks the fifth", async () => {
     const { manager } = setup();
     const identity = { uid: "free-user" };
 
@@ -170,8 +170,8 @@ describe("server-authoritative AI recommendation quota", () => {
     await expect(manager.getAccess(identity))
       .resolves.toMatchObject({
         plan: "free",
-        limit: 7,
-        used: 7,
+        limit: 4,
+        used: 4,
         remaining: 0
       });
     await expect(manager.consume(identity))
@@ -181,7 +181,7 @@ describe("server-authoritative AI recommendation quota", () => {
   });
 
   it.each(["manual", "paddle"])(
-    "allows sixteen %s Premium successes and blocks the seventeenth",
+    "allows ten %s Premium successes and blocks the eleventh",
     async source => {
       const { firestore, manager } = setup();
       const uid = `${source}-premium-user`;
@@ -201,8 +201,8 @@ describe("server-authoritative AI recommendation quota", () => {
       await expect(manager.getAccess(identity))
         .resolves.toMatchObject({
           plan: "premium",
-          limit: 16,
-          used: 16,
+          limit: 10,
+          used: 10,
           remaining: 0
         });
       await expect(manager.consume(identity))
@@ -224,9 +224,9 @@ describe("server-authoritative AI recommendation quota", () => {
       uid: "expired-user"
     })).resolves.toMatchObject({
       plan: "free",
-      limit: 7,
+      limit: 4,
       used: 0,
-      remaining: 7
+      remaining: 4
     });
   });
 
@@ -242,7 +242,7 @@ describe("server-authoritative AI recommendation quota", () => {
         dayKey: "2026-10-09",
         timezone: "UTC",
         used: 0,
-        remaining: 7
+        remaining: 4
       });
   });
 

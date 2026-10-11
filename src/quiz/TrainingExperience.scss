@@ -542,13 +542,14 @@
 
 
   .method-picker-groups {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-3) 0;
 
-    display: grid;
-
-    gap: var(--space-4);
-
-    margin: var(--space-3) 0;
-  }
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
 
 
   .method-picker-group {
@@ -676,13 +677,12 @@
 
 
   .method-picker-actions {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    gap: var(--space-1);
-  }
+  position: sticky;
+  bottom: 0;
+  background: inherit;
+  padding-top: var(--space-3);
+  z-index: 2;
+}
 
 
   .method-picker-actions .secondary-action {
@@ -1226,7 +1226,7 @@ a.nav-logo h3{
 
     display: grid;
 
-    grid-template-columns:
+    grid-template-rows:
       1.12fr
       1.5fr;
 
@@ -2089,6 +2089,12 @@ a.nav-logo h3{
 
 .training-dialog h2 {
   margin-top: 0;
+}
+
+.training-dialog img {
+  height: var(--space-5);
+  margin: var(--space-1) auto ;
+  
 }
 
 .training-draft-error {

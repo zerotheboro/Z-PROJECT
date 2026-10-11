@@ -45,6 +45,16 @@ function page(items = []) {
   };
 }
 
+function paddleNotFound(resource, id) {
+  return Object.assign(
+    new Error(`${resource} ${id} not found`),
+    {
+      type: "request_error",
+      code: "entity_not_found"
+    }
+  );
+}
+
 function subscription(overrides = {}) {
   return {
     id: SUBSCRIPTION_ID,
@@ -67,6 +77,11 @@ function subscription(overrides = {}) {
 function paddle(overrides = {}) {
   return {
     customers: {
+      get: vi.fn().mockResolvedValue({
+        id: CUSTOMER_ID,
+        status: "active",
+        customData: { firebaseUid: "user-a" }
+      }),
       list: vi.fn(() => page()),
       create: vi.fn().mockResolvedValue({
         id: CUSTOMER_ID,
@@ -118,6 +133,10 @@ function repository(overrides = {}) {
     getCustomerMapping: vi.fn().mockResolvedValue({
       firebaseUid: "user-a"
     }),
+    clearStaleCustomerMapping:
+      vi.fn().mockResolvedValue(true),
+    clearStaleSubscriptionMapping:
+      vi.fn().mockResolvedValue(true),
     claimCustomerCreation: vi.fn().mockResolvedValue({
       claimed: true,
       token: "lock-token"
@@ -363,6 +382,7 @@ describe("Paddle Checkout transaction creation", () => {
     };
     const paddleClient = paddle({
       customers: {
+        get: vi.fn().mockResolvedValue(recovered),
         list: vi.fn(() => page([recovered])),
         create: vi.fn()
       }
@@ -449,6 +469,352 @@ describe("Paddle Checkout transaction creation", () => {
       .not.toHaveBeenCalled();
     expect(setup.repository.releaseTransactionCreation)
       .toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      label: "Sandbox to Production",
+      fromEnvironment: "sandbox",
+      toEnvironment: "production",
+      legacySource: true
+    },
+    {
+      label: "Production to Sandbox",
+      fromEnvironment: "production",
+      toEnvironment: "sandbox",
+      legacySource: false
+    }
+  ])(
+    "recovers the active Paddle mapping when switching $label",
+    async ({
+      fromEnvironment,
+      toEnvironment,
+      legacySource
+    }) => {
+      const firestore = new FakeFirestore();
+      const staleCustomerId =
+        `ctm_${fromEnvironment}`;
+      const activeCustomerId =
+        `ctm_${toEnvironment}`;
+      const staleAccount = {
+        firebaseUid: "user-a",
+        provider: "paddle",
+        paddleCustomerId: staleCustomerId,
+        paddleSubscriptionId:
+          `sub_${fromEnvironment}`,
+        paddlePriceId: `pri_${fromEnvironment}`,
+        subscriptionStatus: "active",
+        pendingTransactionId:
+          `txn_${fromEnvironment}`,
+        pendingTransactionCreatedAt: new Date(NOW)
+      };
+      const staleMapping = {
+        firebaseUid: "user-a"
+      };
+
+      if (!legacySource) {
+        staleAccount.paddleEnvironment =
+          fromEnvironment;
+        staleMapping.paddleEnvironment =
+          fromEnvironment;
+      }
+
+      firestore.seed(
+        "billingAccounts/user-a",
+        staleAccount
+      );
+      firestore.seed(
+        `paddleCustomers/${staleCustomerId}`,
+        staleMapping
+      );
+      const preservedEntitlement = {
+        plan: "premium",
+        source: "paddle",
+        validUntil: null
+      };
+      firestore.seed(
+        "users/user-a/entitlements/current",
+        preservedEntitlement
+      );
+      firestore.seed("users/user-a/profile/current", {
+        learningProfile: "preserved"
+      });
+
+      const paddleClient = paddle();
+      paddleClient.customers.list.mockReturnValue(page([{
+        id: activeCustomerId,
+        customData: { firebaseUid: "user-a" }
+      }]));
+      paddleClient.subscriptions.list.mockReturnValue(
+        page([])
+      );
+      paddleClient.transactions.list.mockReturnValue(
+        page([])
+      );
+      const repo = createFirebaseBillingRepository({
+        getFirestore: () => firestore,
+        environment: toEnvironment
+      });
+      const setup = service({
+        paddle: paddleClient,
+        repository: repo,
+        config: {
+          ...config(),
+          environment: toEnvironment
+        }
+      });
+
+      await expect(setup.billing.createCheckoutTransaction({
+        uid: "user-a",
+        email: "verified@example.com"
+      })).resolves.toEqual({
+        transactionId: "txn_created"
+      });
+
+      expect(paddleClient.subscriptions.get)
+        .not.toHaveBeenCalled();
+      expect(paddleClient.customers.get)
+        .not.toHaveBeenCalled();
+      expect(paddleClient.customers.create)
+        .not.toHaveBeenCalled();
+      expect(paddleClient.transactions.create)
+        .toHaveBeenCalledWith(expect.objectContaining({
+          customerId: activeCustomerId
+        }));
+      expect(firestore.read(
+        "billingAccounts/user-a"
+      )).toMatchObject({
+        firebaseUid: "user-a",
+        paddleEnvironment: toEnvironment,
+        paddleCustomerId: activeCustomerId,
+        pendingTransactionId: "txn_created"
+      });
+      expect(firestore.read(
+        "billingAccounts/user-a"
+      )).not.toHaveProperty("paddleSubscriptionId");
+      expect(firestore.read(
+        `paddleCustomers/${activeCustomerId}`
+      )).toMatchObject({
+        firebaseUid: "user-a",
+        paddleEnvironment: toEnvironment
+      });
+      expect(firestore.read(
+        `paddleCustomers/${staleCustomerId}`
+      )).toMatchObject(staleMapping);
+      expect(firestore.read(
+        "users/user-a/entitlements/current"
+      )).toEqual(preservedEntitlement);
+      expect(firestore.read(
+        "users/user-a/profile/current"
+      )).toEqual({ learningProfile: "preserved" });
+    }
+  );
+
+  it("continues reusing a correct-environment mapping", async () => {
+    const firestore = new FakeFirestore();
+    firestore.seed("billingAccounts/user-a", {
+      firebaseUid: "user-a",
+      provider: "paddle",
+      paddleEnvironment: "sandbox",
+      paddleCustomerId: CUSTOMER_ID
+    });
+    firestore.seed(`paddleCustomers/${CUSTOMER_ID}`, {
+      firebaseUid: "user-a",
+      paddleEnvironment: "sandbox"
+    });
+    const paddleClient = paddle();
+    const setup = service({
+      paddle: paddleClient,
+      repository: createFirebaseBillingRepository({
+        getFirestore: () => firestore,
+        environment: "sandbox"
+      })
+    });
+
+    await expect(setup.billing.createCheckoutTransaction({
+      uid: "user-a",
+      email: "verified@example.com"
+    })).resolves.toEqual({
+      transactionId: "txn_created"
+    });
+
+    expect(paddleClient.customers.get)
+      .toHaveBeenCalledWith(CUSTOMER_ID);
+    expect(paddleClient.customers.list)
+      .not.toHaveBeenCalled();
+    expect(paddleClient.customers.create)
+      .not.toHaveBeenCalled();
+    expect(paddleClient.transactions.create)
+      .toHaveBeenCalledWith(expect.objectContaining({
+        customerId: CUSTOMER_ID
+      }));
+    expect(firestore.read(
+      "billingAccounts/user-a"
+    )).toMatchObject({
+      paddleEnvironment: "sandbox",
+      paddleCustomerId: CUSTOMER_ID,
+      pendingTransactionId: "txn_created"
+    });
+  });
+
+  it("recovers an active-environment stale customer ID", async () => {
+    const staleCustomerId = "ctm_stale";
+    const recoveredCustomerId = "ctm_recovered";
+    const firestore = new FakeFirestore();
+    firestore.seed("billingAccounts/user-a", {
+      firebaseUid: "user-a",
+      provider: "paddle",
+      paddleEnvironment: "production",
+      paddleCustomerId: staleCustomerId,
+      pendingTransactionId: "txn_stale",
+      pendingTransactionCreatedAt: new Date(NOW)
+    });
+    firestore.seed(`paddleCustomers/${staleCustomerId}`, {
+      firebaseUid: "user-a",
+      paddleEnvironment: "production"
+    });
+    const preservedEntitlement = {
+      plan: "premium",
+      source: "manual",
+      validUntil: null
+    };
+    firestore.seed(
+      "users/user-a/entitlements/current",
+      preservedEntitlement
+    );
+
+    const paddleClient = paddle({
+      customers: {
+        get: vi.fn().mockRejectedValue(
+          paddleNotFound("Customer", staleCustomerId)
+        ),
+        list: vi.fn(() => page([{
+          id: recoveredCustomerId,
+          status: "active",
+          customData: { firebaseUid: "user-a" }
+        }])),
+        create: vi.fn()
+      }
+    });
+    const setup = service({
+      paddle: paddleClient,
+      repository: createFirebaseBillingRepository({
+        getFirestore: () => firestore,
+        environment: "production"
+      }),
+      config: {
+        ...config(),
+        environment: "production"
+      }
+    });
+
+    await expect(setup.billing.createCheckoutTransaction({
+      uid: "user-a",
+      email: "verified@example.com"
+    })).resolves.toEqual({
+      transactionId: "txn_created"
+    });
+
+    expect(paddleClient.customers.get)
+      .toHaveBeenCalledWith(staleCustomerId);
+    expect(paddleClient.customers.create)
+      .not.toHaveBeenCalled();
+    expect(paddleClient.transactions.create)
+      .toHaveBeenCalledWith(expect.objectContaining({
+        customerId: recoveredCustomerId
+      }));
+    expect(firestore.read(
+      "billingAccounts/user-a"
+    )).toMatchObject({
+      firebaseUid: "user-a",
+      paddleEnvironment: "production",
+      paddleCustomerId: recoveredCustomerId,
+      pendingTransactionId: "txn_created"
+    });
+    expect(firestore.read(
+      `paddleCustomers/${staleCustomerId}`
+    )).toMatchObject({
+      firebaseUid: "user-a",
+      paddleEnvironment: "production"
+    });
+    expect(firestore.read(
+      "users/user-a/entitlements/current"
+    )).toEqual(preservedEntitlement);
+  });
+
+  it("clears a stale subscription ID and continues Checkout", async () => {
+    const staleSubscriptionId = "sub_stale";
+    const firestore = new FakeFirestore();
+    firestore.seed("billingAccounts/user-a", {
+      firebaseUid: "user-a",
+      provider: "paddle",
+      paddleEnvironment: "production",
+      paddleCustomerId: CUSTOMER_ID,
+      paddleSubscriptionId: staleSubscriptionId,
+      paddlePriceId: PRICE_ID,
+      subscriptionStatus: "active"
+    });
+    firestore.seed(`paddleCustomers/${CUSTOMER_ID}`, {
+      firebaseUid: "user-a",
+      paddleEnvironment: "production"
+    });
+    const preservedEntitlement = {
+      plan: "premium",
+      source: "manual",
+      validUntil: null
+    };
+    firestore.seed(
+      "users/user-a/entitlements/current",
+      preservedEntitlement
+    );
+
+    const paddleClient = paddle({
+      subscriptions: {
+        get: vi.fn().mockRejectedValue(
+          paddleNotFound(
+            "Subscription",
+            staleSubscriptionId
+          )
+        ),
+        list: vi.fn(() => page())
+      }
+    });
+    const setup = service({
+      paddle: paddleClient,
+      repository: createFirebaseBillingRepository({
+        getFirestore: () => firestore,
+        environment: "production"
+      }),
+      config: {
+        ...config(),
+        environment: "production"
+      }
+    });
+
+    await expect(setup.billing.createCheckoutTransaction({
+      uid: "user-a",
+      email: "verified@example.com"
+    })).resolves.toEqual({
+      transactionId: "txn_created"
+    });
+
+    expect(paddleClient.subscriptions.get)
+      .toHaveBeenCalledWith(staleSubscriptionId);
+    expect(paddleClient.customers.get)
+      .toHaveBeenCalledWith(CUSTOMER_ID);
+    expect(paddleClient.transactions.create)
+      .toHaveBeenCalledWith(expect.objectContaining({
+        customerId: CUSTOMER_ID
+      }));
+    expect(firestore.read(
+      "billingAccounts/user-a"
+    )).not.toHaveProperty("paddleSubscriptionId");
+    expect(firestore.read(
+      "billingAccounts/user-a"
+    )).not.toHaveProperty("subscriptionStatus");
+    expect(firestore.read(
+      "users/user-a/entitlements/current"
+    )).toEqual(preservedEntitlement);
   });
 });
 
@@ -851,10 +1217,15 @@ class FakeFirestore {
         const current = options?.merge
           ? this.read(reference.path) ?? {}
           : {};
-        this.documents.set(reference.path, {
-          ...current,
-          ...data
-        });
+        const next = { ...current };
+        for (const [key, value] of Object.entries(data)) {
+          if (value?.constructor?.name === "DeleteTransform") {
+            delete next[key];
+          } else {
+            next[key] = value;
+          }
+        }
+        this.documents.set(reference.path, next);
       }
       return result;
     });

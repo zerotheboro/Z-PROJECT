@@ -17,7 +17,6 @@ function Library() {
 const [show, setShow] = useState<Record<string, boolean>>({});
 
   const [customize_list, setCustomize_list] = useState(loadcustomized_user_list())
-  const [VNLanguage, setVNLanguage] = useState(false)
 
   const list_of_tips = get_list_of_tips(customize_list, setCustomize_list);
 
@@ -31,7 +30,7 @@ const [show, setShow] = useState<Record<string, boolean>>({});
     if(section){
       section.scrollIntoView({behavior: "smooth"})
     }
-  },[show, VNLanguage])
+  },[show])
 
   function Renderassets(
     format = "string",
@@ -105,9 +104,7 @@ const list_of_tips_JSX = list_of_tips.map((each_section) => {
         </span>
 
         <div className="strategy-collection__introduction">
-          {VNLanguage === false
-            ? each_section.introduction.eng
-            : each_section.introduction.vn}
+          {each_section.introduction.eng}
         </div>
 
         <div className="strategy-collection__count">
@@ -123,15 +120,8 @@ const list_of_tips_JSX = list_of_tips.map((each_section) => {
 
       <div className="strategy-list">
         {each_section.list.map((the_tip, idx) => {
-          const title =
-            VNLanguage === false
-              ? the_tip.header.eng
-              : the_tip.header.vn;
-
-          const paragraph =
-            VNLanguage === false
-              ? the_tip.paragraph.eng
-              : the_tip.paragraph.vn;
+          const title = the_tip.header.eng;
+          const paragraph = the_tip.paragraph.eng;
 
           const hasAudio =
             the_tip.audio !== false &&

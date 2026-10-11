@@ -17,8 +17,8 @@ function access(plan: "guest" | "free" | "premium") {
   const limit = plan === "guest"
     ? 2
     : plan === "premium"
-      ? 16
-      : 7;
+      ? 10
+      : 4;
 
   return {
     limit,
@@ -83,7 +83,7 @@ describe("AI recommendation access client", () => {
   it("rejects malformed or internally inconsistent access data", () => {
     expect(validateAIRecommendationAccess({
       ...access("free"),
-      remaining: 7
+      remaining: 4
     })).toBeNull();
     expect(validateAIRecommendationAccess({
       ...access("premium"),

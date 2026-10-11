@@ -279,9 +279,9 @@ describe("training entry choices", () => {
     accessMocks.state.testMeRemaining = 0;
     accessMocks.state.manualMethodsUsed = 2;
     accessMocks.state.manualMethodsRemaining = 1;
-    aiAccessMocks.state.access.limit = 7;
+    aiAccessMocks.state.access.limit = 4;
     aiAccessMocks.state.access.used = 3;
-    aiAccessMocks.state.access.remaining = 4;
+    aiAccessMocks.state.access.remaining = 1;
     aiAccessMocks.state.access.plan = "free";
 
     renderTraining();
@@ -291,7 +291,7 @@ describe("training entry choices", () => {
       .toBeTruthy();
     expect(screen.getByText("2 / 3 used today"))
       .toBeTruthy();
-    expect(screen.getByText("3 / 7 used today"))
+    expect(screen.getByText("3 / 4 used today"))
       .toBeTruthy();
     expect((screen.getByRole("button", {
       name: "Daily Test Me used"
@@ -305,9 +305,9 @@ describe("training entry choices", () => {
     accessMocks.state.unlimited = true;
     accessMocks.state.testMeRemaining = null;
     accessMocks.state.manualMethodsRemaining = null;
-    aiAccessMocks.state.access.limit = 16;
+    aiAccessMocks.state.access.limit = 10;
     aiAccessMocks.state.access.used = 5;
-    aiAccessMocks.state.access.remaining = 11;
+    aiAccessMocks.state.access.remaining = 5;
     aiAccessMocks.state.access.plan = "premium";
 
     renderTraining();
@@ -318,7 +318,7 @@ describe("training entry choices", () => {
     expect(screen.getAllByText("Unlimited", {
       selector: "strong"
     })).toHaveLength(2);
-    expect(screen.getByText("5 / 16 used today"))
+    expect(screen.getByText("5 / 10 used today"))
       .toBeTruthy();
   });
 

@@ -171,8 +171,8 @@ function quotaResponse(
   const limit = plan === "guest"
     ? 2
     : plan === "premium"
-      ? 16
-      : 7;
+      ? 10
+      : 4;
 
   return new Response(JSON.stringify({
     limit,

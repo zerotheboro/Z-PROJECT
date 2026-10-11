@@ -1,5 +1,5 @@
 
-import react, {useState, useEffect} from "react";
+import React, {useState, useEffect} from "react";
 import Table from "./TABLE.jsx";
 import { get_list_of_tips, loadcustomized_user_list, Customize} from "./info_every_tips.jsx";
 import animation_of_each_tip from "./SCROLL_function.jsx";
@@ -7,10 +7,17 @@ import NAV from '../HEADER/header.jsx';
 import Footer from "../footer.jsx";
 import AIRecommendation from "./AIRecomendation.jsx";
 import LOGO from "../../public/LOGO.png";
+import Premium from "../image/premium.png"
 import "./Library.scss" ;
 import {
   Link
 } from "react-router-dom";
+import {
+  createCheckoutTransaction,
+  openPaddleCheckout
+} from "../services/billing";
+import { useTrainingAccess } from "../hooks/useTrainingAccess";
+
 
 
 export default function Tips(props) {
@@ -18,9 +25,12 @@ export default function Tips(props) {
   const [show, setShow] = useState({});
 
   const [customize_list, setCustomize_list] = useState(loadcustomized_user_list())
-  const [VNLanguage, setVNLanguage] = useState(false)
+  const [billingBusy, setBillingBusy] = useState(false)
+  const [billingError, setBillingError] = useState(null)
 
   const list_of_tips = get_list_of_tips(customize_list, setCustomize_list);
+
+  const trainingAccess = useTrainingAccess()
 
   useEffect(() => {  
     const section_id = Object.keys(show).find(section => show[section] === true)
@@ -30,7 +40,7 @@ export default function Tips(props) {
     if(section){
       section.scrollIntoView({behavior: "smooth"})
     }
-  },[show, VNLanguage])
+  },[show])
 
  function Renderassets(format, source, alt = "") {
 
@@ -101,9 +111,7 @@ const list_of_tips_JSX = list_of_tips.map((each_section) => {
         </span>
 
         <div className="strategy-collection__introduction">
-          {VNLanguage === false
-            ? each_section.introduction.eng
-            : each_section.introduction.vn}
+          {each_section.introduction.eng}
         </div>
 
         <div className="strategy-collection__count">
@@ -119,15 +127,8 @@ const list_of_tips_JSX = list_of_tips.map((each_section) => {
 
       <div className="strategy-list">
         {each_section.list.map((the_tip, idx) => {
-          const title =
-            VNLanguage === false
-              ? the_tip.header.eng
-              : the_tip.header.vn;
-
-          const paragraph =
-            VNLanguage === false
-              ? the_tip.paragraph.eng
-              : the_tip.paragraph.vn;
+          const title = the_tip.header.eng;
+          const paragraph = the_tip.paragraph.eng;
 
           const hasAudio =
             the_tip.audio !== false &&
@@ -221,6 +222,48 @@ const list_of_tips_JSX = list_of_tips.map((each_section) => {
   );
 });
 
+const handleUpgrade = async () => {
+  if (billingBusy) return
+
+  if (!trainingAccess.user) {
+    setBillingError("Sign in to upgrade to Edulience Premium.")
+    return
+  }
+
+  setBillingBusy(true)
+  setBillingError(null)
+
+  try {
+    const transactionId =
+      await createCheckoutTransaction(trainingAccess.user)
+
+    await openPaddleCheckout(transactionId, {
+      onCompleted: () => {
+        setBillingBusy(false)
+        trainingAccess.refreshAccess()
+      },
+
+      onClosed: () => {
+        setBillingBusy(false)
+      },
+
+      onError: (message) => {
+        setBillingBusy(false)
+        setBillingError(message)
+      }
+    })
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error("Billing request failed", error)
+    }
+    setBillingError(
+      error instanceof Error
+        ? error.message
+        : "Billing is temporarily unavailable."
+    )
+    setBillingBusy(false)
+  }
+}
 
 function handleClickfor1(section_id){
   setShow(prevShow => {
@@ -495,6 +538,148 @@ function handleClickfor1(section_id){
   </div>
 
 </section>
+
+<section
+      className="premium-section"
+      id="premium"
+      aria-labelledby="premium-title"
+    >
+      <div className="premium-section__inner">
+
+        <div className="premium-section__heading">
+          <span className="premium-section__eyebrow">
+            EDULIENCE PREMIUM
+          </span>
+
+          <h2 id="premium-title">
+            Learn without the limits.
+          </h2>
+
+          <p>
+            Premium gives you full access to Edulience training
+            while expanding how often you can use AI-powered
+            learning recommendations.
+          </p>
+        </div>
+
+        <div className="premium-section__card">
+
+          <div className="premium-section__card-top">
+
+            <div>
+                <h3>
+                <span className="premium-section__plan-label">
+                PREMIUM</span>
+                <img src={Premium}/>
+                </h3>
+            </div>
+
+            <div className="premium-section__price">
+              <span className="premium-section__currency">
+                $
+              </span>
+
+              <span className="premium-section__amount">
+                3
+              </span>
+
+              <span className="premium-section__period">
+                / month
+              </span>
+            </div>
+
+          </div>
+
+          <div className="premium-section__divider" />
+
+          <ul className="premium-section__features">
+
+            <li>
+              <span className="premium-section__check">✓</span>
+
+              <div>
+                <strong>Unlimited Test Me sessions</strong>
+                <p>
+                  Keep discovering which learning methods work
+                  best for you without daily training limits.
+                </p>
+              </div>
+            </li>
+
+            <li>
+              <span className="premium-section__check">✓</span>
+
+              <div>
+                <strong>Unlimited method tests</strong>
+                <p>
+                  Experiment with as many learning methods as you
+                  want.
+                </p>
+              </div>
+            </li>
+
+            <li>
+              <span className="premium-section__check">✓</span>
+
+              <div>
+                <strong>10 AI Deep Suggestions every day</strong>
+                <p>
+                  Get more personalized learning-method
+                  recommendations and explanations.
+                </p>
+              </div>
+            </li>
+
+            <li>
+              <span className="premium-section__check">✓</span>
+
+              <div>
+                <strong>Full Premium training access</strong>
+                <p>
+                  Train, compare, and explore your learning
+                  strategies without Free-plan restrictions.
+                </p>
+              </div>
+            </li>
+
+          </ul>
+
+          <button
+            type="button"
+            className="premium-section__cta"
+            onClick={handleUpgrade}
+            disabled={billingBusy}
+            aria-busy={billingBusy}
+          >
+            {billingBusy
+              ? "Opening checkout..."
+              : "Get Edulience Premium"}
+          </button>
+
+          {billingError && (
+            <p
+              className="premium-section__billing-note"
+              role="alert"
+            >
+              {billingError}
+            </p>
+          )}
+
+          <p className="premium-section__billing-note">
+            Secure checkout powered by Paddle. Cancel anytime.
+            Taxes may vary by location.
+          </p>
+
+        </div>
+
+        <p className="premium-section__free-note">
+          Not ready for Premium? Edulience still includes a free
+          plan so you can start experimenting with your learning
+          methods first.
+        </p>
+
+      </div>
+    </section>
 
   </section>
     <Footer/>

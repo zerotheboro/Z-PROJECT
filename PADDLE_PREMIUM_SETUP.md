@@ -93,6 +93,17 @@ paddleWebhookEvents/{paddleEventId}
 users/{firebaseUid}/entitlements/current
 ```
 
+Billing account and customer mapping documents include `paddleEnvironment`.
+Legacy mappings without that field are treated as Sandbox. When the selected
+environment changes, the server ignores the prior environment's Paddle IDs,
+recovers or creates the customer in the active environment, and replaces only
+the Paddle-specific state in `billingAccounts/{firebaseUid}`.
+The old `paddleCustomers/{paddleCustomerId}` document is retained. If Paddle
+confirms that an active-environment customer or subscription ID no longer
+exists, the server transactionally removes only that stale Paddle state before
+using the existing recovery and checkout-lock flow. User data and entitlement
+documents are not deleted by this recovery.
+
 Do not add browser access rules for the three top-level billing collections. Keep browser writes denied for the entitlement document. Verify deployed rules contain no broad top-level allow before deployment.
 
 ## 8. Environment verification

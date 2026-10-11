@@ -14,6 +14,8 @@ type Props = {
   question: MultipleChoiceQuestion;
   selectedAnswer: string | undefined;
   onSelect: (option: string) => void;
+  onBack: () => void;
+  backDisabled: boolean;
   onNext: () => void;
   nextLabel: string;
   random?: RandomSource;
@@ -23,6 +25,8 @@ function MultipleChoiceRunner({
   question,
   selectedAnswer,
   onSelect,
+  onBack,
+  backDisabled,
   onNext,
   nextLabel,
   random
@@ -54,6 +58,14 @@ function MultipleChoiceRunner({
           </button>
         ))}
       </div>
+
+      <button
+        type="button"
+        disabled={backDisabled}
+        onClick={onBack}
+      >
+        Back
+      </button>
 
       <button
         type="button"

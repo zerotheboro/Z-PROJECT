@@ -392,6 +392,12 @@ function FeynmanExperiment({
                 option
               )
             }
+            onBack={() =>
+              setQuestionIndex(previous =>
+                Math.max(0, previous - 1)
+              )
+            }
+            backDisabled={questionIndex === 0}
             onNext={nextQuestion}
             nextLabel={
               questionIndex ===

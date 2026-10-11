@@ -1,3 +1,4 @@
+import discard from "../image/discard.svg"
 type Props = {
   busy?: boolean;
   error?: string | null;
@@ -21,7 +22,7 @@ function DiscardTrainingDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="discard-training-title"
-      >
+      > <img src={discard}/>
         <h2 id="discard-training-title">
           Discard current training?
         </h2>

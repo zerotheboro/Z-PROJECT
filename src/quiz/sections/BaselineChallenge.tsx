@@ -509,6 +509,14 @@ function BaselineChallenge({
                 option
               )
             }
+            onBack={() =>
+              setMemoryQuestionIndex(previous =>
+                Math.max(0, previous - 1)
+              )
+            }
+            backDisabled={
+              memoryQuestionIndex === 0
+            }
             onNext={nextMemoryQuestion}
             nextLabel={
               memoryQuestionIndex ===
@@ -669,6 +677,14 @@ function BaselineChallenge({
                 currentConceptQuestion.id,
                 option
               )
+            }
+            onBack={() =>
+              setConceptQuestionIndex(previous =>
+                Math.max(0, previous - 1)
+              )
+            }
+            backDisabled={
+              conceptQuestionIndex === 0
             }
             onNext={nextConceptQuestion}
             nextLabel={

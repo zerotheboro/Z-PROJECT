@@ -24,13 +24,11 @@ function AddingMethods() {
 
     const adding = new DetailOfTips(
       {
-        vn: TITLE.current.value,
         eng: TITLE.current.value,
         src: image_importor(Effort).src
       },
 
       {
-        vn: CONTENT.current.value,
         eng: CONTENT.current.value
       }
     );

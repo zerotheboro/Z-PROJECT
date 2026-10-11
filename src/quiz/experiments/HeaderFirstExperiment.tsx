@@ -193,6 +193,12 @@ function HeaderFirstExperiment({
                 [currentQuestion.id]: option
               }))
             }
+            onBack={() =>
+              setQuestionIndex((value) =>
+                Math.max(0, value - 1)
+              )
+            }
+            backDisabled={questionIndex === 0}
             onNext={() =>
               questionIndex <
               data.questions.length - 1
