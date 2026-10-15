@@ -412,7 +412,7 @@ function handleClickfor1(section_id){
     <h2>
       From “I don't know what works”
       <br />
-      to a system you can actually use.
+      to your own study system.
     </h2>
 
   </div>
@@ -432,12 +432,12 @@ function handleClickfor1(section_id){
         </span>
 
         <h3>
-          Find methods worth trying.
+          Find methods for your situation.
         </h3>
 
         <p>
-          Browse the Library, ask AI for suggestions,
-          or start directly with Training.
+          Browse the Library, get AI suggestions based on
+          what you're studying, or start directly with Training.
         </p>
       </div>
 
@@ -456,13 +456,12 @@ function handleClickfor1(section_id){
         </span>
 
         <h3>
-          Try them instead of guessing.
+          Try the methods yourself.
         </h3>
 
         <p>
-          Training puts learning methods into small
-          exercises so you can experience how they
-          actually work.
+          Training turns study methods into small exercises
+          so you can see how each one fits your learning situation.
         </p>
       </div>
 
@@ -481,13 +480,12 @@ function handleClickfor1(section_id){
         </span>
 
         <h3>
-          Build a learning profile over time.
+          Build your study system over time.
         </h3>
 
         <p>
-          Keep what helps, understand what doesn't,
-          and gradually build a set of methods for
-          different learning situations.
+          Keep the methods that help, replace the ones that don't,
+          and build a set of strategies for different study situations.
         </p>
       </div>
 
@@ -666,8 +664,7 @@ function handleClickfor1(section_id){
           )}
 
           <p className="premium-section__billing-note">
-            Secure checkout powered by Paddle. Cancel anytime.
-            Taxes may vary by location.
+            Cancel anytime. Taxes may vary by location.
           </p>
 
         </div>

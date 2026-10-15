@@ -164,11 +164,11 @@ function completeActiveRecallQuestions(
 }
 
 describe("method content sets", () => {
-  it("provides three Lab and Match sets for every non-media method", () => {
+  it("provides selectable Lab and Match sets for every method", () => {
     TRAINING_METHOD_IDS.forEach(method => {
       const expectedLength =
         method === "two-x-video-speed"
-          ? 1
+          ? 2
           : 3;
 
       expect(

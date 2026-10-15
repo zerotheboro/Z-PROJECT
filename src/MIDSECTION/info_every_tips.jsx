@@ -326,26 +326,34 @@ const Water_ur_face_body = new DetailOfTips(
 
 const Strooper_effect = new DetailOfTips(
   {
-    eng: "Strooper effect",
-    src : image_importor("fish").src
+    eng: "Stroop effect",
+    src: image_importor("fish").src
   },
   {
     eng:
     <>
-      this is a brain training excercise<CITATE n="3" src="https://www.apa.org/research-practice/conduct-research/stroop-effect#:~:text=Despite%20the%20slow%20start%2C%20Stroop,invaluable%20tool%20for%20exploring%20cognition."/> that 
-      trains the brain to handle disordered
-      information, which  involvesis contradictions between the color seen and text.
-      Instruction: <br/>
-      1. Press button<br/>
-      2. Read the color and not the text.
+      The Stroop task demonstrates how automatic reading can interfere with
+      identifying the color of a word.
 
-  </>,
+      It is commonly used in cognitive research to study attention and
+      interference.
+      <CITATE
+        n="3"
+        src="https://www.apa.org/research-practice/conduct-research/stroop-effect#:~:text=Despite%20the%20slow%20start%2C%20Stroop,invaluable%20tool%20for%20exploring%20cognition."
+      />
+
+      <br/><br/>
+
+      Instructions:<br/>
+      1. Press the button.<br/>
+      2. Identify the color of the text instead of reading the word.
+    </>,
   },
   {
     format: "component",
     src: <Main/>
   },
-  "left", 
+  "left",
   false,
   image_importor("strooper_audio")
 )
@@ -366,41 +374,31 @@ const Break_not_distraction = new DetailOfTips(
   image_importor("relaxing_cat"),
   "right"
 )
-
-const Short_workout = new DetailOfTips(
-  {
-    eng: "Short workout",
-    src : image_importor("fish").src
-  },
-  {
-    eng:
-    <>
-      doing a short workout before studying
-      gives your brain the oxygen it needs.
-      It can be simple like stretching, pushups, or situps.
-    </>,
-  },
-  image_importor("dumbell"),
-  "left"
-)
-
 const Long_term_workout = new DetailOfTips(
   {
-    eng: "long-term workout",
-    src : image_importor("whale").src
+    eng: "Long-term workout",
+    src: image_importor("whale").src
   },
   {
     eng:
     <>
-      studies by Stanford, Southern California<CITATE n="1" src="https://lifestylemedicine.stanford.edu/exercise-better-grades/"/>
-      showed that excercising regularly
-      grows your hippocampus: the part of the brain 
-      associated with learning! Because of that 
-      edulience offers 1 month free trial of California gym
-    claim it the "your opinion" section
-  </>,
+      <p>
+        Physical activity can support learning, memory, and attention.
+        Even a short movement break before studying, such as stretching,
+        pushups, or situps, may help you feel more alert and ready to study.
+      </p>
+
+      <p>
+        Regular exercise has also been associated with benefits for brain
+        health and academic performance over time.
+        <CITATE
+          n="1"
+          src="https://lifestylemedicine.stanford.edu/exercise-better-grades/"
+        />
+      </p>
+    </>,
   },
-  image_importor("dumbell"),
+  image_importor("dumbell")
 )
 
 const Structure_your_day = new DetailOfTips(
@@ -461,20 +459,42 @@ const Track_progress = new DetailOfTips(
 
 const Brain_diet = new DetailOfTips(
   {
-    eng: "BRAIN DIET",
-    src : image_importor("whale").src
+    eng: "Foods linked with brain health",
+    src: image_importor("whale").src
   },
-  {eng:<>
-    the food that helps the brain:<br/>
-    + Omega-3 from fish Fatty fish (salmon, cod)<br/>
-    + Leafty vegetables (kale, spinach and broccoli)<br/>
-    + Berries (strawberries, blueberries)<br/>
-    + Walnuts (Avocado,Walnuts)<br/> suggested from Havard<CITATE src="https://www.health.harvard.edu/healthbeat/foods-linked-to-better-brainpower" n="2"></CITATE>
-  </>,
-},
+  {
+    eng:
+    <>
+      <p>
+        Some foods are commonly associated with healthy brain function as part
+        of an overall balanced diet, including:
+      </p>
+
+      + Fatty fish such as salmon and cod<br/>
+      + Leafy vegetables such as kale, spinach, and broccoli<br/>
+      + Berries such as strawberries and blueberries<br/>
+      + Nuts such as walnuts<br/>
+
+      <p>
+        This is general educational information, not medical or dietary advice.
+      </p>
+
+      <CITATE
+        src="https://www.health.harvard.edu/healthbeat/foods-linked-to-better-brainpower"
+        n="2"
+      />
+    </>,
+  },
   image_importor("chicken"),
   "left",
-  <iframe src="https://www.youtube.com/embed/btXIAqMSLaI?si=3kt0H28IhoPyIWlm" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe
+    src="https://www.youtube.com/embed/btXIAqMSLaI?si=3kt0H28IhoPyIWlm"
+    title="YouTube video player"
+    frameBorder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerPolicy="strict-origin-when-cross-origin"
+    allowFullScreen
+  />
 )
 
 const Incubation_effect = new DetailOfTips(
@@ -534,19 +554,39 @@ const Header_first = new DetailOfTips(
 
 const Peripheral_vision = new DetailOfTips(
   {
-    eng: "peripheral vision",
-    src : image_importor("whale").src
+    eng: "Visual scanning practice",
+    src: image_importor("whale").src
   },
-  {eng:
+  {
+    eng:
     <>
-      Train your eyes to 
-      collect info quick, send to the brain by games
-      like <a href="https://schultetable.web.app" target="_blank"><button>Schutle table</button></a> or my strooper game in the pre-learn section or <a href="https://en.wikipedia.org/wiki/Brock_string" target="_blank"><button>Brock string</button></a>
+      Practice scanning and noticing visual information efficiently rather than
+      trying to read every detail one piece at a time.
+
+      You can try activities such as{" "}
+      <a
+        href="https://schultetable.web.app"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <button>Schulte table</button>
+      </a>{" "}
+      or the Stroop activity in the Pre-learn section.
+
+      These are attention and visual-scanning exercises, not treatments for
+      eyesight or vision problems.
     </>,
-},
+  },
   image_importor("eye"),
   "left",
-  <iframe src="https://www.youtube.com/embed/PdI3fJTzK3g?si=ZB17BI2g_3XT7zcT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe
+    src="https://www.youtube.com/embed/PdI3fJTzK3g?si=ZB17BI2g_3XT7zcT"
+    title="YouTube video player"
+    frameBorder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerPolicy="strict-origin-when-cross-origin"
+    allowFullScreen
+  />
 )
 const Doodle_effect = new DetailOfTips(
   {
@@ -605,7 +645,6 @@ const Spaced_learning = new DetailOfTips(
   image_importor("space-learn"),
   "left",
   <>
-    <SpacePlan/>
     <iframe src="https://www.youtube.com/embed/UviQTOdUJEw?si=_ETlIQS9r-fguhCu" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </>,
 )
@@ -938,19 +977,32 @@ const Summary_and_print_note = new DetailOfTips(
 
 const VARK_learners = new DetailOfTips(
   {
-    eng: "VARK types of learners",
-    src : image_importor("whale").src
+    eng: "Study formats",
+    src: image_importor("whale").src
   },
-  {eng:
+  {
+    eng:
     <>
       <p>
-        VARK is a popular framework that catagorizes 
-        four types of learning: <u>Visual, Aural, Read/Write and Kinesthetic</u>
+        VARK describes four common ways learning material can be presented:
+        <u> Visual, Aural, Read/Write, and Kinesthetic</u>.
       </p>
-       Visual, can be trained with perphiral vision at pre-learn; 
-      Aural can be seen in learning with friend, Feyman Technique;
-      Read/Write, methods in the Note-take section can improve it;
-      Kinesthetic, this is for people who loves doing projects or hands-on learning.<CITATE src="https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1245&context=podimproveacad" n="15"/><br/>
+
+      <p>
+        These are not fixed learner types. You can use different formats
+        depending on the subject and situation.
+      </p>
+
+      Visual materials can include diagrams and demonstrations;<br/>
+      Aural materials can include lectures and discussion;<br/>
+      Read/Write materials include notes, books, and written explanations;<br/>
+      Kinesthetic activities involve practice, examples, and hands-on application.
+
+      <CITATE
+        src="https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1245&context=podimproveacad"
+        n="15"
+      />
+      <br/>
     </>,
   },
   image_importor("VARK"),
@@ -967,16 +1019,25 @@ const TWO_X_ILETS = new DetailOfTips(
   {eng:
     <>
     <p>
-      the brain ~300 words per minute processing speed is roughly twice
-      as quick as the amount of word we teach and talk per minute, which is ~170 words
-      Therefore quicken the video speed around 2 or 1.75 times would matches your brain
-      natural processing speed.
-    </p> 
-      Alternatively, If you're training ILETS listening test
-      then quickening for a period until you get to the actual test then you would feel
-      it is extremly slow with more processing capacity.
-      <CITATE n="19" src="https://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf?utm_source=chatgpt.comhttps://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf?"/>
-      <CITATE n="20" src="https://pubmed.ncbi.nlm.nih.gov/34516216/"/>
+      Educational videos are often spoken at a pace that some learners can
+      comfortably increase. Watching familiar or easier material at around
+      1.5x to 2x speed can help you move through content more efficiently,
+      as long as you can still understand and remember the key ideas.
+    </p>
+
+    <p>
+      Try increasing the playback speed gradually and reduce it again when
+      the material becomes difficult, unfamiliar, or detail-heavy.
+    </p>
+
+    <CITATE
+      n="19"
+      src="https://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf"
+    />
+    <CITATE
+      n="20"
+      src="https://pubmed.ncbi.nlm.nih.gov/34516216/"
+    />
   </>,
   }, image_importor("2XILETS"),
   "right",
@@ -1038,20 +1099,32 @@ const twenty_eighty_rule = new DetailOfTips(
 
 const ten_minutes_wall = new DetailOfTips(
   {
-    eng: "10 min wall stare",
-    src : image_importor("fish").src
+    eng: "Low-stimulation break",
+    src: image_importor("fish").src
   },
-  {eng:
+  {
+    eng:
     <>
-      "Boring rests" in general including this simple action or doing nothing starve 
-      your brain of the constant, rapid-fire stimulation caused by digital media, moreover taking break
-      using digital media app, which feels like the most appealling ironically performs worse the "boring rests"
-      in terms of allowing your brain to continue cognitive tasks<CITATE n="22" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC7044622/#S5"/>
-  </>,
-},
+      Taking a short break with little or no digital stimulation can give you
+      a simple period of rest before returning to a demanding study task.
+
+      Research comparing different types of breaks suggests that highly
+      stimulating digital activities may not always provide the same recovery
+      benefits as quieter breaks.
+      <CITATE
+        n="22"
+        src="https://pmc.ncbi.nlm.nih.gov/articles/PMC7044622/#S5"
+      />
+
+      <br/><br/>
+
+      You can try sitting quietly, looking out a window, or simply doing
+      nothing for a few minutes before returning to study.
+    </>,
+  },
   image_importor("10_minutes_wall"),
   "right",
-  "it pairs extremly well with the Incubation effect in Meta-learn"
+  "Pairs well with the Incubation effect in Meta-learn."
 )
 
 
@@ -1093,7 +1166,7 @@ const real_music = new DetailOfTips(
 },
   image_importor("music_help"),
   "left",
-  <iframe src="https://www.youtube.com/embed/1dINKoEFpsw?si=CJ1dLnc9016-Hbn6" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  <iframe src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 )
 
 const point_call = new DetailOfTips(
@@ -1164,7 +1237,6 @@ export const preLearnTips = [
  real_music,
   ten_minutes_wall,
   Strooper_effect,
-  Short_workout,
   Long_term_workout,
   Structure_your_day,
   Track_progress,
@@ -1244,7 +1316,6 @@ const question_options = [
         answer: "I feel tired or mentally drained",
         tips: [
           Water_ur_face_body,
-          Short_workout,
           Long_term_workout,
           Brain_diet,
           ten_minutes_wall
@@ -1513,7 +1584,7 @@ const question_options = [
         answer: "My brain feels tired after studying",
         tips: [
           ten_minutes_wall,
-          Short_workout,
+          Long_term_workout,
           Water_ur_face_body,
           Brain_diet,
           Break_not_distraction

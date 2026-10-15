@@ -25,6 +25,7 @@ export default function AIRecommendation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [quotaAccess, setQuotaAccess] = useState(null);
+  const [mode, setMode] = useState("standard");
 
   const ownerRef = useRef(null);
   const userRef = useRef(null);
@@ -55,6 +56,7 @@ export default function AIRecommendation() {
       setError("");
       setLoading(false);
       setQuotaAccess(null);
+      setMode("standard");
       setStep(0);
 
       void loadAIRecommendationAccess(user)
@@ -103,6 +105,7 @@ export default function AIRecommendation() {
           setExtraContext(
             saved.inputs.extraContext
           );
+          setMode(saved.mode);
           setResult(saved.result);
           setStep(4);
         })
@@ -177,6 +180,7 @@ export default function AIRecommendation() {
             biggestProblem,
             methodQuestion,
             extraContext,
+            mode,
           }),
         }
       );
@@ -184,16 +188,37 @@ export default function AIRecommendation() {
       const data = await response.json();
 
       if (!response.ok) {
+        const isAccessRejection = new Set([
+          "ai_daily_quota_exceeded",
+          "ai_deep_requires_premium",
+          "ai_deep_daily_quota_exceeded"
+        ]).has(data?.code);
         const rejectedAccess =
-          data?.code === "ai_daily_quota_exceeded"
+          isAccessRejection
             ? validateAIRecommendationAccess(data)
             : null;
 
-        if (rejectedAccess) {
+        if (
+          rejectedAccess
+          && identityVersionRef.current
+            === requestIdentityVersion
+        ) {
           setQuotaAccess(rejectedAccess);
+
+          if (data?.code === "ai_deep_requires_premium") {
+            setMode("standard");
+          }
         }
 
-        throw new Error("Failed to get recommendation");
+        const safeMessage =
+          data?.code === "ai_deep_requires_premium"
+          || data?.code
+            === "ai_deep_daily_quota_exceeded"
+          || data?.code === "ai_daily_quota_exceeded"
+            ? data.error
+            : "Could not get an AI recommendation.";
+
+        throw new Error(safeMessage);
       }
 
       const validatedResult =
@@ -237,7 +262,8 @@ export default function AIRecommendation() {
         await saveAIRecommendation(
           owner,
           inputs,
-          validatedResult
+          validatedResult,
+          mode
         );
       } catch (saveError) {
         if (import.meta.env.DEV) {
@@ -249,7 +275,19 @@ export default function AIRecommendation() {
       }
     } catch (err) {
       console.error(err);
-      setError("Could not get an AI recommendation.");
+      const serverMessage = err instanceof Error
+        ? err.message
+        : "";
+      const safeServerMessages = new Set([
+        "Deep Recommendation requires Premium",
+        "Daily Deep Recommendation limit reached",
+        "Daily recommendation limit reached"
+      ]);
+      setError(
+        safeServerMessages.has(serverMessage)
+          ? serverMessage
+          : "Could not get an AI recommendation."
+      );
     } finally {
       setLoading(false);
     }
@@ -262,6 +300,7 @@ export default function AIRecommendation() {
     setExtraContext("");
     setResult(null);
     setError("");
+    setMode("standard");
     setStep(0);
   }
 
@@ -287,10 +326,10 @@ export default function AIRecommendation() {
               </span>
 
               <h2>
-                Start from how you learn
+                Find your study methods
               </h2>
               <p>
-                Receive 3 "SSS" or Suitable Study Strategies and a study plan only after 1-2 minutes submiting your answers, just to let you know by signing up you get smarter response
+                Tell Edulience what you're studying, want to improve, your current study situation. Get 3 suitable study-method suggestions and a practical study plan in 1–2 minutes.
               </p>
 
               <div className="button-area">
@@ -426,6 +465,74 @@ export default function AIRecommendation() {
                 placeholder="I mainly study from textbooks and videos..."
               />
 
+              {quotaAccess?.plan === "premium" && (
+                <fieldset className="recommendation-mode-selector">
+                  <legend>Recommendation mode</legend>
+
+                  <label
+                    className={
+                      mode === "standard"
+                        ? "mode-option selected"
+                        : "mode-option"
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="recommendation-mode"
+                      value="standard"
+                      checked={mode === "standard"}
+                      onChange={() => setMode("standard")}
+                    />
+                    <span>
+                      <strong>Standard Recommendation</strong>
+                      Fast, personalized study methods.
+                    </span>
+                  </label>
+
+                  <label
+                    className={
+                      `mode-option${
+                        mode === "deep" ? " selected" : ""
+                      }${
+                        quotaAccess.deep.available
+                          ? ""
+                          : " unavailable"
+                      }`
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="recommendation-mode"
+                      value="deep"
+                      checked={mode === "deep"}
+                      disabled={!quotaAccess.deep.available}
+                      onChange={() => setMode("deep")}
+                    />
+                    <span>
+                      <strong>Deep Recommendation</strong>
+                      More detailed reasoning and personalized planning.
+                      <small>
+                        {quotaAccess.deep.available
+                          ? `${quotaAccess.deep.remaining} Deep Recommendation${
+                              quotaAccess.deep.remaining === 1
+                                ? ""
+                                : "s"
+                            } remaining today`
+                          : "0 Deep Recommendations remaining today"}
+                        {!quotaAccess.deep.available && (
+                          <>
+                            {" "}
+                            {quotaAccess.remaining === 0
+                              ? "Unavailable because today's total recommendation limit is reached."
+                              : "Unavailable because today's Deep Recommendation has been used."}
+                          </>
+                        )}
+                      </small>
+                    </span>
+                  </label>
+                </fieldset>
+              )}
+
               <div className="button-area">
                 <button
                   className="secondary-button"
@@ -443,11 +550,17 @@ export default function AIRecommendation() {
                   disabled={
                     loading
                     || quotaAccess?.remaining === 0
+                    || (
+                      mode === "deep"
+                      && quotaAccess?.deep.available === false
+                    )
                   }
                 >
                   {loading
                     ? "Finding your methods..."
-                    : "Get My Recommendations ✦"}
+                    : mode === "deep"
+                      ? "Get my Deep Recommendation"
+                      : "Get my Recommendation"}
                 </button>
               </div>
             </div>
@@ -469,7 +582,9 @@ export default function AIRecommendation() {
             <div className="ai-results">
 
               <span className="result-label">
-                YOUR EDULIENCE PLAN
+                {mode === "deep"
+                  ? "YOUR DEEP EDULIENCE PLAN"
+                  : "YOUR EDULIENCE PLAN"}
               </span>
 
               <h2>Your Study Situation</h2>

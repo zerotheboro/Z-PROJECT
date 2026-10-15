@@ -1222,13 +1222,10 @@ a.nav-logo h3{
 
   /* CORNELL */
 
-  .cornell-layout {
+  .cornell-workspace,
+  .cornell-sheet {
 
     display: grid;
-
-    grid-template-rows:
-      1.12fr
-      1.5fr;
 
     gap: 14px;
 
@@ -1238,9 +1235,8 @@ a.nav-logo h3{
   }
 
 
-  .cornell-layout > div,
   .cornell-source,
-  .cornell-notes {
+  .cornell-sheet {
 
     padding:
       var(--space-2);
@@ -1257,7 +1253,63 @@ a.nav-logo h3{
   }
 
 
-  .cornell-notes {
+  .cornell-sheet {
+
+    border-top:
+      5px solid
+      var(--energetic--yellow);
+  }
+
+
+  .cornell-title label {
+
+    display: block;
+
+    margin-bottom: 0.45rem;
+
+    color: var(--font-color);
+
+    font-weight: 800;
+  }
+
+
+  .cornell-title input {
+
+    width: min(100%, 34rem);
+
+    min-height: 44px;
+
+    padding: 0.75rem 0.9rem;
+
+    border:
+      2px solid
+      rgba(245,245,245,0.15);
+
+    border-radius:
+      calc(var(--radius) * 0.7);
+
+    background:
+      var(--darker-black);
+
+    color: var(--font-color);
+
+    font: inherit;
+
+    outline: none;
+  }
+
+
+  .cornell-title input:focus {
+
+    border-color: var(--lightblue);
+
+    box-shadow:
+      0 0 0 4px
+      rgba(32,178,170,0.12);
+  }
+
+
+  .cornell-columns {
 
     display: grid;
 
@@ -1266,6 +1318,153 @@ a.nav-logo h3{
       1.5fr;
 
     gap: 14px;
+  }
+
+
+  .cornell-cues,
+  .cornell-main-notes {
+
+    min-width: 0;
+  }
+
+
+  .cornell-cues {
+
+    border-right:
+      2px solid
+      rgba(245,245,245,0.12);
+  }
+
+
+  .cornell-cues textarea,
+  .cornell-main-notes textarea {
+
+    min-height: 260px;
+  }
+
+
+  .cornell-summary {
+
+    padding-top:
+      var(--space-1);
+
+    border-top:
+      2px solid
+      rgba(245,245,245,0.12);
+  }
+
+
+  .cornell-summary textarea {
+
+    min-height: 110px;
+  }
+
+
+  /* NOTE-TAKING 4X4 */
+
+  .four-by-four-layout {
+
+    display: grid;
+
+    gap: 14px;
+
+    margin:
+      var(--space-3)
+      0;
+  }
+
+
+  .four-by-four-source,
+  .four-by-four-item,
+  .four-by-four-response {
+
+    min-width: 0;
+
+    padding:
+      var(--space-2);
+
+    border:
+      2px solid
+      rgba(245,245,245,0.12);
+
+    border-radius:
+      var(--radius);
+
+    background:
+      rgba(26,38,52,0.55);
+  }
+
+
+  .four-by-four-grid,
+  .four-by-four-response-grid {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+
+    margin:
+      var(--space-3)
+      0;
+  }
+
+
+  .four-by-four-item textarea {
+
+    min-height: 130px;
+  }
+
+
+  .four-by-four-response textarea {
+
+    min-height: 150px;
+  }
+
+
+  /* 2X VIDEO */
+
+  .two-x-video-player {
+
+    width: 100%;
+
+    margin:
+      var(--space-3)
+      0
+      var(--space-2);
+  }
+
+
+  .two-x-video-player iframe {
+
+    display: block;
+
+    width: 100%;
+
+    height: auto;
+
+    aspect-ratio: 16 / 9;
+
+    border:
+      2px solid
+      rgba(245,245,245,0.15);
+
+    border-radius: var(--radius);
+  }
+
+
+  .two-x-video-status {
+
+    margin-top: 0.55rem;
+
+    font-size: 0.9rem;
+  }
+
+
+  .two-x-video-notes textarea {
+
+    min-height: 135px;
   }
 
 
@@ -2198,11 +2397,22 @@ a.nav-logo h3{
     }
 
 
-    .cornell-layout,
-    .cornell-notes {
+    .cornell-columns,
+    .four-by-four-grid,
+    .four-by-four-response-grid {
 
       grid-template-columns:
         1fr;
+    }
+
+
+    .cornell-cues {
+
+      border-right: 0;
+
+      border-bottom:
+        2px solid
+        rgba(245,245,245,0.12);
     }
 
 

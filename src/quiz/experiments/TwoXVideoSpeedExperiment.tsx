@@ -6,8 +6,10 @@ import {
   MultipleChoiceRunner,
   scoreMultipleChoice,
   StudyPanel,
+  TextResponse,
   useExperimentTimer,
-  useResumableVideoProgress
+  useResumableYouTubeProgress,
+  YouTubeTrainingPlayer
 } from "../engines/shared";
 
 import type {
@@ -42,10 +44,9 @@ function TwoXVideoSpeedExperiment({
   const [willingnessToUse, setWillingnessToUse] =
     useState<number | null>(null);
   const { start, elapsedMs } = useExperimentTimer();
-  const {
-    checkpoint: checkpointVideo,
-    videoProps
-  } = useResumableVideoProgress(2);
+  const videoProgress =
+    useResumableYouTubeProgress();
+  const [notes, setNotes] = useState("");
   const current = data.questions[index];
 
   function finish() {
@@ -74,7 +75,7 @@ function TwoXVideoSpeedExperiment({
   }
 
   return (
-    <section>
+    <section className="two-x-video-method">
       {stage === "intro" && (
         <div>
           <h2>{name}</h2>
@@ -95,17 +96,21 @@ function TwoXVideoSpeedExperiment({
       {stage === "watch" && (
         <div>
           <h2>{data.topic}</h2>
-          <video
-            {...videoProps}
-            controls
-            preload="metadata"
-            data-playback-speed="2"
-          >
-            <source
-              src={data.mediaSrc}
-              type="video/mp4"
+          <YouTubeTrainingPlayer
+            youtubeId={data.youtubeId}
+            title={data.videoTitle}
+            channel={data.channel}
+            playbackRate={2}
+            progressController={videoProgress}
+          />
+          <div className="two-x-video-notes">
+            <h3>Your notes</h3>
+            <TextResponse
+              value={notes}
+              onChange={setNotes}
+              placeholder="Optional notes or thoughts..."
             />
-          </video>
+          </div>
           <StudyPanel>
             <ul>
               {data.focusPoints.map(point => (
@@ -115,7 +120,7 @@ function TwoXVideoSpeedExperiment({
           </StudyPanel>
           <button
             onClick={() => {
-              checkpointVideo();
+              videoProgress.checkpoint();
               setStage("test");
             }}
           >

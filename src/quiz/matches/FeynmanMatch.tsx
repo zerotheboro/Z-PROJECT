@@ -163,6 +163,11 @@ function FeynmanMatch({
             value={explanation}
             onChange={setExplanation}
             placeholder="Explain it simply..."
+            judge={{
+              taskId: "explanation",
+              sourceMaterial:
+                data.explanation
+            }}
           />
 
           <button

@@ -115,9 +115,12 @@ function NoteTaking4x4Match({
           <StudyPanel>
             <p>{data.content}</p>
           </StudyPanel>
-          <div className="cornell-layout">
+          <div className="four-by-four-grid">
             {subIdeas.map((idea, index) => (
-              <div key={index}>
+              <div
+                className="four-by-four-item"
+                key={index}
+              >
                 <h3>
                   Sub-idea {index + 1}
                 </h3>
@@ -156,9 +159,13 @@ function NoteTaking4x4Match({
             Add supporting details beneath
             each of your four sub-ideas.
           </h2>
-          {supportingDetails.map(
-            (details, index) => (
-              <div key={index}>
+          <div className="four-by-four-response-grid">
+            {supportingDetails.map(
+              (details, index) => (
+              <div
+                className="four-by-four-response"
+                key={index}
+              >
                 <h3>{subIdeas[index]}</h3>
                 <TextResponse
                   value={details}
@@ -174,8 +181,9 @@ function NoteTaking4x4Match({
                   placeholder={`Supporting details ${index + 1}...`}
                 />
               </div>
-            )
-          )}
+              )
+            )}
+          </div>
           <button
             type="button"
             disabled={supportingDetails.some(

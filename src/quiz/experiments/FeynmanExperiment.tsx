@@ -302,6 +302,11 @@ function FeynmanExperiment({
             value={explanation}
             onChange={setExplanation}
             placeholder="Explain the concept..."
+            judge={{
+              taskId: "explanation",
+              sourceMaterial:
+                data.explanation
+            }}
           />
 
           <button
@@ -344,6 +349,11 @@ function FeynmanExperiment({
             }
             onChange={setSimplifiedExplanation}
             placeholder="Explain it simply..."
+            judge={{
+              taskId: "simplified-explanation",
+              sourceMaterial:
+                data.explanation
+            }}
           />
 
           <button

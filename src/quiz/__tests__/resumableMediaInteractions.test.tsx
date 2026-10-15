@@ -37,7 +37,80 @@ import type {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  MockYouTubePlayer.instances = [];
+  delete (
+    window as unknown as { YT?: unknown }
+  ).YT;
 });
+
+type MockYouTubeEvent = {
+  target: MockYouTubePlayer;
+  data: number;
+};
+
+type MockYouTubeEvents = {
+  onReady: (event: MockYouTubeEvent) => void;
+  onStateChange: (
+    event: MockYouTubeEvent
+  ) => void;
+};
+
+class MockYouTubePlayer {
+  static instances: MockYouTubePlayer[] = [];
+
+  currentTime = 0;
+  playbackRate = 1;
+  events: MockYouTubeEvents;
+  destroy = vi.fn();
+  seekTo = vi.fn((seconds: number) => {
+    this.currentTime = seconds;
+  });
+  setPlaybackRate = vi.fn((rate: number) => {
+    this.playbackRate = rate;
+  });
+
+  constructor(
+    _element: HTMLIFrameElement,
+    options: { events: MockYouTubeEvents }
+  ) {
+    this.events = options.events;
+    MockYouTubePlayer.instances.push(this);
+    queueMicrotask(() => {
+      this.events.onReady({
+        target: this,
+        data: -1
+      });
+    });
+  }
+
+  getCurrentTime() {
+    return this.currentTime;
+  }
+
+  getPlaybackRate() {
+    return this.playbackRate;
+  }
+
+  emitState(data: number) {
+    this.events.onStateChange({
+      target: this,
+      data
+    });
+  }
+}
+
+function installYouTubePlayerMock() {
+  (
+    window as unknown as { YT: unknown }
+  ).YT = {
+    Player: MockYouTubePlayer,
+    PlayerState: {
+      ENDED: 0,
+      PLAYING: 1,
+      PAUSED: 2
+    }
+  };
+}
 
 function StateHarness({
   initialState,
@@ -145,6 +218,7 @@ describe("resumable method media interactions", () => {
   });
 
   it("restores 2x video paused at its saved position without false completion", async () => {
+    installYouTubePlayerMock();
     const scope = "lab:two-x-video-speed:resume-test";
     let snapshot: TrainingInternalState = {};
     const renderExperiment = () => render(
@@ -170,15 +244,16 @@ describe("resumable method media interactions", () => {
       name: "Start 2x playback"
     }));
 
-    const firstVideo = document.querySelector("video")!;
-    Object.defineProperty(firstVideo, "duration", {
-      configurable: true,
-      value: 120
+    await waitFor(() => {
+      expect(
+        MockYouTubePlayer.instances
+      ).toHaveLength(1);
     });
+    const firstVideo =
+      MockYouTubePlayer.instances[0];
     firstVideo.currentTime = 42;
-    fireEvent.play(firstVideo);
-    fireEvent.timeUpdate(firstVideo);
-    fireEvent.pause(firstVideo);
+    firstVideo.emitState(1);
+    firstVideo.emitState(2);
 
     await waitFor(() => {
       expect(snapshot[scope]?.slots[7]).toEqual({
@@ -190,17 +265,26 @@ describe("resumable method media interactions", () => {
     first.unmount();
 
     const second = renderExperiment();
-    const restoredVideo = document.querySelector("video")!;
-    Object.defineProperty(restoredVideo, "duration", {
-      configurable: true,
-      value: 120
+    await waitFor(() => {
+      expect(
+        MockYouTubePlayer.instances
+      ).toHaveLength(2);
     });
-    fireEvent.loadedMetadata(restoredVideo);
+    const restoredVideo =
+      MockYouTubePlayer.instances[1];
 
-    expect(restoredVideo.currentTime).toBe(42);
-    expect(restoredVideo.playbackRate).toBe(2);
-    expect(restoredVideo.autoplay).toBe(false);
-    expect(restoredVideo.paused).toBe(true);
+    expect(restoredVideo.seekTo).toHaveBeenCalledWith(
+      42,
+      true
+    );
+    expect(
+      restoredVideo.setPlaybackRate
+    ).toHaveBeenCalledWith(2);
+    expect(
+      screen.getByTitle(
+        new RegExp(twoXVideoExperiment.videoTitle)
+      ).getAttribute("src")
+    ).not.toContain("autoplay=1");
     expect(snapshot[scope]?.slots[7]).toEqual({
       currentTime: 42,
       started: true,

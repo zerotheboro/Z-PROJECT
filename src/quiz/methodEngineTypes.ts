@@ -146,7 +146,15 @@ export type KidlinRuleEngineData = { title: string; topic: string; vagueProblem:
 export type PremackPrincipleEngineData = { title: string; topic: string; task: string; material: string; preferredExamples: readonly string[]; questions: readonly MultipleChoiceQuestion[]; };
 export type WallStareEngineData = { title: string; topic: string; material: string; questions: readonly MultipleChoiceQuestion[]; };
 export type StrooperEngineData = { title: string; topic: string; material: string; colors: { name: string; hsla: string }[]; questions: readonly MultipleChoiceQuestion[]; };
-export type TwoXVideoEngineData = { title: string; topic: string; mediaSrc: string; focusPoints: readonly string[]; questions: readonly MultipleChoiceQuestion[]; };
+export type TwoXVideoEngineData = {
+  title: string;
+  topic: string;
+  youtubeId: string;
+  videoTitle: string;
+  channel: string;
+  focusPoints: readonly string[];
+  questions: readonly MultipleChoiceQuestion[];
+};
 
 export type LabEngineProps<Data> = {
   method: TrainingMethodId;

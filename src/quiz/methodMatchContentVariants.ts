@@ -696,8 +696,31 @@ export const methodMatchContentVariants = {
         question("sem3q3", "What can make inhibition harder?", "Fatigue or distraction", "Clear rules", "Adequate focus", "Removing conflict")
       ]
     }
+  ],
+  "two-x-video-speed": [
+    {
+      method: "two-x-video-speed" as const,
+      title: "2X VIDEO SPEED · ROUND 2",
+      topic: "The agricultural revolution and early societies",
+      youtubeId: "Yocja_N5s1I",
+      videoTitle: "The Agricultural Revolution: Crash Course World History #1",
+      channel: "CrashCourse",
+      focusPoints: [
+        "Compare foraging with settled agriculture.",
+        "Track how surplus changed settlement and work.",
+        "Notice the costs as well as the benefits of farming."
+      ],
+      questions: [
+        question("vxm3q1", "What became more common with agriculture?", "Permanent settlements", "A complete end to work", "Universal nomadism", "The disappearance of trade"),
+        question("vxm3q2", "What did surplus food make easier?", "Supporting specialized roles", "Preventing population growth", "Eliminating social organization", "Ending all storage"),
+        question("vxm3q3", "Why is agriculture presented as a tradeoff?", "It brought benefits alongside health and social costs", "It changed nothing about society", "It guaranteed equal outcomes", "It removed every source of disease")
+      ]
+    }
   ]
 } satisfies Record<
   MethodWithGeneratedVariants,
   readonly [unknown, unknown]
+> & Record<
+  "two-x-video-speed",
+  readonly [unknown]
 >;

@@ -174,6 +174,11 @@ function ActiveRecallMatch({
             value={retrievalText}
             onChange={setRetrievalText}
             placeholder="What do you remember?"
+            judge={{
+              taskId: "retrieval",
+              sourceMaterial:
+                data.facts.join("\n")
+            }}
           />
 
           <button

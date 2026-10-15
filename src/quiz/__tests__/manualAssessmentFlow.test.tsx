@@ -493,6 +493,9 @@ describe("manual assessment entry", () => {
         mode: "manual",
         methodIds: methods
       }));
+      expect(
+        flowMocks.reserveTrainingAccess
+      ).toHaveBeenCalledTimes(1);
     }
   );
 

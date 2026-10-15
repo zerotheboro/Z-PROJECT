@@ -33,6 +33,10 @@ export type AIRecommendationOwner =
   | { kind: "guest" }
   | { kind: "user"; uid: string };
 
+export type AIRecommendationMode =
+  | "standard"
+  | "deep";
+
 export type AIRecommendationInputs = {
   biggestProblem: string;
   methodQuestion: string;
@@ -55,6 +59,7 @@ export type AIRecommendationResult = {
 
 export type SavedAIRecommendation = {
   schemaVersion: typeof AI_RECOMMENDATION_SCHEMA_VERSION;
+  mode: AIRecommendationMode;
   inputs: AIRecommendationInputs;
   result: AIRecommendationResult;
   updatedAt: unknown;
@@ -212,17 +217,26 @@ function validateSavedRecommendation(
   const result = validateRecommendationResult(
     value.result
   );
+  const mode = value.mode === undefined
+    ? "standard"
+    : value.mode;
   const hasValidTimestamp = source === "guest"
     ? typeof value.updatedAt === "string"
       && Number.isFinite(Date.parse(value.updatedAt))
     : isCloudTimestamp(value.updatedAt);
 
-  if (!inputs || !result || !hasValidTimestamp) {
+  if (
+    !inputs
+    || !result
+    || !hasValidTimestamp
+    || (mode !== "standard" && mode !== "deep")
+  ) {
     return null;
   }
 
   return {
     schemaVersion: AI_RECOMMENDATION_SCHEMA_VERSION,
+    mode,
     inputs,
     result,
     updatedAt: value.updatedAt
@@ -295,12 +309,17 @@ export async function loadAIRecommendation(
 export async function saveAIRecommendation(
   owner: AIRecommendationOwner,
   inputsValue: AIRecommendationInputs,
-  resultValue: AIRecommendationResult
+  resultValue: AIRecommendationResult,
+  mode: AIRecommendationMode = "standard"
 ): Promise<void> {
   const inputs = validateRecommendationInputs(inputsValue);
   const result = validateRecommendationResult(resultValue);
 
-  if (!inputs || !result) {
+  if (
+    !inputs
+    || !result
+    || (mode !== "standard" && mode !== "deep")
+  ) {
     throw new Error(
       "Invalid AI recommendation persistence payload."
     );
@@ -317,6 +336,7 @@ export async function saveAIRecommendation(
       GUEST_AI_RECOMMENDATION_STORAGE_KEY,
       JSON.stringify({
         schemaVersion: AI_RECOMMENDATION_SCHEMA_VERSION,
+        mode,
         inputs,
         result,
         updatedAt: new Date().toISOString()
@@ -327,6 +347,7 @@ export async function saveAIRecommendation(
 
   await setDoc(cloudRef(owner.uid), {
     schemaVersion: AI_RECOMMENDATION_SCHEMA_VERSION,
+    mode,
     inputs,
     result,
     updatedAt: serverTimestamp()

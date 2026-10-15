@@ -89,6 +89,7 @@ function savedRecommendation(
 ) {
   return {
     schemaVersion: 1,
+    mode: "standard",
     inputs: inputValues,
     result,
     updatedAt: { seconds: 1, nanoseconds: 0 }
@@ -134,7 +135,7 @@ function successfulResponse(
   };
 }
 
-async function completeForm() {
+async function reachFinalQuestion() {
   fireEvent.click(screen.getByRole("button", {
     name: "Start →"
   }));
@@ -159,14 +160,19 @@ async function completeForm() {
   ), {
     target: { value: inputValues.extraContext }
   });
+}
+
+async function completeForm() {
+  await reachFinalQuestion();
   fireEvent.click(screen.getByRole("button", {
-    name: "Get My Recommendations ✦"
+    name: "Get my Recommendation"
   }));
 }
 
 function quotaResponse(
   plan: "guest" | "free" | "premium",
-  remaining: number
+  remaining: number,
+  deepRemaining = plan === "premium" ? 1 : 0
 ) {
   const limit = plan === "guest"
     ? 2
@@ -177,8 +183,20 @@ function quotaResponse(
   return new Response(JSON.stringify({
     limit,
     used: limit - remaining,
+    reserved: 0,
     remaining,
     plan,
+    deep: {
+      limit: plan === "premium" ? 1 : 0,
+      used: plan === "premium"
+        ? 1 - deepRemaining
+        : 0,
+      reserved: 0,
+      remaining: deepRemaining,
+      available: plan === "premium"
+        && remaining > 0
+        && deepRemaining > 0
+    },
     dayKey: "2026-10-08",
     timezone: "UTC"
   }), {
@@ -346,7 +364,7 @@ describe("AIRecommendation persistence", () => {
       name: "Start Again"
     }));
 
-    expect(screen.getByText("Start from how you learn"))
+    expect(screen.getByText("Find your study methods"))
       .toBeTruthy();
     expect(window.localStorage.getItem(
       "edulience.aiRecommendation.latest.v1"
@@ -470,7 +488,7 @@ describe("AIRecommendation persistence", () => {
 
     await emitAuth(null);
 
-    expect(screen.getByText("Start from how you learn"))
+    expect(screen.getByText("Find your study methods"))
       .toBeTruthy();
     expect(screen.queryByText(
       recommendation.user_problem
@@ -540,7 +558,7 @@ describe("AIRecommendation persistence", () => {
     await waitFor(() => {
       expect(firestore.getDoc).toHaveBeenCalled();
     });
-    expect(screen.getByText("Start from how you learn"))
+    expect(screen.getByText("Find your study methods"))
       .toBeTruthy();
     expect(screen.queryByText(
       recommendation.user_problem
@@ -599,7 +617,7 @@ describe("AIRecommendation persistence", () => {
 
     await waitFor(() => {
       expect((screen.getByRole("button", {
-        name: /Get My Recommendations/
+        name: "Get my Recommendation"
       }) as HTMLButtonElement).disabled).toBe(true);
     });
     expect(vi.mocked(fetch).mock.calls.some(
@@ -607,5 +625,299 @@ describe("AIRecommendation persistence", () => {
         String(url).endsWith("/api/recommend")
         && init?.method === "POST"
     )).toBe(false);
+  });
+});
+
+describe("Premium recommendation modes", () => {
+  function mockRecommendationApi(
+    plan: "guest" | "free" | "premium",
+    remaining: number,
+    deepRemaining = plan === "premium" ? 1 : 0
+  ) {
+    vi.mocked(fetch).mockImplementation(
+      async (url, init) => {
+        if (
+          String(url).endsWith("/api/recommend/access")
+        ) {
+          return quotaResponse(
+            plan,
+            remaining,
+            deepRemaining
+          );
+        }
+
+        if (
+          String(url).endsWith("/api/recommend")
+          && init?.method === "POST"
+        ) {
+          return successfulResponse() as unknown as Response;
+        }
+
+        throw new Error(`Unexpected request: ${url}`);
+      }
+    );
+  }
+
+  it("defaults Premium to Standard and persists a selected Deep result", async () => {
+    mockRecommendationApi("premium", 10, 1);
+    render(<AIRecommendation />);
+    await emitAuth(user("premium-user"));
+    await reachFinalQuestion();
+
+    const standard = await screen.findByRole(
+      "radio",
+      { name: /Standard Recommendation/ }
+    ) as HTMLInputElement;
+    const deep = screen.getByRole(
+      "radio",
+      { name: /Deep Recommendation/ }
+    ) as HTMLInputElement;
+
+    expect(standard.checked).toBe(true);
+    expect(deep.checked).toBe(false);
+    expect(deep.disabled).toBe(false);
+    expect(screen.getByText(
+      "1 Deep Recommendation remaining today"
+    )).toBeTruthy();
+
+    expect(screen.getByRole("button", {
+      name: "Get my Recommendation"
+    })).toBeTruthy();
+    fireEvent.click(deep);
+    fireEvent.click(screen.getByRole("button", {
+      name: "Get my Deep Recommendation"
+    }));
+
+    expect(await screen.findByText(
+      "YOUR DEEP EDULIENCE PLAN"
+    )).toBeTruthy();
+    const postCall = vi.mocked(fetch).mock.calls.find(
+      ([url, init]) =>
+        String(url).endsWith("/api/recommend")
+        && init?.method === "POST"
+    );
+    expect(JSON.parse(String(postCall?.[1]?.body)))
+      .toMatchObject({ mode: "deep" });
+    await waitFor(() => {
+      expect(firestore.setDoc).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ mode: "deep" })
+      );
+    });
+  });
+
+  it("disables Deep with a server-authoritative explanation when used", async () => {
+    mockRecommendationApi("premium", 9, 0);
+    render(<AIRecommendation />);
+    await emitAuth(user("premium-user"));
+    await reachFinalQuestion();
+
+    const deep = await screen.findByRole(
+      "radio",
+      { name: /Deep Recommendation/ }
+    ) as HTMLInputElement;
+    expect(deep.disabled).toBe(true);
+    expect(screen.getByText(
+      "0 Deep Recommendations remaining today",
+      { exact: false }
+    )).toBeTruthy();
+    expect(screen.getByText(
+      /Unavailable because today's Deep Recommendation has been used/
+    )).toBeTruthy();
+  });
+
+  it("applies a server-authoritative Deep denial from a concurrent request", async () => {
+    let postCount = 0;
+
+    vi.mocked(fetch).mockImplementation(
+      async (url, init) => {
+        if (
+          String(url).endsWith("/api/recommend/access")
+        ) {
+          return quotaResponse("premium", 10, 1);
+        }
+
+        if (
+          String(url).endsWith("/api/recommend")
+          && init?.method === "POST"
+        ) {
+          postCount += 1;
+          return {
+            ok: false,
+            status: 429,
+            json: async () => ({
+              error: "Daily Deep Recommendation limit reached",
+              code: "ai_deep_daily_quota_exceeded",
+              limit: 10,
+              used: 1,
+              reserved: 0,
+              remaining: 9,
+              plan: "premium",
+              deep: {
+                limit: 1,
+                used: 1,
+                reserved: 0,
+                remaining: 0,
+                available: false
+              },
+              dayKey: "2026-10-15",
+              timezone: "UTC"
+            })
+          } as Response;
+        }
+
+        throw new Error(`Unexpected request: ${url}`);
+      }
+    );
+    render(<AIRecommendation />);
+    await emitAuth(user("premium-user"));
+    await reachFinalQuestion();
+
+    fireEvent.click(await screen.findByRole(
+      "radio",
+      { name: /Deep Recommendation/ }
+    ));
+    const submit = screen.getByRole("button", {
+      name: "Get my Deep Recommendation"
+    }) as HTMLButtonElement;
+    fireEvent.click(submit);
+
+    expect(await screen.findByText(
+      "Daily Deep Recommendation limit reached"
+    )).toBeTruthy();
+    expect((screen.getByRole(
+      "radio",
+      { name: /Deep Recommendation/ }
+    ) as HTMLInputElement).disabled).toBe(true);
+    expect(submit.disabled).toBe(true);
+
+    fireEvent.click(submit);
+    expect(postCount).toBe(1);
+  });
+
+  it("returns an entitlement-downgraded user to Standard after rejecting Deep", async () => {
+    const postedModes: string[] = [];
+
+    vi.mocked(fetch).mockImplementation(
+      async (url, init) => {
+        if (
+          String(url).endsWith("/api/recommend/access")
+        ) {
+          return quotaResponse("premium", 10, 1);
+        }
+
+        if (
+          String(url).endsWith("/api/recommend")
+          && init?.method === "POST"
+        ) {
+          const body = JSON.parse(String(init.body));
+          postedModes.push(body.mode);
+
+          if (postedModes.length === 1) {
+            return {
+              ok: false,
+              status: 403,
+              json: async () => ({
+                error: "Deep Recommendation requires Premium",
+                code: "ai_deep_requires_premium",
+                limit: 4,
+                used: 0,
+                reserved: 0,
+                remaining: 4,
+                plan: "free",
+                deep: {
+                  limit: 0,
+                  used: 0,
+                  reserved: 0,
+                  remaining: 0,
+                  available: false
+                },
+                dayKey: "2026-10-15",
+                timezone: "UTC"
+              })
+            } as Response;
+          }
+
+          return successfulResponse() as unknown as Response;
+        }
+
+        throw new Error(`Unexpected request: ${url}`);
+      }
+    );
+    render(<AIRecommendation />);
+    await emitAuth(user("downgraded-user"));
+    await reachFinalQuestion();
+
+    fireEvent.click(await screen.findByRole(
+      "radio",
+      { name: /Deep Recommendation/ }
+    ));
+    fireEvent.click(screen.getByRole("button", {
+      name: "Get my Deep Recommendation"
+    }));
+
+    expect(await screen.findByText(
+      "Deep Recommendation requires Premium"
+    )).toBeTruthy();
+    expect(screen.queryByRole("group", {
+      name: "Recommendation mode"
+    })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Get my Recommendation"
+    }));
+    expect(await screen.findByText(
+      recommendation.user_problem
+    )).toBeTruthy();
+    expect(postedModes).toEqual(["deep", "standard"]);
+  });
+
+  it.each(["guest", "free"] as const)(
+    "keeps %s users on Standard without a mode selector",
+    async plan => {
+      mockRecommendationApi(
+        plan,
+        plan === "guest" ? 2 : 4
+      );
+      render(<AIRecommendation />);
+      await emitAuth(
+        plan === "guest" ? null : user("free-user")
+      );
+      await reachFinalQuestion();
+
+      expect(screen.queryByRole("group", {
+        name: "Recommendation mode"
+      })).toBeNull();
+      fireEvent.click(screen.getByRole("button", {
+        name: "Get my Recommendation"
+      }));
+      await screen.findByText(
+        recommendation.user_problem
+      );
+      const postCall = vi.mocked(fetch).mock.calls.find(
+        ([url, init]) =>
+          String(url).endsWith("/api/recommend")
+          && init?.method === "POST"
+      );
+      expect(JSON.parse(String(postCall?.[1]?.body)))
+        .toMatchObject({ mode: "standard" });
+    }
+  );
+
+  it("restores the persisted Deep mode with its saved result", async () => {
+    mockRecommendationApi("premium", 9, 0);
+    firestore.getDoc.mockResolvedValue(
+      existingSnapshot({
+        ...savedRecommendation(),
+        mode: "deep"
+      })
+    );
+    render(<AIRecommendation />);
+
+    await emitAuth(user("premium-user"));
+
+    expect(await screen.findByText(
+      "YOUR DEEP EDULIENCE PLAN"
+    )).toBeTruthy();
   });
 });

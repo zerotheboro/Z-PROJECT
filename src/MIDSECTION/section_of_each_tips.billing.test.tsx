@@ -88,6 +88,18 @@ beforeEach(() => {
 });
 
 describe("homepage Premium checkout", () => {
+  it("uses provider-neutral public billing copy", () => {
+    renderTips();
+
+    expect(screen.getByText(
+      "Cancel anytime. Taxes may vary by location."
+    )).toBeTruthy();
+    expect(screen.queryByText(/Merchant of Record/i))
+      .toBeNull();
+    expect(screen.queryByText(/powered by Paddle/i))
+      .toBeNull();
+  });
+
   it("asks signed-out visitors to sign in without creating Checkout", () => {
     renderTips();
 

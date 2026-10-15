@@ -294,6 +294,11 @@ function ActiveRecallExperiment({
             value={retrievalText}
             onChange={setRetrievalText}
             placeholder="Write what you remember..."
+            judge={{
+              taskId: "retrieval",
+              sourceMaterial:
+                data.facts.join("\n")
+            }}
           />
 
           {retrievalSecondsRemaining !== null && (

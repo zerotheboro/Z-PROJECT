@@ -74,8 +74,16 @@ const aiAccessMocks = vi.hoisted(() => ({
     access: {
       limit: 2,
       used: 0,
+      reserved: 0,
       remaining: 2,
       plan: "guest" as "guest" | "free" | "premium",
+      deep: {
+        limit: 0,
+        used: 0,
+        reserved: 0,
+        remaining: 0,
+        available: false
+      },
       dayKey: "2026-10-08",
       timezone: "UTC" as const
     },
@@ -177,8 +185,14 @@ beforeEach(() => {
   aiAccessMocks.state.user = null;
   aiAccessMocks.state.access.limit = 2;
   aiAccessMocks.state.access.used = 0;
+  aiAccessMocks.state.access.reserved = 0;
   aiAccessMocks.state.access.remaining = 2;
   aiAccessMocks.state.access.plan = "guest";
+  aiAccessMocks.state.access.deep.limit = 0;
+  aiAccessMocks.state.access.deep.used = 0;
+  aiAccessMocks.state.access.deep.reserved = 0;
+  aiAccessMocks.state.access.deep.remaining = 0;
+  aiAccessMocks.state.access.deep.available = false;
   aiAccessMocks.state.refreshAccess.mockReset();
   accessMocks.start.mockReset();
   accessMocks.start.mockResolvedValue({
@@ -309,6 +323,10 @@ describe("training entry choices", () => {
     aiAccessMocks.state.access.used = 5;
     aiAccessMocks.state.access.remaining = 5;
     aiAccessMocks.state.access.plan = "premium";
+    aiAccessMocks.state.access.deep.limit = 1;
+    aiAccessMocks.state.access.deep.used = 0;
+    aiAccessMocks.state.access.deep.remaining = 1;
+    aiAccessMocks.state.access.deep.available = true;
 
     renderTraining();
 
@@ -320,6 +338,41 @@ describe("training entry choices", () => {
     })).toHaveLength(2);
     expect(screen.getByText("5 / 10 used today"))
       .toBeTruthy();
+    expect(screen.getByText(
+      "1 Deep Recommendation remaining today"
+    )).toBeTruthy();
+  });
+
+  it("shows the server-authoritative exhausted Deep allowance", () => {
+    accessMocks.state.plan = "premium";
+    accessMocks.state.unlimited = true;
+    aiAccessMocks.state.access.limit = 10;
+    aiAccessMocks.state.access.used = 1;
+    aiAccessMocks.state.access.remaining = 9;
+    aiAccessMocks.state.access.plan = "premium";
+    aiAccessMocks.state.access.deep.limit = 1;
+    aiAccessMocks.state.access.deep.used = 1;
+    aiAccessMocks.state.access.deep.remaining = 0;
+    aiAccessMocks.state.access.deep.available = false;
+
+    renderTraining();
+
+    expect(screen.getByText(
+      "0 Deep Recommendations remaining today"
+    )).toBeTruthy();
+  });
+
+  it("shows why AI access is unavailable", () => {
+    accessMocks.state.plan = "premium";
+    accessMocks.state.unlimited = true;
+    aiAccessMocks.state.error =
+      "AI recommendation access response was invalid.";
+
+    renderTraining();
+
+    expect(screen.getAllByText(
+      "Unavailable — AI recommendation access response was invalid."
+    )).toHaveLength(2);
   });
 
   it("opens Paddle Checkout with a server-created transaction", async () => {

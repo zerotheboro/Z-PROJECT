@@ -19,11 +19,16 @@ match /users/{userId}/aiRecommendations/{recommendationId} {
   function validRecommendation(data) {
     return data.keys().hasOnly([
         "schemaVersion",
+        "mode",
         "inputs",
         "result",
         "updatedAt"
       ])
       && data.schemaVersion == 1
+      && (
+        !data.keys().hasAny(["mode"])
+        || data.mode in ["standard", "deep"]
+      )
       && data.updatedAt is timestamp
       && data.inputs is map
       && data.inputs.keys().hasOnly([

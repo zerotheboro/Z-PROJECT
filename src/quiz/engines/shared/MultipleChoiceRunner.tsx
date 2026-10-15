@@ -9,6 +9,12 @@ import {
 import type {
   RandomSource
 } from "./shuffleOptions";
+import {
+  optionsForDifficulty
+} from "./adaptiveDifficulty";
+import {
+  useAdaptiveChallenge
+} from "./AdaptiveDifficultyProvider";
 
 type Props = {
   question: MultipleChoiceQuestion;
@@ -37,13 +43,23 @@ function MultipleChoiceRunner({
       question.id,
       random
     );
+  const {
+    difficulty,
+    commit
+  } = useAdaptiveChallenge(question.id);
+  const displayedOptions =
+    optionsForDifficulty(
+      shuffledOptions,
+      question.correct,
+      difficulty
+    );
 
   return (
     <>
       <h2>{question.question}</h2>
 
       <div className="option-grid">
-        {shuffledOptions.map((option) => (
+        {displayedOptions.map((option) => (
           <button
             type="button"
             key={option}
@@ -70,7 +86,21 @@ function MultipleChoiceRunner({
       <button
         type="button"
         disabled={!selectedAnswer}
-        onClick={onNext}
+        onClick={() => {
+          if (!selectedAnswer) {
+            return;
+          }
+
+          commit({
+            correct:
+              selectedAnswer ===
+                question.correct
+                ? 1
+                : 0,
+            total: 1
+          });
+          onNext();
+        }}
       >
         {nextLabel}
       </button>

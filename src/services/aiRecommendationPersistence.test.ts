@@ -94,6 +94,7 @@ describe("AI recommendation persistence", () => {
 
     expect(stored).toMatchObject({
       schemaVersion: AI_RECOMMENDATION_SCHEMA_VERSION,
+      mode: "standard",
       inputs,
       result
     });
@@ -179,6 +180,7 @@ describe("AI recommendation persistence", () => {
       "mock-db/users/user-a/aiRecommendations/latest",
       {
         schemaVersion: 1,
+        mode: "standard",
         inputs,
         result,
         updatedAt: "server-time"
@@ -209,6 +211,31 @@ describe("AI recommendation persistence", () => {
       "aiRecommendations",
       "latest"
     );
+  });
+
+  it("persists Deep mode and defaults legacy saves to Standard", async () => {
+    await saveAIRecommendation(
+      { kind: "guest" },
+      inputs,
+      result,
+      "deep"
+    );
+
+    expect(loadGuestAIRecommendation()?.mode)
+      .toBe("deep");
+
+    window.localStorage.setItem(
+      GUEST_AI_RECOMMENDATION_STORAGE_KEY,
+      JSON.stringify({
+        schemaVersion: 1,
+        inputs,
+        result,
+        updatedAt: new Date().toISOString()
+      })
+    );
+
+    expect(loadGuestAIRecommendation()?.mode)
+      .toBe("standard");
   });
 
   it("does not fall back to guest data when a cloud read fails", async () => {

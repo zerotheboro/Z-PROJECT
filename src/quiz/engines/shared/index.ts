@@ -27,3 +27,41 @@ export { useResumableVideoProgress }
   from "./useResumableVideoProgress";
 export type { ResumableVideoProgress }
   from "./useResumableVideoProgress";
+export { default as YouTubeTrainingPlayer }
+  from "./YouTubeTrainingPlayer";
+export { useResumableYouTubeProgress }
+  from "./YouTubeTrainingPlayer";
+export type { ResumableYouTubeProgress }
+  from "./YouTubeTrainingPlayer";
+export {
+  AdaptiveDifficultyProvider,
+  AdaptiveDifficultyScope,
+  useAdaptiveChallenge
+} from "./AdaptiveDifficultyProvider";
+export {
+  ADAPTIVE_DIFFICULTY_LEVELS,
+  ADAPTIVE_PERFORMANCE_WINDOW_SIZE,
+  DEFAULT_ADAPTIVE_DIFFICULTY,
+  STRONG_PERFORMANCE_THRESHOLD,
+  WEAK_PERFORMANCE_THRESHOLD,
+  assignChallengeDifficulty,
+  createAdaptiveDifficultyState,
+  isAdaptiveDifficulty,
+  isAdaptiveDifficultyState,
+  normalizeObjectivePerformance,
+  optionsForDifficulty,
+  recordAdaptivePerformance
+} from "./adaptiveDifficulty";
+export type {
+  AdaptiveDifficulty,
+  AdaptiveDifficultyState,
+  ObjectivePerformance
+} from "./adaptiveDifficulty";
+export {
+  WritingJudgeProvider,
+  WritingJudgeScope,
+  useWritingJudgeRecord
+} from "./WritingJudgeProvider";
+export type {
+  WritingJudgeTask
+} from "./WritingJudgeControl";

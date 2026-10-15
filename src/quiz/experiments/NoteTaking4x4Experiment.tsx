@@ -154,14 +154,17 @@ function NoteTaking4x4Experiment({
         <div>
           <p>STEP 1 · ORGANIZE</p>
           <h2>{data.topic}</h2>
-          <div className="cornell-layout">
-            <div className="cornell-source">
+          <div className="four-by-four-layout">
+            <div className="four-by-four-source">
               <h3>Learning material</h3>
               <p>{data.content}</p>
             </div>
-            <div className="cornell-notes">
+            <div className="four-by-four-grid">
               {subIdeas.map((idea, index) => (
-                <div key={index}>
+                <div
+                  className="four-by-four-item"
+                  key={index}
+                >
                   <h3>
                     Sub-idea {index + 1}
                   </h3>
@@ -202,9 +205,13 @@ function NoteTaking4x4Experiment({
             Add supporting details beneath
             each of your four sub-ideas.
           </h2>
-          {supportingDetails.map(
-            (details, index) => (
-              <div key={index}>
+          <div className="four-by-four-response-grid">
+            {supportingDetails.map(
+              (details, index) => (
+              <div
+                className="four-by-four-response"
+                key={index}
+              >
                 <h3>{subIdeas[index]}</h3>
                 <TextResponse
                   value={details}
@@ -220,8 +227,9 @@ function NoteTaking4x4Experiment({
                   placeholder={`Supporting details ${index + 1}...`}
                 />
               </div>
-            )
-          )}
+              )
+            )}
+          </div>
           <button
             type="button"
             disabled={supportingDetails.some(

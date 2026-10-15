@@ -132,7 +132,8 @@ const labRules: Record<TrainingMethodId, MethodScopeRule> = {
   ),
   cornell: simpleLab(
     ["intro", "notes", "summary", "test", "reflection"],
-    4, 5, 6
+    4, 5, 6, 9,
+    { maximumSlots: 11 }
   ),
   interleaving: {
     stages: ["intro", "learn", "practice", "test", "reflection"],
@@ -233,7 +234,7 @@ const labRules: Record<TrainingMethodId, MethodScopeRule> = {
     ["intro", "watch", "test", "reflection"],
     1, 2, 3, 6,
     {
-      maximumSlots: 8,
+      maximumSlots: 9,
       videoSlot: 7
     }
   )
@@ -250,7 +251,8 @@ const matchRules: Record<TrainingMethodId, MethodScopeRule> = {
   ),
   cornell: simpleMatch(
     ["organize", "summary", "test", "confidence"],
-    4, 5, 6
+    4, 5, 6, 7,
+    { maximumSlots: 9 }
   ),
   interleaving: {
     stages: ["review", "practice", "test", "confidence"],
@@ -351,7 +353,7 @@ const matchRules: Record<TrainingMethodId, MethodScopeRule> = {
     ["watch", "test", "confidence"],
     1, 2, 3, 4,
     {
-      maximumSlots: 6,
+      maximumSlots: 7,
       videoSlot: 5
     }
   )

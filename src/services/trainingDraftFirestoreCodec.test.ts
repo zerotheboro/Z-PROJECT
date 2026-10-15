@@ -91,6 +91,43 @@ const roundTripCases: readonly [string, unknown][] = [
         q2: ["no", "yes"]
       }
     }
+  }],
+  ["adaptive difficulty state", {
+    adaptiveDifficulty: {
+      level: "hard",
+      recentPerformance: [1, 0],
+      processedEventIds: [
+        "lab:active-recall:set-1:q1",
+        "lab:active-recall:set-1:q2"
+      ],
+      challengeLevels: {
+        "lab:active-recall:set-1:q1": "medium",
+        "lab:active-recall:set-1:q2": "medium",
+        "lab:active-recall:set-1:q3": "hard"
+      }
+    }
+  }],
+  ["writing judge feedback", {
+    writingJudgeResults: {
+      "lab:feynman:set-1:explanation": {
+        methodId: "feynman",
+        taskId: "explanation",
+        userWriting:
+          "Metal transfers heat faster than wood.",
+        result: {
+          score: 88,
+          accuracy: 95,
+          coverage: 80,
+          clarity: 90,
+          strengths: ["Accurate central idea."],
+          missingPoints: ["Name conductivity."],
+          misconceptions: [],
+          verdict: "strong",
+          nextAction:
+            "Add the name thermal conductivity."
+        }
+      }
+    }
   }]
 ];
 

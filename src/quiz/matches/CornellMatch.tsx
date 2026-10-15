@@ -66,6 +66,9 @@ function CornellMatch({
       startImmediately: true
     });
 
+  const [title, setTitle] =
+    useState("");
+
   const currentQuestion =
     data
       .questions[questionIndex];
@@ -103,6 +106,7 @@ function CornellMatch({
     console.log(
       "CORNELL ROUND 2:",
       {
+        title,
         notes,
         cues,
         summary
@@ -128,15 +132,20 @@ function CornellMatch({
 
       {/* ORGANIZE */}
 
-      {stage === "organize" && (
+      {(stage === "organize" ||
+        stage === "summary") && (
         <div>
 
           <p>
-            {data.title.toUpperCase()}
+            {stage === "organize"
+              ? data.title.toUpperCase()
+              : "SUMMARIZE THE MATERIAL"}
           </p>
 
           <h2>
-            {data.topic}
+            {stage === "organize"
+              ? data.topic
+              : "Summarize the material."}
           </h2>
 
           <StudyPanel>
@@ -147,9 +156,27 @@ function CornellMatch({
 
           </StudyPanel>
 
-          <div className="cornell-layout">
+          <div className="cornell-sheet">
 
-            <div>
+            <div className="cornell-title">
+              <label htmlFor="cornell-match-title">
+                Short Title
+              </label>
+              <input
+                id="cornell-match-title"
+                type="text"
+                maxLength={80}
+                value={title}
+                onChange={(event) =>
+                  setTitle(event.target.value)
+                }
+                placeholder="Topic or title..."
+              />
+            </div>
+
+            <div className="cornell-columns">
+
+            <div className="cornell-cues">
               <h3>
                 Cues / Questions
               </h3>
@@ -160,7 +187,7 @@ function CornellMatch({
               />
             </div>
 
-            <div>
+            <div className="cornell-main-notes">
               <h3>
                 Main Notes
               </h3>
@@ -168,6 +195,29 @@ function CornellMatch({
                 value={notes}
                 onChange={setNotes}
                 placeholder="Organize the important information..."
+                judge={{
+                  taskId: "main-notes",
+                  sourceMaterial:
+                    data.content
+                }}
+              />
+            </div>
+
+            </div>
+
+            <div className="cornell-summary">
+              <h3>
+                Brief Summary
+              </h3>
+              <TextResponse
+                value={summary}
+                onChange={setSummary}
+                placeholder="Short summary..."
+                judge={{
+                  taskId: "summary",
+                  sourceMaterial:
+                    data.content
+                }}
               />
             </div>
 
@@ -175,45 +225,19 @@ function CornellMatch({
 
           <button
             type="button"
-            disabled={
-              notes.trim().length < 20 ||
-              cues.trim().length < 5
-            }
-            onClick={() =>
-              setStage("summary")
-            }
+            disabled={stage === "organize"
+              ? notes.trim().length < 20 ||
+                cues.trim().length < 5
+              : summary.trim().length < 20}
+            onClick={() => setStage(
+              stage === "organize"
+                ? "summary"
+                : "test"
+            )}
           >
-            Continue
-          </button>
-
-        </div>
-      )}
-
-      {/* SUMMARY */}
-
-      {stage === "summary" && (
-        <div>
-
-          <h2>
-            Summarize the material.
-          </h2>
-
-          <TextResponse
-            value={summary}
-            onChange={setSummary}
-            placeholder="Short summary..."
-          />
-
-          <button
-            type="button"
-            disabled={
-              summary.trim().length < 20
-            }
-            onClick={() =>
-              setStage("test")
-            }
-          >
-            Continue to test
+            {stage === "organize"
+              ? "Continue"
+              : "Continue to test"}
           </button>
 
         </div>

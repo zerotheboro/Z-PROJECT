@@ -45,16 +45,12 @@ function Footer(){
             </div>
             <div className='contact qr'>
             <span>
-                <h1>Your opinion survey</h1>
+                <h1>Opinion survey</h1>
                 <a href='https://forms.gle/dfjrofp26qWphvJK7' target='_blank'><img src={SURVEY}></img></a>
             </span>
             <span>
-                <h1>Your legal policy</h1>
+                <h1>Legal policy</h1>
                 <a href='/privacy-policy.html' target='_blank'><img src={PRIVATE}></img></a>
-            </span>
-            <span>
-                <h1>Your donation matters</h1>
-                <a href='' target='_blank'><img src={DONATE}></img></a>
             </span>
             </div>           
         </footer>

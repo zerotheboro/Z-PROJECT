@@ -108,6 +108,12 @@ import type {
 import {
   TrainingStateScope
 } from "./trainingProgressState";
+import {
+  AdaptiveDifficultyScope
+} from "./engines/shared/AdaptiveDifficultyProvider";
+import {
+  WritingJudgeScope
+} from "./engines/shared/WritingJudgeProvider";
 
 type SelectionSignal =
   | {
@@ -228,18 +234,27 @@ function defineMethod<LabData, MatchData>(
       );
 
       return (
-        <TrainingStateScope
+        <WritingJudgeScope
           key={`${method.id}:${contentSetId}`}
           name={`lab:${method.id}:${contentSetId}`}
+          methodId={method.id}
         >
-          <LabEngine
-            method={method.id}
-            category={method.category}
-            name={method.name}
-            data={data}
-            onComplete={onComplete}
-          />
-        </TrainingStateScope>
+          <AdaptiveDifficultyScope
+            name={`lab:${method.id}:${contentSetId}`}
+          >
+            <TrainingStateScope
+              name={`lab:${method.id}:${contentSetId}`}
+            >
+              <LabEngine
+                method={method.id}
+                category={method.category}
+                name={method.name}
+                data={data}
+                onComplete={onComplete}
+              />
+            </TrainingStateScope>
+          </AdaptiveDifficultyScope>
+        </WritingJudgeScope>
       );
     },
     renderMatch: (
@@ -253,19 +268,28 @@ function defineMethod<LabData, MatchData>(
       );
 
       return (
-        <TrainingStateScope
+        <WritingJudgeScope
           key={`${method.id}:${contentSetId}`}
           name={`match:${method.id}:${contentSetId}`}
+          methodId={method.id}
         >
-          <MatchEngine
-            method={method.id}
-            name={method.name}
-            shortName={method.shortName}
-            data={data}
-            originalScore={originalScore}
-            onComplete={onComplete}
-          />
-        </TrainingStateScope>
+          <AdaptiveDifficultyScope
+            name={`match:${method.id}:${contentSetId}`}
+          >
+            <TrainingStateScope
+              name={`match:${method.id}:${contentSetId}`}
+            >
+              <MatchEngine
+                method={method.id}
+                name={method.name}
+                shortName={method.shortName}
+                data={data}
+                originalScore={originalScore}
+                onComplete={onComplete}
+              />
+            </TrainingStateScope>
+          </AdaptiveDifficultyScope>
+        </WritingJudgeScope>
       );
     }
   };

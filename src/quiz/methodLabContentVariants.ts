@@ -774,8 +774,32 @@ export const methodLabContentVariants = {
         question("sel3q3", "What must happen in an interference task?", "The automatic response must be inhibited", "The rule must be ignored", "Every stimulus must be removed", "The task must stop")
       ]
     }
+  ],
+  "two-x-video-speed": [
+    {
+      method: "two-x-video-speed" as const,
+      category: "understanding" as const,
+      title: "2X video speed",
+      topic: "How supply and demand influence prices",
+      youtubeId: "g9aDizJpd_s",
+      videoTitle: "Supply and Demand: Crash Course Economics #4",
+      channel: "CrashCourse",
+      focusPoints: [
+        "Follow how buyers and sellers respond to price changes.",
+        "Identify equilibrium where supply and demand meet.",
+        "Notice how market signals affect production decisions."
+      ],
+      questions: [
+        question("vxl2q1", "When price rises, what generally happens to quantity demanded?", "It decreases", "It always doubles", "It becomes supply", "It cannot change"),
+        question("vxl2q2", "What is the market equilibrium?", "The point where supply and demand meet", "The highest possible price", "A market with no buyers", "The cost of every input"),
+        question("vxl2q3", "What can a higher market price signal to producers?", "An incentive to supply more", "A requirement to stop production", "That demand no longer exists", "That all resources are free")
+      ]
+    }
   ]
 } satisfies Record<
   MethodWithGeneratedVariants,
   readonly [unknown, unknown]
+> & Record<
+  "two-x-video-speed",
+  readonly [unknown]
 >;

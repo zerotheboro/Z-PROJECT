@@ -12,7 +12,21 @@ import {
 import {
   validateTrainingDraftSemantics
 } from "./trainingDraftValidation";
+import {
+  createAdaptiveDifficultyState,
+  isAdaptiveDifficultyState
+} from "./engines/shared/adaptiveDifficulty";
 
+import type {
+  AdaptiveDifficultyState
+} from "./engines/shared/adaptiveDifficulty";
+import {
+  createWritingJudgeState,
+  isWritingJudgeState
+} from "./writingJudgeState";
+import type {
+  WritingJudgeState
+} from "./writingJudgeState";
 import type {
   BaselineResult,
   LearningProfile,
@@ -73,6 +87,8 @@ export type TrainingDraft = {
   labContentSetIds: string[];
   matchContentSetIds: string[];
   verificationMethodOrder: TrainingMethodId[];
+  adaptiveDifficulty: AdaptiveDifficultyState;
+  writingJudgeResults: WritingJudgeState;
   completed: {
     learningSituation: LearningSituation | null;
     baseline: BaselineResult | null;
@@ -155,6 +171,10 @@ export function createTrainingDraft({
     labContentSetIds: [],
     matchContentSetIds: [],
     verificationMethodOrder: [],
+    adaptiveDifficulty:
+      createAdaptiveDifficultyState(),
+    writingJudgeResults:
+      createWritingJudgeState(),
     completed: {
       learningSituation: null,
       baseline: null,
@@ -232,6 +252,36 @@ export function validateTrainingDraft(
       valid: false,
       reason:
         "This saved training session was created by an incompatible version of Edulience."
+    };
+  }
+
+  const adaptiveDifficulty =
+    value.adaptiveDifficulty === undefined
+      ? createAdaptiveDifficultyState()
+      : value.adaptiveDifficulty;
+
+  if (
+    !isAdaptiveDifficultyState(
+      adaptiveDifficulty
+    )
+  ) {
+    return {
+      valid: false,
+      reason:
+        "The saved adaptive difficulty state is invalid."
+    };
+  }
+
+  const writingJudgeResults =
+    value.writingJudgeResults === undefined
+      ? createWritingJudgeState()
+      : value.writingJudgeResults;
+
+  if (!isWritingJudgeState(writingJudgeResults)) {
+    return {
+      valid: false,
+      reason:
+        "The saved writing feedback state is invalid."
     };
   }
 
@@ -425,9 +475,15 @@ export function validateTrainingDraft(
     };
   }
 
+  const normalizedDraft = {
+    ...value,
+    adaptiveDifficulty,
+    writingJudgeResults
+  };
+
   return {
     valid: true,
-    draft: value as TrainingDraft
+    draft: normalizedDraft as TrainingDraft
   };
 }
 

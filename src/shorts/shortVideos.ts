@@ -7,7 +7,7 @@ export type ShortVideo = {
   category?: string;
 };
 
-export const SHORT_VIDEOS = [
+export let RAW_VIDEOS = [
   {
     id: "short-1",
     youtubeId: "qW63_zEqnJw",
@@ -43,13 +43,52 @@ export const SHORT_VIDEOS = [
     youtubeId: "gb8Bz8l_ILQ",
     title: "Edulience Short 4"
   },
+  {
+    id: "short-4",
+    youtubeId: "AEO-GMWnfIM",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-4",
+    youtubeId: "bh7jRjyIg5c",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-4",
+    youtubeId: "z7O_B2ahx8s",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-4",
+    youtubeId: "4-TkN4ta9cY",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-4",
+    youtubeId: "DrH9t6XNA7M",
+    title: "Edulience Short 4"
+  },]
 
+function scrambleArray<T>(array: T[]): T[] {
+  // Create a shallow copy to keep the function pure
+  const scrambled = [...array]; 
+  
+  for (let i = scrambled.length - 1; i > 0; i--) {
+    // Generate a random index from 0 to i
+    const j = Math.floor(Math.random() * (i + 1));
+    
+    // Swap elements using destructuring assignment
+    [scrambled[i], scrambled[j]] = [scrambled[j], scrambled[i]];
+  }
+  
+  return scrambled;
+}
+
+ 
   
 
   
-
-  
-] as const satisfies readonly ShortVideo[];
+export const SHORT_VIDEOS = scrambleArray(RAW_VIDEOS) satisfies readonly ShortVideo[];
 
 export function getShortEmbedUrl(
   youtubeId: string,

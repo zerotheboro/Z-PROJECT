@@ -24,10 +24,13 @@ import {
   verifyFirebaseIdToken
 } from "./firebaseAdmin.js";
 import {
+  AIRecommendationDeepAccessError,
+  AIRecommendationDeepQuotaExceededError,
   AIRecommendationQuotaExceededError,
   createFirebaseAIRecommendationQuotaManager,
   FREE_AI_DAILY_LIMIT,
   GUEST_AI_DAILY_LIMIT,
+  PREMIUM_DEEP_AI_DAILY_LIMIT,
   PREMIUM_AI_DAILY_LIMIT
 } from "./aiRecommendationQuota.js";
 import { METHOD_POOL } from "./methodPool.js";
@@ -37,14 +40,28 @@ import {
   TrainingQuotaValidationError,
   TrainingReservationConflictError
 } from "./trainingQuota.js";
+import {
+  WRITING_JUDGE_ENDPOINT,
+  buildWritingJudgeInput,
+  getWritingJudgeInstructions,
+  isWritingJudgeResult,
+  validateWritingJudgeInput,
+  writingJudgeSchema
+} from "./writingJudge.js";
 
 dotenv.config();
 
-export const SIGNED_IN_MODEL = "gpt-5.4-mini";
-export const ANONYMOUS_MODEL = "gpt-5-mini";
+export const AI_RECOMMENDATION_STANDARD_MODEL = "gpt-6-luna";
+export const AI_RECOMMENDATION_DEEP_MODEL = "gpt-6.1-sol";
+export const AI_RECOMMENDATION_MODEL =
+  AI_RECOMMENDATION_STANDARD_MODEL;
+export const WRITING_JUDGE_MODEL = "gpt-5.6-luna";
 export const ALLOWED_MODELS = Object.freeze([
-  SIGNED_IN_MODEL,
-  ANONYMOUS_MODEL
+  ...new Set([
+    AI_RECOMMENDATION_STANDARD_MODEL,
+    AI_RECOMMENDATION_DEEP_MODEL,
+    WRITING_JUDGE_MODEL
+  ])
 ]);
 export const MAX_OUTPUT_TOKENS = 2000;
 export const SIGNED_IN_RATE_LIMIT = 3;
@@ -53,10 +70,13 @@ export const RECOMMEND_RATE_WINDOW_MS = 60_000;
 export {
   FREE_AI_DAILY_LIMIT,
   GUEST_AI_DAILY_LIMIT,
+  PREMIUM_DEEP_AI_DAILY_LIMIT,
   PREMIUM_AI_DAILY_LIMIT
 };
 export const TRAINING_ACCESS_RATE_LIMIT = 30;
 export const RECOMMEND_ACCESS_RATE_LIMIT = 30;
+export const WRITING_JUDGE_RATE_LIMIT = 5;
+export const WRITING_JUDGE_MAX_OUTPUT_TOKENS = 900;
 export const INPUT_LIMITS = Object.freeze({
   biggestProblem: 300,
   methodQuestion: 300,
@@ -78,6 +98,15 @@ Rules:
 - Include why each method fits
 - Include warning conditions where each method may not work as well
 - Return valid JSON only
+`;
+
+const DEEP_RECOMMENDATION_PROMPT = `
+Deep Recommendation requirements:
+- Analyze the student's constraints and learning problem more carefully before choosing methods
+- Make each method reason specific to the student's stated situation rather than generic
+- Explain meaningful tradeoffs and warning conditions for each selected method
+- Provide a concrete, sequenced study plan that the student can act on immediately
+- Stay within the existing response schema and remain concise enough to finish reliably
 `;
 
 const COMPACT_METHOD_POOL = METHOD_POOL.map((method) => ({
@@ -172,16 +201,22 @@ function getAIQuotaIdentity(req) {
     : { ip: getClientIp(req) };
 }
 
-function selectModel(authContext) {
-  const model = authContext.verified
-    ? SIGNED_IN_MODEL
-    : ANONYMOUS_MODEL;
+function selectRecommendationModel(mode = "standard") {
+  const model = mode === "deep"
+    ? AI_RECOMMENDATION_DEEP_MODEL
+    : AI_RECOMMENDATION_STANDARD_MODEL;
 
   if (!ALLOWED_MODEL_SET.has(model)) {
     throw new Error("Server selected a model outside the allowlist");
   }
 
   return model;
+}
+
+function getRecommendationInstructions(mode) {
+  return mode === "deep"
+    ? `${SYSTEM_PROMPT}\n${DEEP_RECOMMENDATION_PROMPT}`
+    : SYSTEM_PROMPT;
 }
 
 function writeLog(logger, level, event) {
@@ -193,7 +228,7 @@ function createRequestLogContext(req, modelSelected) {
   const authContext = getAuthContext(req);
 
   return {
-    endpoint: ENDPOINT,
+    endpoint: req.path,
     auth_status: authContext.status,
     user_id: authContext.uid,
     firebase_uid: authContext.uid,
@@ -204,12 +239,55 @@ function createRequestLogContext(req, modelSelected) {
   };
 }
 
+function createWritingJudgeRateLimitMiddleware({
+  limit,
+  windowMs,
+  now
+}) {
+  const identities = new Map();
+
+  return (req, res, next) => {
+    const uid = getAuthContext(req).uid;
+    const currentTime = now();
+    const current = identities.get(uid);
+
+    if (!current || currentTime >= current.resetAt) {
+      identities.set(uid, {
+        count: 1,
+        resetAt: currentTime + windowMs
+      });
+      next();
+      return;
+    }
+
+    if (current.count >= limit) {
+      res.set(
+        "Retry-After",
+        String(Math.max(
+          1,
+          Math.ceil(
+            (current.resetAt - currentTime) / 1000
+          )
+        ))
+      );
+      res.status(429).json({
+        error: "Too many writing evaluation requests"
+      });
+      return;
+    }
+
+    current.count += 1;
+    next();
+  };
+}
+
 function logRejectedRequest(logger, now, req, {
   status,
   errorMessage,
-  event = "recommendation_request_rejected"
+  event = "recommendation_request_rejected",
+  mode = "standard"
 }) {
-  const modelSelected = selectModel(getAuthContext(req));
+  const modelSelected = selectRecommendationModel(mode);
 
   writeLog(logger, "warn", {
     timestamp: new Date(now()).toISOString(),
@@ -226,27 +304,39 @@ function logRejectedRequest(logger, now, req, {
   });
 }
 
-function sendAIQuotaExceeded(
+function sendAIRecommendationAccessError(
   logger,
   now,
   req,
   res,
-  error
+  error,
+  mode
 ) {
+  const isDeepAccess =
+    error instanceof AIRecommendationDeepAccessError;
+  const isDeepLimit =
+    error instanceof AIRecommendationDeepQuotaExceededError;
+  const status = error.status ?? 429;
+  const publicError = isDeepAccess
+    ? "Deep Recommendation requires Premium"
+    : isDeepLimit
+      ? "Daily Deep Recommendation limit reached"
+      : "Daily recommendation limit reached";
+
   logRejectedRequest(logger, now, req, {
-    status: 429,
+    status,
     errorMessage: error.message,
-    event: "daily_recommendation_limit_reached"
+    event: isDeepAccess
+      ? "deep_recommendation_access_denied"
+      : isDeepLimit
+        ? "daily_deep_recommendation_limit_reached"
+        : "daily_recommendation_limit_reached",
+    mode
   });
-  res.status(429).json({
-    error: "Daily recommendation limit reached",
+  res.status(status).json({
+    error: publicError,
     code: error.code,
-    limit: error.access.limit,
-    used: error.access.used,
-    remaining: error.access.remaining,
-    plan: error.access.plan,
-    dayKey: error.access.dayKey,
-    timezone: error.access.timezone
+    ...error.access
   });
 }
 
@@ -273,6 +363,19 @@ function validateRecommendationInput(body) {
     }
 
     validated[field] = value;
+  }
+
+  if (source.mode === undefined) {
+    validated.mode = "standard";
+  } else if (
+    source.mode === "standard"
+    || source.mode === "deep"
+  ) {
+    validated.mode = source.mode;
+  } else {
+    return {
+      error: "mode must be standard or deep"
+    };
   }
 
   return { value: validated };
@@ -757,6 +860,12 @@ export function createRecommendationApp({
       windowMs: RECOMMEND_RATE_WINDOW_MS,
       now
     });
+  const writingJudgeRateLimit =
+    createWritingJudgeRateLimitMiddleware({
+      limit: WRITING_JUDGE_RATE_LIMIT,
+      windowMs: RECOMMEND_RATE_WINDOW_MS,
+      now
+    });
 
   app.get(
     "/api/recommend/access",
@@ -870,6 +979,150 @@ export function createRecommendationApp({
   );
 
   app.post(
+    WRITING_JUDGE_ENDPOINT,
+    requireVerifiedTrainingAuth,
+    writingJudgeRateLimit,
+    async (req, res) => {
+      const input = validateWritingJudgeInput(
+        req.body
+      );
+      const modelSelected = WRITING_JUDGE_MODEL;
+      const logContext = createRequestLogContext(
+        req,
+        modelSelected
+      );
+
+      if (input.error) {
+        writeLog(logger, "warn", {
+          timestamp: new Date(now()).toISOString(),
+          event: "writing_judge_request_rejected",
+          ...logContext,
+          model_returned: null,
+          openai_request_id: null,
+          input_tokens: null,
+          output_tokens: null,
+          total_tokens: null,
+          status: 400,
+          error_message: input.error,
+          success: false
+        });
+        res.status(400).json({ error: input.error });
+        return;
+      }
+
+      let modelReturned = null;
+      let openAIRequestId = null;
+      let responseUsage = {};
+
+      try {
+        const request = client.responses.create({
+          model: modelSelected,
+          instructions:
+            getWritingJudgeInstructions(
+              input.value.methodId
+            ),
+          input: buildWritingJudgeInput(
+            input.value
+          ),
+          store: false,
+          max_output_tokens:
+            WRITING_JUDGE_MAX_OUTPUT_TOKENS,
+          text: {
+            format: {
+              type: "json_schema",
+              name: "edulience_writing_judge",
+              schema: writingJudgeSchema,
+              strict: true
+            }
+          }
+        });
+        const {
+          data: response,
+          response: rawResponse,
+          request_id: requestId
+        } = await request.withResponse();
+        const usage = response.usage ?? {};
+        modelReturned = response.model ?? null;
+        openAIRequestId = requestId ?? null;
+        responseUsage = usage;
+
+        if (!ALLOWED_MODEL_SET.has(response.model)) {
+          writeLog(logger, "error", {
+            timestamp: new Date(now()).toISOString(),
+            severity: "high",
+            event:
+              "writing_judge_unapproved_model_returned",
+            ...logContext,
+            model_returned: response.model ?? null,
+            openai_request_id: requestId
+          });
+        } else if (response.model !== modelSelected) {
+          writeLog(logger, "warn", {
+            timestamp: new Date(now()).toISOString(),
+            event: "writing_judge_model_mismatch",
+            ...logContext,
+            model_returned: response.model,
+            openai_request_id: requestId
+          });
+        }
+
+        const result = JSON.parse(
+          response.output_text
+        );
+
+        if (!isWritingJudgeResult(result)) {
+          throw new Error(
+            "OpenAI returned an invalid writing evaluation payload"
+          );
+        }
+
+        writeLog(logger, "info", {
+          timestamp: new Date(now()).toISOString(),
+          event: "writing_judge_completed",
+          ...logContext,
+          model_returned: modelReturned,
+          openai_request_id: openAIRequestId,
+          input_tokens:
+            responseUsage.input_tokens ?? null,
+          output_tokens:
+            responseUsage.output_tokens ?? null,
+          total_tokens:
+            responseUsage.total_tokens ?? null,
+          status: rawResponse.status,
+          success: true
+        });
+
+        res.json(result);
+      } catch (error) {
+        writeLog(logger, "error", {
+          timestamp: new Date(now()).toISOString(),
+          event: "writing_judge_failed",
+          ...logContext,
+          model_returned: modelReturned,
+          status: error?.status ?? 500,
+          openai_error_code: error?.code ?? null,
+          openai_request_id:
+            error?.requestID ?? openAIRequestId,
+          input_tokens:
+            responseUsage.input_tokens ?? null,
+          output_tokens:
+            responseUsage.output_tokens ?? null,
+          total_tokens:
+            responseUsage.total_tokens ?? null,
+          error_message: error instanceof Error
+            ? error.message
+            : "Unknown writing judge error",
+          success: false
+        });
+        res.status(500).json({
+          error:
+            "Writing evaluation failed. Please try again."
+        });
+      }
+    }
+  );
+
+  app.post(
     ENDPOINT,
     createRateLimitMiddleware({
       signedInLimit: signedInRateLimit,
@@ -879,9 +1132,6 @@ export function createRecommendationApp({
       logger
     }),
     async (req, res) => {
-      const authContext = getAuthContext(req);
-      const modelSelected = selectModel(authContext);
-      const logContext = createRequestLogContext(req, modelSelected);
       const input = validateRecommendationInput(req.body);
 
       if (input.error) {
@@ -893,30 +1143,34 @@ export function createRecommendationApp({
         return;
       }
 
+      const mode = input.value.mode;
+      const modelSelected = selectRecommendationModel(mode);
+      const logContext = createRequestLogContext(req, modelSelected);
       const quotaIdentity = getAIQuotaIdentity(req);
+      let reservation;
 
       try {
-        const access =
-          await aiRecommendationQuota.getAccess(
-            quotaIdentity
+        reservation =
+          await aiRecommendationQuota.reserve(
+            quotaIdentity,
+            { mode }
           );
-
-        if (access.remaining === 0) {
-          throw new AIRecommendationQuotaExceededError(
-            access
-          );
-        }
       } catch (error) {
         if (
           error instanceof
             AIRecommendationQuotaExceededError
+          || error instanceof
+            AIRecommendationDeepAccessError
+          || error instanceof
+            AIRecommendationDeepQuotaExceededError
         ) {
-          sendAIQuotaExceeded(
+          sendAIRecommendationAccessError(
             logger,
             now,
             req,
             res,
-            error
+            error,
+            mode
           );
           return;
         }
@@ -947,7 +1201,8 @@ export function createRecommendationApp({
         const userPrompt = buildUserPrompt(input.value);
         const request = client.responses.create({
           model: modelSelected,
-          instructions: SYSTEM_PROMPT,
+          instructions:
+            getRecommendationInstructions(mode),
           input: userPrompt,
           store: true,
           max_output_tokens: MAX_OUTPUT_TOKENS,
@@ -1008,22 +1263,31 @@ export function createRecommendationApp({
         }
 
         try {
-          await aiRecommendationQuota.consume(
-            quotaIdentity
+          await aiRecommendationQuota.finalize(
+            quotaIdentity,
+            reservation
           );
+          reservation = null;
         } catch (error) {
-          if (
-            error instanceof
-              AIRecommendationQuotaExceededError
-          ) {
-            sendAIQuotaExceeded(
-              logger,
-              now,
-              req,
-              res,
-              error
+          try {
+            await aiRecommendationQuota.release(
+              quotaIdentity,
+              reservation
             );
-            return;
+            reservation = null;
+          } catch (releaseError) {
+            writeLog(logger, "error", {
+              timestamp: new Date(now()).toISOString(),
+              severity: "high",
+              event: "daily_usage_release_failed",
+              ...logContext,
+              status: 503,
+              error_message:
+                releaseError instanceof Error
+                  ? releaseError.message
+                  : "Daily usage release failed",
+              success: false
+            });
           }
 
           writeLog(logger, "error", {
@@ -1045,6 +1309,28 @@ export function createRecommendationApp({
 
         res.json(result);
       } catch (error) {
+        if (reservation) {
+          try {
+            await aiRecommendationQuota.release(
+              quotaIdentity,
+              reservation
+            );
+          } catch (releaseError) {
+            writeLog(logger, "error", {
+              timestamp: new Date(now()).toISOString(),
+              severity: "high",
+              event: "daily_usage_release_failed",
+              ...logContext,
+              status: 503,
+              error_message:
+                releaseError instanceof Error
+                  ? releaseError.message
+                  : "Daily usage release failed",
+              success: false
+            });
+          }
+        }
+
         writeLog(logger, "error", {
           timestamp: new Date(now()).toISOString(),
           event: "openai_request_failed",

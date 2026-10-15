@@ -23,8 +23,16 @@ function access(plan: "guest" | "free" | "premium") {
   return {
     limit,
     used: 1,
+    reserved: 0,
     remaining: limit - 1,
     plan,
+    deep: {
+      limit: plan === "premium" ? 1 : 0,
+      used: 0,
+      reserved: 0,
+      remaining: plan === "premium" ? 1 : 0,
+      available: plan === "premium"
+    },
     dayKey: "2026-10-08",
     timezone: "UTC"
   } as const;
@@ -88,6 +96,13 @@ describe("AI recommendation access client", () => {
     expect(validateAIRecommendationAccess({
       ...access("premium"),
       plan: "client-claimed-premium"
+    })).toBeNull();
+    expect(validateAIRecommendationAccess({
+      ...access("premium"),
+      deep: {
+        ...access("premium").deep,
+        available: false
+      }
     })).toBeNull();
   });
 

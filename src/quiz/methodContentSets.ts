@@ -65,7 +65,7 @@ export const methodLabContentSets = {
   "premack-principle": addVariants("premack-principle-lab", labData.premackPrincipleExperiment, methodLabContentVariants["premack-principle"]),
   "ten-minute-wall-stare": addVariants("ten-minute-wall-stare-lab", labData.wallStareExperiment, methodLabContentVariants["ten-minute-wall-stare"]),
   "strooper-effect": addVariants("strooper-effect-lab", labData.strooperEffectExperiment, methodLabContentVariants["strooper-effect"]),
-  "two-x-video-speed": [contentSet("two-x-video-speed-lab-1", labData.twoXVideoExperiment)]
+  "two-x-video-speed": addVariants("two-x-video-speed-lab", labData.twoXVideoExperiment, methodLabContentVariants["two-x-video-speed"])
 } satisfies Record<
   TrainingMethodId,
   readonly MethodContentSet<unknown>[]
@@ -94,7 +94,7 @@ export const methodMatchContentSets = {
   "premack-principle": addVariants("premack-principle-match", matchData.premackPrincipleMatchData, methodMatchContentVariants["premack-principle"]),
   "ten-minute-wall-stare": addVariants("ten-minute-wall-stare-match", matchData.wallStareMatchData, methodMatchContentVariants["ten-minute-wall-stare"]),
   "strooper-effect": addVariants("strooper-effect-match", matchData.strooperEffectMatchData, methodMatchContentVariants["strooper-effect"]),
-  "two-x-video-speed": [contentSet("two-x-video-speed-match-1", matchData.twoXVideoMatchData)]
+  "two-x-video-speed": addVariants("two-x-video-speed-match", matchData.twoXVideoMatchData, methodMatchContentVariants["two-x-video-speed"])
 } satisfies Record<
   TrainingMethodId,
   readonly MethodContentSet<unknown>[]

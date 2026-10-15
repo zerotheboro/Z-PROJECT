@@ -71,6 +71,9 @@ function CornellExperiment({
     elapsedMs
   } = useExperimentTimer();
 
+  const [title, setTitle] =
+    useState("");
+
   const currentQuestion =
     data
       .questions[questionIndex];
@@ -153,6 +156,7 @@ function CornellExperiment({
     console.log(
       "CORNELL NOTES:",
       {
+        title,
         notes,
         cues,
         summary
@@ -203,18 +207,30 @@ function CornellExperiment({
 
       {/* NOTES */}
 
-      {stage === "notes" && (
+      {(stage === "notes" ||
+        stage === "summary") && (
         <div>
 
           <p>
-            STEP 1 · ORGANIZE
+            {stage === "notes"
+              ? "STEP 1 · ORGANIZE"
+              : "STEP 2 · SUMMARIZE"}
           </p>
 
           <h2>
-            {data.topic}
+            {stage === "notes"
+              ? data.topic
+              : "Summarize the main idea."}
           </h2>
 
-          <div className="cornell-layout">
+          {stage === "summary" && (
+            <p>
+              Try to capture the whole
+              process in a few sentences.
+            </p>
+          )}
+
+          <div className="cornell-workspace">
 
             <div className="cornell-source">
 
@@ -231,9 +247,27 @@ function CornellExperiment({
 
             </div>
 
-            <div className="cornell-notes">
+            <div className="cornell-sheet">
 
-              <div>
+              <div className="cornell-title">
+                <label htmlFor="cornell-lab-title">
+                  Short Title
+                </label>
+                <input
+                  id="cornell-lab-title"
+                  type="text"
+                  maxLength={80}
+                  value={title}
+                  onChange={(event) =>
+                    setTitle(event.target.value)
+                  }
+                  placeholder="Topic or title..."
+                />
+              </div>
+
+              <div className="cornell-columns">
+
+              <div className="cornell-cues">
                 <h3>
                   Cues / Questions
                 </h3>
@@ -244,7 +278,7 @@ function CornellExperiment({
                 />
               </div>
 
-              <div>
+              <div className="cornell-main-notes">
                 <h3>
                   Main Notes
                 </h3>
@@ -252,6 +286,29 @@ function CornellExperiment({
                   value={notes}
                   onChange={setNotes}
                   placeholder="Write the important information here..."
+                  judge={{
+                    taskId: "main-notes",
+                    sourceMaterial:
+                      data.content
+                  }}
+                />
+              </div>
+
+              </div>
+
+              <div className="cornell-summary">
+                <h3>
+                  Brief Summary
+                </h3>
+                <TextResponse
+                  value={summary}
+                  onChange={setSummary}
+                  placeholder="Your summary..."
+                  judge={{
+                    taskId: "summary",
+                    sourceMaterial:
+                      data.content
+                  }}
                 />
               </div>
 
@@ -261,54 +318,19 @@ function CornellExperiment({
 
           <button
             type="button"
-            disabled={
-              notes.trim().length < 20 ||
-              cues.trim().length < 5
-            }
-            onClick={() =>
-              setStage("summary")
-            }
+            disabled={stage === "notes"
+              ? notes.trim().length < 20 ||
+                cues.trim().length < 5
+              : summary.trim().length < 20}
+            onClick={() => setStage(
+              stage === "notes"
+                ? "summary"
+                : "test"
+            )}
           >
-            Continue
-          </button>
-
-        </div>
-      )}
-
-      {/* SUMMARY */}
-
-      {stage === "summary" && (
-        <div>
-
-          <p>
-            STEP 2 · SUMMARIZE
-          </p>
-
-          <h2>
-            Summarize the main idea.
-          </h2>
-
-          <p>
-            Try to capture the whole
-            process in a few sentences.
-          </p>
-
-          <TextResponse
-            value={summary}
-            onChange={setSummary}
-            placeholder="Your summary..."
-          />
-
-          <button
-            type="button"
-            disabled={
-              summary.trim().length < 20
-            }
-            onClick={() =>
-              setStage("test")
-            }
-          >
-            Continue to test
+            {stage === "notes"
+              ? "Continue"
+              : "Continue to test"}
           </button>
 
         </div>

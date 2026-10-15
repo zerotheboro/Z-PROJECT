@@ -1,3 +1,4 @@
+import LOGO from "../image/LOGO.png";
 import Main from './COLOR_CHANGE.jsx';
 import Clock from "./Clock.jsx";
 import Timer from './Clock.jsx';
@@ -5,47 +6,9 @@ import Daily from "./Day.jsx";
 import SpacePlan from "./Space_plan.jsx";
 import AddingMethods from "./Writing.jsx";
 import RSVP from "./RSVP.jsx";
-import {
-  useState,
-  useEffect,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction
-} from "react";
+import { useState, useEffect } from "react";
 
-type ImageModule = {
-  default: string;
-};
-
-export type FileMediaAsset = {
-  src: string;
-  format: string;
-};
-
-export type MediaAsset = FileMediaAsset | {
-  src: ReactNode;
-  format: "component";
-};
-
-export type LocalizedContent = {
-  eng: ReactNode;
-};
-
-export type TipHeader = {
-  eng: string;
-  src?: string;
-};
-
-type StoredUserTip = {
-  _header: TipHeader;
-  _paragraph: LocalizedContent;
-  _asset: FileMediaAsset;
-};
-
-export const images = import.meta.glob<ImageModule>(
-  "../image/*.{png,jpg,jpeg,webp,gif,svg,mp4,mp3}",
-  { eager: true }
-);
+export const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg,mp4,mp3}", { eager: true });
 /*return an object of file */
 export const imageFiles = Object.entries(images).map(([path, module]) => ({
   path,
@@ -53,7 +16,7 @@ export const imageFiles = Object.entries(images).map(([path, module]) => ({
 }));
 /*convert it back to another form of object */
 
-export function image_importor(name: string, type = "image"): FileMediaAsset {
+export function image_importor(name, type = "image") {
   const found = imageFiles.find(file => file.path.includes(name));
   if (!found) {
     console.warn(`Image not found: ${name}`);
@@ -79,17 +42,7 @@ export function image_importor(name: string, type = "image"): FileMediaAsset {
 
 /*THE 2 CLASS */
 class TypeOfTips {
-  declare private _type: string;
-  declare private _introduction: LocalizedContent;
-  declare private _list: DetailOfTips[];
-  declare private _additional_material: ReactNode;
-
-  constructor(
-    type: string,
-    introduction: LocalizedContent,
-    list: DetailOfTips[],
-    additional_material: ReactNode = null
-  ) {
+  constructor(type, introduction, list, additional_material = null) {
     this._type = type;
     this._list = list;
     this._introduction = introduction;
@@ -111,22 +64,7 @@ class TypeOfTips {
 
 /*change img into asset */
 export class DetailOfTips{
-  declare private _header: TipHeader;
-  declare private _paragraph: LocalizedContent;
-  declare private _asset: MediaAsset;
-  declare private _side: string;
-  declare private _more_info: ReactNode | false;
-  declare private _audio: FileMediaAsset | false;
-
-  constructor(
-    header: TipHeader = "header" as unknown as TipHeader,
-    paragraph: LocalizedContent = "p" as unknown as LocalizedContent,
-    asset: MediaAsset = image_importor("LOGO", "image"),
-    side = "right",
-    more_info: ReactNode | false = false,
-    audio: FileMediaAsset | false = false,
-    _legacyAdditionalContent: ReactNode = null
-  ){
+  constructor(header = "header", paragraph = "p", asset = image_importor("LOGO", "image"), side="right", more_info= false, audio = false){
     this._header = header;
     this._paragraph = paragraph;
     this._asset = asset;
@@ -154,13 +92,9 @@ export class DetailOfTips{
   }
 }
 
-function CITATE(props: {
-  n: string;
-  src: string;
-  num?: string;
-}){
+function CITATE(props){
   const cite = "¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ¹⁰";
-  let num: string | undefined = "";
+  let num = "";
   switch(props.n){
     case "1": num = "¹";break;
     case "2": num = "²";break;
@@ -210,14 +144,12 @@ function CITATE(props: {
   )
 }
 
-let user_list: DetailOfTips[] = [];
-let raw_object_user_list: StoredUserTip[] = [];
+let user_list
+let raw_object_user_list = [];
 
 try {
-  const parsed: unknown = JSON.parse(localStorage.getItem("user_lists") || "[]");
-  raw_object_user_list = Array.isArray(parsed)
-    ? parsed.filter(Boolean) as StoredUserTip[]
-    : [];
+  const parsed = JSON.parse(localStorage.getItem("user_lists") || "[]");
+  raw_object_user_list = Array.isArray(parsed) ? parsed.filter(Boolean) : [];
 } catch {
   raw_object_user_list = [];
   localStorage.setItem("user_lists", "[]");
@@ -242,7 +174,7 @@ if(raw_object_user_list){
         eng: (
           <>
             {object._paragraph.eng}
-            <button className="x-button" onClick={() => deleteUserTip()}><img src={image_importor("xaxon").src}></img></button>
+            <button className="x-button" onClick={() => deleteUserTip(index)}><img src={image_importor("xaxon").src}></img></button>
           </>
         ),
       },
@@ -278,7 +210,7 @@ const Prime_question = new DetailOfTips(
   image_importor("brain.svg"),
   "left",
   <>
-    <label htmlFor="prime-question">What question?</label><br/>
+    <label for="prime-question">What question?</label><br/>
     <textarea name="prime-question" placeholder="What knowledge does this give me?, How much effort do I need to put in?, What is the hardest thing I need to learn?"></textarea>
   </>
 )
@@ -304,8 +236,22 @@ const Promodoro = new DetailOfTips(
     format: "component"
   },
   "left",
-  <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+  <iframe  src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 )
+
+const Flowtime_technique = new DetailOfTips(
+  { 
+    eng: "Flowtime technique", 
+    src: image_importor("fish").src 
+  },
+  { 
+    eng: <> This is a time management tool that helps you work with your natural focus flow. Here are the 5 steps:<br/> 1.choose a specific task to work on<br/> 2.record your start time and begin working without a rigid timer<br/> 3.focus completely until you naturally feel a need for a break<br/> 4.record your end time and calculate your total focus duration<br/> 5.take a proportional break (e.g., 5 mins for &lt;25 mins work, 10-15 mins for 50+ mins work) and repeat.<CITATE n="14" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC12532815/"/> </>, 
+  },
+  { src: <Clock/>, format: "component" },
+  "left",
+  <iframe src="https://www.youtube.com/embed/g619AwxdJnY?si=1cUd1y1VmFJ-R11I" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+)
+
 
 const Everything_in_1_place = new DetailOfTips(
   {
@@ -380,26 +326,34 @@ const Water_ur_face_body = new DetailOfTips(
 
 const Strooper_effect = new DetailOfTips(
   {
-    eng: "Strooper effect",
-    src : image_importor("fish").src
+    eng: "Stroop effect",
+    src: image_importor("fish").src
   },
   {
     eng:
     <>
-      this is a brain training excercise<CITATE n="3" src="https://www.apa.org/research-practice/conduct-research/stroop-effect#:~:text=Despite%20the%20slow%20start%2C%20Stroop,invaluable%20tool%20for%20exploring%20cognition."/> that 
-      trains the brain to handle disordered
-      information, which  involvesis contradictions between the color seen and text.
-      Instruction: <br/>
-      1. Press button<br/>
-      2. Read the color and not the text.
+      The Stroop task demonstrates how automatic reading can interfere with
+      identifying the color of a word.
 
-  </>,
+      It is commonly used in cognitive research to study attention and
+      interference.
+      <CITATE
+        n="3"
+        src="https://www.apa.org/research-practice/conduct-research/stroop-effect#:~:text=Despite%20the%20slow%20start%2C%20Stroop,invaluable%20tool%20for%20exploring%20cognition."
+      />
+
+      <br/><br/>
+
+      Instructions:<br/>
+      1. Press the button.<br/>
+      2. Identify the color of the text instead of reading the word.
+    </>,
   },
   {
     format: "component",
     src: <Main/>
   },
-  "left", 
+  "left",
   false,
   image_importor("strooper_audio")
 )
@@ -420,41 +374,31 @@ const Break_not_distraction = new DetailOfTips(
   image_importor("relaxing_cat"),
   "right"
 )
-
-const Short_workout = new DetailOfTips(
-  {
-    eng: "Short workout",
-    src : image_importor("fish").src
-  },
-  {
-    eng:
-    <>
-      doing a short workout before studying
-      gives your brain the oxygen it needs.
-      It can be simple like stretching, pushups, or situps.
-    </>,
-  },
-  image_importor("dumbell"),
-  "left"
-)
-
 const Long_term_workout = new DetailOfTips(
   {
-    eng: "long-term workout",
-    src : image_importor("whale").src
+    eng: "Long-term workout",
+    src: image_importor("whale").src
   },
   {
     eng:
     <>
-      studies by Stanford, Southern California<CITATE n="1" src="https://lifestylemedicine.stanford.edu/exercise-better-grades/"/>
-      showed that excercising regularly
-      grows your hippocampus: the part of the brain 
-      associated with learning! Because of that 
-      edulience offers 1 month free trial of California gym
-    claim it the "your opinion" section
-  </>,
+      <p>
+        Physical activity can support learning, memory, and attention.
+        Even a short movement break before studying, such as stretching,
+        pushups, or situps, may help you feel more alert and ready to study.
+      </p>
+
+      <p>
+        Regular exercise has also been associated with benefits for brain
+        health and academic performance over time.
+        <CITATE
+          n="1"
+          src="https://lifestylemedicine.stanford.edu/exercise-better-grades/"
+        />
+      </p>
+    </>,
   },
-  image_importor("dumbell"),
+  image_importor("dumbell")
 )
 
 const Structure_your_day = new DetailOfTips(
@@ -487,10 +431,10 @@ const Premacks_principle = new DetailOfTips(
   image_importor("pirate_map"),
   "left",
   <>
-    <label htmlFor="need">The task you need to do before:</label><br/>
+    <label for="need">The task you need to do before:</label><br/>
     <textarea name="need" placeholder="Study algrebra"/><br/>
 
-    <label htmlFor="love">The task you love to do after:</label><br/>
+    <label for="love">The task you love to do after:</label><br/>
     <textarea name="love" placeholder="Relax on social media"/><br/>
   </>
   
@@ -515,20 +459,42 @@ const Track_progress = new DetailOfTips(
 
 const Brain_diet = new DetailOfTips(
   {
-    eng: "BRAIN DIET",
-    src : image_importor("whale").src
+    eng: "Foods linked with brain health",
+    src: image_importor("whale").src
   },
-  {eng:<>
-    the food that helps the brain:<br/>
-    + Omega-3 from fish Fatty fish (salmon, cod)<br/>
-    + Leafty vegetables (kale, spinach and broccoli)<br/>
-    + Berries (strawberries, blueberries)<br/>
-    + Walnuts (Avocado,Walnuts)<br/> suggested from Havard<CITATE src="https://www.health.harvard.edu/healthbeat/foods-linked-to-better-brainpower" n="2"></CITATE>
-  </>,
-},
+  {
+    eng:
+    <>
+      <p>
+        Some foods are commonly associated with healthy brain function as part
+        of an overall balanced diet, including:
+      </p>
+
+      + Fatty fish such as salmon and cod<br/>
+      + Leafy vegetables such as kale, spinach, and broccoli<br/>
+      + Berries such as strawberries and blueberries<br/>
+      + Nuts such as walnuts<br/>
+
+      <p>
+        This is general educational information, not medical or dietary advice.
+      </p>
+
+      <CITATE
+        src="https://www.health.harvard.edu/healthbeat/foods-linked-to-better-brainpower"
+        n="2"
+      />
+    </>,
+  },
   image_importor("chicken"),
   "left",
-  <iframe src="https://www.youtube.com/embed/btXIAqMSLaI?si=3kt0H28IhoPyIWlm" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+  <iframe
+    src="https://www.youtube.com/embed/btXIAqMSLaI?si=3kt0H28IhoPyIWlm"
+    title="YouTube video player"
+    frameBorder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerPolicy="strict-origin-when-cross-origin"
+    allowFullScreen
+  />
 )
 
 const Incubation_effect = new DetailOfTips(
@@ -588,19 +554,39 @@ const Header_first = new DetailOfTips(
 
 const Peripheral_vision = new DetailOfTips(
   {
-    eng: "peripheral vision",
-    src : image_importor("whale").src
+    eng: "Visual scanning practice",
+    src: image_importor("whale").src
   },
-  {eng:
+  {
+    eng:
     <>
-      Train your eyes to 
-      collect info quick, send to the brain by games
-      like <a href="https://schultetable.web.app" target="_blank"><button>Schutle table</button></a> or my strooper game in the pre-learn section or <a href="https://en.wikipedia.org/wiki/Brock_string" target="_blank"><button>Brock string</button></a>
+      Practice scanning and noticing visual information efficiently rather than
+      trying to read every detail one piece at a time.
+
+      You can try activities such as{" "}
+      <a
+        href="https://schultetable.web.app"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <button>Schulte table</button>
+      </a>{" "}
+      or the Stroop activity in the Pre-learn section.
+
+      These are attention and visual-scanning exercises, not treatments for
+      eyesight or vision problems.
     </>,
-},
+  },
   image_importor("eye"),
   "left",
-  <iframe src="https://www.youtube.com/embed/PdI3fJTzK3g?si=ZB17BI2g_3XT7zcT" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+  <iframe
+    src="https://www.youtube.com/embed/PdI3fJTzK3g?si=ZB17BI2g_3XT7zcT"
+    title="YouTube video player"
+    frameBorder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerPolicy="strict-origin-when-cross-origin"
+    allowFullScreen
+  />
 )
 const Doodle_effect = new DetailOfTips(
   {
@@ -659,8 +645,7 @@ const Spaced_learning = new DetailOfTips(
   image_importor("space-learn"),
   "left",
   <>
-    <SpacePlan/>
-    <iframe src="https://www.youtube.com/embed/UviQTOdUJEw?si=_ETlIQS9r-fguhCu" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+    <iframe src="https://www.youtube.com/embed/UviQTOdUJEw?si=_ETlIQS9r-fguhCu" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </>,
 )
 
@@ -761,7 +746,7 @@ const FEYNMAN_technique = new DetailOfTips(
      you don't understand it well enough." and that is very true when it comes
     to explaining ideas to people.
   </p>
-  <iframe src="https://www.youtube.com/embed/dRA_UW6ZfOQ?si=wc-jqgL__ub9Oxdd" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+  <iframe src="https://www.youtube.com/embed/dRA_UW6ZfOQ?si=wc-jqgL__ub9Oxdd" title="YouTube video player" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </>
 )
 const Memory_Palace = new DetailOfTips(
@@ -787,7 +772,7 @@ const Memory_Palace = new DetailOfTips(
   },
   image_importor("palace"),
   "right",
-  <><iframe src="https://www.youtube.com/embed/C8r_HncpWrM?si=Jk_ht6v3_4TgtgaV" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe><h1>OR</h1><a href="../../Memory_palace.html"><img src={image_importor("more-info").src} className="more-info"/></a></>,
+  <><iframe src="https://www.youtube.com/embed/C8r_HncpWrM?si=Jk_ht6v3_4TgtgaV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><h1>OR</h1><a href="../../Memory_palace.html"><img src={image_importor("more-info").src} className="more-info"/></a></>,
   image_importor("Palaceaudio")
 
 )
@@ -882,7 +867,7 @@ const Leitner_system = new DetailOfTips(
   "left",
   <>
     <video controls><source src={image_importor("Leitner_vid").src} type="video/mp4"/></video>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/kB-NuR6NTZw?si=BDrD5yloPbgS70l9" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/kB-NuR6NTZw?si=BDrD5yloPbgS70l9" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </>,
   image_importor("LEINTNER")
 
@@ -952,7 +937,7 @@ const CORNELL_method = new DetailOfTips(
   },
   image_importor("CORNELL"),
   "right",
-  <iframe  src="https://www.youtube.com/embed/GKodBunEPuI?si=6ERiznbgXUVsTurE" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>,
+  <iframe  src="https://www.youtube.com/embed/GKodBunEPuI?si=6ERiznbgXUVsTurE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>,
   image_importor("Cornor")
 )
 
@@ -992,19 +977,32 @@ const Summary_and_print_note = new DetailOfTips(
 
 const VARK_learners = new DetailOfTips(
   {
-    eng: "VARK types of learners",
-    src : image_importor("whale").src
+    eng: "Study formats",
+    src: image_importor("whale").src
   },
-  {eng:
+  {
+    eng:
     <>
       <p>
-        VARK is a popular framework that catagorizes 
-        four types of learning: <u>Visual, Aural, Read/Write and Kinesthetic</u>
+        VARK describes four common ways learning material can be presented:
+        <u> Visual, Aural, Read/Write, and Kinesthetic</u>.
       </p>
-       Visual, can be trained with perphiral vision at pre-learn; 
-      Aural can be seen in learning with friend, Feyman Technique;
-      Read/Write, methods in the Note-take section can improve it;
-      Kinesthetic, this is for people who loves doing projects or hands-on learning.<CITATE src="https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1245&context=podimproveacad" n="15"/><br/>
+
+      <p>
+        These are not fixed learner types. You can use different formats
+        depending on the subject and situation.
+      </p>
+
+      Visual materials can include diagrams and demonstrations;<br/>
+      Aural materials can include lectures and discussion;<br/>
+      Read/Write materials include notes, books, and written explanations;<br/>
+      Kinesthetic activities involve practice, examples, and hands-on application.
+
+      <CITATE
+        src="https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1245&context=podimproveacad"
+        n="15"
+      />
+      <br/>
     </>,
   },
   image_importor("VARK"),
@@ -1021,20 +1019,29 @@ const TWO_X_ILETS = new DetailOfTips(
   {eng:
     <>
     <p>
-      the brain ~300 words per minute processing speed is roughly twice
-      as quick as the amount of word we teach and talk per minute, which is ~170 words
-      Therefore quicken the video speed around 2 or 1.75 times would matches your brain
-      natural processing speed.
-    </p> 
-      Alternatively, If you're training ILETS listening test
-      then quickening for a period until you get to the actual test then you would feel
-      it is extremly slow with more processing capacity.
-      <CITATE n="19" src="https://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf?utm_source=chatgpt.comhttps://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf?"/>
-      <CITATE n="20" src="https://pubmed.ncbi.nlm.nih.gov/34516216/"/>
+      Educational videos are often spoken at a pace that some learners can
+      comfortably increase. Watching familiar or easier material at around
+      1.5x to 2x speed can help you move through content more efficiently,
+      as long as you can still understand and remember the key ideas.
+    </p>
+
+    <p>
+      Try increasing the playback speed gradually and reduce it again when
+      the material becomes difficult, unfamiliar, or detail-heavy.
+    </p>
+
+    <CITATE
+      n="19"
+      src="https://francis-press.com/uploads/papers/pv7j7Z9uRgQyPUxnVTDTPecUAEP0HJcWWhGErVeD.pdf"
+    />
+    <CITATE
+      n="20"
+      src="https://pubmed.ncbi.nlm.nih.gov/34516216/"
+    />
   </>,
   }, image_importor("2XILETS"),
   "right",
-  <iframe src="https://www.youtube.com/embed/cyPd2mfnR2Y?si=cWIHwAStR8ZrtLTc" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>,
+  <iframe src="https://www.youtube.com/embed/cyPd2mfnR2Y?si=cWIHwAStR8ZrtLTc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>,
   image_importor("ILETS2XAUDIO")
 )
 
@@ -1059,7 +1066,7 @@ const words_in_1_spot = new DetailOfTips(
   image_importor("RSVP_AUDI"),
   <>
     <RSVP/>
-    <iframe src="https://www.youtube.com/embed/HzOpcQPdvh0?si=g-cySJjN3zKk01vq" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+    <iframe src="https://www.youtube.com/embed/HzOpcQPdvh0?si=g-cySJjN3zKk01vq" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </>
 
 )
@@ -1092,20 +1099,32 @@ const twenty_eighty_rule = new DetailOfTips(
 
 const ten_minutes_wall = new DetailOfTips(
   {
-    eng: "10 min wall stare",
-    src : image_importor("fish").src
+    eng: "Low-stimulation break",
+    src: image_importor("fish").src
   },
-  {eng:
+  {
+    eng:
     <>
-      "Boring rests" in general including this simple action or doing nothing starve 
-      your brain of the constant, rapid-fire stimulation caused by digital media, moreover taking break
-      using digital media app, which feels like the most appealling ironically performs worse the "boring rests"
-      in terms of allowing your brain to continue cognitive tasks<CITATE n="22" src="https://pmc.ncbi.nlm.nih.gov/articles/PMC7044622/#S5"/>
-  </>,
-},
+      Taking a short break with little or no digital stimulation can give you
+      a simple period of rest before returning to a demanding study task.
+
+      Research comparing different types of breaks suggests that highly
+      stimulating digital activities may not always provide the same recovery
+      benefits as quieter breaks.
+      <CITATE
+        n="22"
+        src="https://pmc.ncbi.nlm.nih.gov/articles/PMC7044622/#S5"
+      />
+
+      <br/><br/>
+
+      You can try sitting quietly, looking out a window, or simply doing
+      nothing for a few minutes before returning to study.
+    </>,
+  },
   image_importor("10_minutes_wall"),
   "right",
-  "it pairs extremly well with the Incubation effect in Meta-learn"
+  "Pairs well with the Incubation effect in Meta-learn."
 )
 
 
@@ -1127,7 +1146,7 @@ const capture_create = new DetailOfTips(
       </ul>
   </>,
 },
-  image_importor("10_minutes_wall"),
+  image_importor("capture&create"),
   "left",
   "it is inspired by the cornell note-taking methods"
 )
@@ -1147,7 +1166,7 @@ const real_music = new DetailOfTips(
 },
   image_importor("music_help"),
   "left",
-  <iframe src="https://www.youtube.com/embed/1dINKoEFpsw?si=CJ1dLnc9016-Hbn6" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+  <iframe src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 )
 
 const point_call = new DetailOfTips(
@@ -1165,16 +1184,11 @@ const point_call = new DetailOfTips(
         <li>hear & verify your own explaination </li>
       </ol>
       Lastly, point & call should not be used as a study methods and only for checking answers.<CITATE n="28" src="https://www.researchgate.net/publication/233927842_The_effects_of_finger_pointing_and_calling_on_cognitive_control_processes_in_the_task-switching_paradigm"/>
-       <ol>
-        <li>Nhìn & chỉ tay vào đề bài</li>
-        <li>Nói lớn & tự giải thích cho chính mình cách bạn tìm ra đáp án</li>
-        <li>Lắng nghe & xác thực lại lời giải thích của chính mình</li>
-      </ol>
   </>,
 },
   image_importor("point-call"),
   "left",
-  <iframe src="https://www.youtube.com/embed/GynusyJZmwI?si=vZme65oZ6_6Ms5F4" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>,
+  <iframe src="https://www.youtube.com/embed/GynusyJZmwI?si=vZme65oZ6_6Ms5F4" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>,
   image_importor("POINT_CALLAUDIO")
 )
 
@@ -1198,15 +1212,15 @@ const describe_problems = new DetailOfTips(
 },
   image_importor("KIDLIN"),
   "left",
-  <p>
-      to write problem clearly then you can try a universal adaptation of the Externalization Framework
+  <>
+  <p>to write problem clearly then you can try a universal adaptation of the Externalization Framework</p>
     <ol>
       <li><strong>Case Definition:</strong> Define clear boundaries, uniform parameters, and the exact sample group exhibiting the problem.</li>
       <li><strong>Case Deconstruction:</strong> Separate the data into two independent categories: observable behaviors versus environmental contexts.</li>
       <li><strong>Similarity Calculation:</strong> Calculate similarities across cases by grouping matching behavioral patterns and contextual traits independently.</li>
       <li><strong>Matrix Correlation:</strong> Cross-reference the behavioral data with the environmental context to pinpoint the exact root cause.</li><CITATE n="33" src="https://www.researchgate.net/publication/336091750_A_Conceptual_Framework_for_the_Externalization_of_Ecological_Wisdom_The_Case_of_Traditional_Korean_Gardens"/>
     </ol>
-  </p>
+  </>
 )
 
 
@@ -1216,13 +1230,13 @@ export const preLearnTips = [
   Promodoro,
   Peripheral_vision,
   describe_problems,
+  Flowtime_technique,
   Everything_in_1_place,
   Auto_google,
   Water_ur_face_body,
  real_music,
   ten_minutes_wall,
   Strooper_effect,
-  Short_workout,
   Long_term_workout,
   Structure_your_day,
   Track_progress,
@@ -1302,7 +1316,6 @@ const question_options = [
         answer: "I feel tired or mentally drained",
         tips: [
           Water_ur_face_body,
-          Short_workout,
           Long_term_workout,
           Brain_diet,
           ten_minutes_wall
@@ -1571,7 +1584,7 @@ const question_options = [
         answer: "My brain feels tired after studying",
         tips: [
           ten_minutes_wall,
-          Short_workout,
+          Long_term_workout,
           Water_ur_face_body,
           Brain_diet,
           Break_not_distraction
@@ -1581,35 +1594,45 @@ const question_options = [
   }
 ];
 
-export function loadcustomized_user_list(): DetailOfTips[] {
-  const parsed: unknown = JSON.parse(
+export function loadcustomized_user_list() {
+  return JSON.parse(
     localStorage.getItem("customize_user_list") || "[]"
-  );
-  const headers = Array.isArray(parsed)
-    ? parsed.flat().filter(Boolean)
-    : [];
-
-  return headers
-    .map((header: unknown) =>
+  )
+    .flat()
+    .filter(Boolean)
+    .map(header =>
       [...metaLearnTips, ...preLearnTips, ...noteTakeTips]
         .find(tip => tip.header.eng === header)
     )
-    .filter((tip): tip is DetailOfTips => Boolean(tip));
+    .filter(Boolean);
 }
 
-export function Customize({
-  setCustomize_list
-}: {
-  setCustomize_list: Dispatch<SetStateAction<DetailOfTips[]>>;
-}){
+function rankSuggestedTips(tips, limit = 8) {
+  const scores = {};
+
+  tips.forEach(tip => {
+    scores[tip] = (scores[tip] || 0) + 1;
+  });
+
+  return Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([tip]) => tip);
+} //THIS FUNCTION RANKS THE METHOD IN THE QUICK CUSTOMIZATION
+
+export function Customize({ setCustomize_list }){
     const [questionindex, setQuestionindex ] = useState(0);
     
-    const [suggestedtips, setSuggestedtips] = useState<string[]>([]);
+    const [suggestedtips, setSuggestedtips] = useState([]);
 
     useEffect(() => {
-      if(questionindex >= question_options.length){
-      let adding_tips = JSON.stringify(suggestedtips)
-      localStorage.setItem("customize_user_list", adding_tips)
+
+  if (questionindex >= question_options.length) {
+
+    const rankedTips = rankSuggestedTips(suggestedtips,8);
+
+    localStorage.setItem("customize_user_list", JSON.stringify(rankedTips));
+
     }
 
     },[questionindex >= question_options.length]);
@@ -1621,7 +1644,7 @@ export function Customize({
           <img src={image_importor("customize").src}/>
           <h2>You have finished customizing</h2>
           <div>
-            <button onClick={() => {setQuestionindex(0); setSuggestedtips([])}}>customize again?</button> <button onClick={() => {setCustomize_list(loadcustomized_user_list()); document.getElementById("YOUR-SYSTEM")?.scrollIntoView({behavior: "smooth"}) }}>see result!</button>
+            <button onClick={() => {setQuestionindex(0); setSuggestedtips([])}}>customize again?</button> <button onClick={() => {setCustomize_list(loadcustomized_user_list()); document.getElementById("YOUR-SYSTEM").scrollIntoView({behavior: "smooth"}) }}>see result!</button>
           </div>
           
         </div>
@@ -1639,8 +1662,7 @@ export function Customize({
                                     ...prev,
                                     ...element.tips.map(tip => tip.header.eng)
                                   ])
-                                ]);
-                        console.log(element.tips)
+                                ])
                       }}>
                     <div className="answer">{element.answer}</div>
                 </button>
@@ -1650,9 +1672,7 @@ export function Customize({
         </div>
     )}
 
-function study_overview(
-  list: DetailOfTips[]
-){
+function study_overview(list){
   return(
     <ol className="method-overview-list">
       <h2>Overview:</h2>
@@ -1670,10 +1690,7 @@ function study_overview(
 /*=======================================DATA BASE=================================================*/
 
 
-export function get_list_of_tips(
-  customize_list: DetailOfTips[],
-  setCustomize_list: Dispatch<SetStateAction<DetailOfTips[]>>
-): TypeOfTips[]{
+export function get_list_of_tips(customize_list, setCustomize_list){
   return [
   new TypeOfTips(
     "YOUR-SYSTEM",

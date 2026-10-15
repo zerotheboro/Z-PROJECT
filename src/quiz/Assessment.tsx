@@ -27,6 +27,12 @@ import {
   TrainingDraftConflictError
 } from "../services/trainingProgress";
 import DiscardTrainingDialog from "./DiscardTrainingDialog";
+import {
+  AdaptiveDifficultyProvider
+} from "./engines/shared/AdaptiveDifficultyProvider";
+import {
+  WritingJudgeProvider
+} from "./engines/shared/WritingJudgeProvider";
 import { selectMethods } from "./methodSelector";
 import { buildLearningProfile } from "./profileBuilder";
 import BaselineChallenge from "./sections/BaselineChallenge";
@@ -450,6 +456,26 @@ function AssessmentSession({
     updateDraft(current => ({ ...current, internalState }));
   }, [updateDraft]);
 
+  const updateAdaptiveDifficulty = useCallback((
+    adaptiveDifficulty:
+      TrainingDraft["adaptiveDifficulty"]
+  ) => {
+    updateDraft(current => ({
+      ...current,
+      adaptiveDifficulty
+    }));
+  }, [updateDraft]);
+
+  const updateWritingJudgeResults = useCallback((
+    writingJudgeResults:
+      TrainingDraft["writingJudgeResults"]
+  ) => {
+    updateDraft(current => ({
+      ...current,
+      writingJudgeResults
+    }));
+  }, [updateDraft]);
+
   const persistDraft = useCallback(async (): Promise<boolean> => {
     if (!sessionActive.current) {
       return false;
@@ -829,12 +855,21 @@ function AssessmentSession({
   const isManualMode = draft.mode === "manual";
 
   return (
-    <TrainingProgressStateProvider
-      state={draft.internalState}
-      onChange={updateInternalState}
-      checkpointRef={checkpointRef}
+    <WritingJudgeProvider
+      sessionId={draft.sessionId}
+      state={draft.writingJudgeResults}
+      onChange={updateWritingJudgeResults}
     >
-      <main className="assessment assessment-v2">
+      <AdaptiveDifficultyProvider
+        state={draft.adaptiveDifficulty}
+        onChange={updateAdaptiveDifficulty}
+      >
+        <TrainingProgressStateProvider
+          state={draft.internalState}
+          onChange={updateInternalState}
+          checkpointRef={checkpointRef}
+        >
+        <main className="assessment assessment-v2">
         <NAV />
 
         {saveError && (
@@ -1025,8 +1060,10 @@ function AssessmentSession({
             onConfirm={() => void discardCurrent()}
           />
         )}
-      </main>
-    </TrainingProgressStateProvider>
+        </main>
+        </TrainingProgressStateProvider>
+      </AdaptiveDifficultyProvider>
+    </WritingJudgeProvider>
   );
 }
 

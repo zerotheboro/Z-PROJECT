@@ -11,8 +11,15 @@ type Props = {
   manualMethodsLimit: number;
   aiRecommendationsLoading: boolean;
   aiRecommendationsError: string | null;
+  aiRecommendationsPlan:
+    | "guest"
+    | "free"
+    | "premium"
+    | null;
   aiRecommendationsUsed: number;
   aiRecommendationsLimit: number;
+  aiDeepRemaining: number | null;
+  aiDeepAvailable: boolean | null;
   billingBusy: boolean;
   billingError: string | null;
   billingMessage: string | null;
@@ -33,8 +40,11 @@ function TrainingAccessCard({
   manualMethodsLimit,
   aiRecommendationsLoading,
   aiRecommendationsError,
+  aiRecommendationsPlan,
   aiRecommendationsUsed,
   aiRecommendationsLimit,
+  aiDeepRemaining,
+  aiDeepAvailable,
   billingBusy,
   billingError,
   billingMessage,
@@ -44,8 +54,22 @@ function TrainingAccessCard({
   const aiUsage = aiRecommendationsLoading
     ? "Checking..."
     : aiRecommendationsError
-      ? "Unavailable"
+      ? `Unavailable — ${aiRecommendationsError}`
       : `${aiRecommendationsUsed} / ${aiRecommendationsLimit} used today`;
+  const usableDeepRemaining =
+    aiRecommendationsPlan === "premium"
+    && aiDeepAvailable === true
+      ? aiDeepRemaining ?? 0
+      : 0;
+  const deepUsage = aiRecommendationsLoading
+    ? "Checking..."
+    : aiRecommendationsError
+      ? `Unavailable — ${aiRecommendationsError}`
+      : aiRecommendationsPlan !== "premium"
+        ? "Unavailable — Premium entitlement was not verified for AI recommendations."
+        : `${usableDeepRemaining} Deep Recommendation${
+            usableDeepRemaining === 1 ? "" : "s"
+          } remaining today`;
 
   return (
     <section
@@ -73,8 +97,12 @@ function TrainingAccessCard({
           <p><strong>Unlimited</strong> Test Me</p>
           <p><strong>Unlimited</strong> method testing</p>
           <p>
-            <span>AI Deep Suggestions</span>
+            <span>AI recommendations</span>
             <strong>{aiUsage}</strong>
+          </p>
+          <p>
+            <span>AI Deep Suggestions</span>
+            <strong>{deepUsage}</strong>
           </p>
         </div>
       )}
@@ -94,7 +122,7 @@ function TrainingAccessCard({
             </strong>
           </p>
           <p>
-            <span>AI Deep Suggestions</span>
+            <span>AI Suggestions</span>
             <strong>{aiUsage}</strong>
           </p>
         </div>

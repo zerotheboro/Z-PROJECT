@@ -24,6 +24,9 @@ import {
 import {
   GUEST_TRAINING_STREAK_STORAGE_KEY
 } from "../../services/trainingStreak";
+import {
+  recordAdaptivePerformance
+} from "../engines/shared/adaptiveDifficulty";
 
 describe("training progress contracts", () => {
   beforeEach(() => {
@@ -40,6 +43,203 @@ describe("training progress contracts", () => {
           values.set(key, value)
       }
     });
+  });
+
+  it("starts a new draft at medium adaptive difficulty", () => {
+    const draft = createTrainingDraft({
+      owner: { kind: "guest" },
+      mode: "auto"
+    });
+
+    expect(draft.adaptiveDifficulty).toEqual({
+      level: "medium",
+      recentPerformance: [],
+      processedEventIds: [],
+      challengeLevels: {}
+    });
+    expect(draft.writingJudgeResults)
+      .toEqual({});
+  });
+
+  it("preserves adaptive difficulty through local save and resume", () => {
+    const draft = createTrainingDraft({
+      owner: { kind: "guest" },
+      mode: "auto"
+    });
+
+    draft.adaptiveDifficulty = [
+      "adaptive-1",
+      "adaptive-2",
+      "adaptive-3"
+    ].reduce(
+      (state, eventId) =>
+        recordAdaptivePerformance(
+          state,
+          eventId,
+          { correct: 1, total: 1 }
+        ),
+      draft.adaptiveDifficulty
+    );
+
+    writeLocalTrainingDraft(draft);
+
+    const resumed = readLocalTrainingDraft({
+      kind: "guest"
+    });
+
+    expect(resumed).toMatchObject({
+      valid: true,
+      draft: {
+        adaptiveDifficulty: {
+          level: "hard",
+          recentPerformance: [],
+          processedEventIds: [
+            "adaptive-1",
+            "adaptive-2",
+            "adaptive-3"
+          ]
+        }
+      }
+    });
+
+    if (!resumed?.valid) {
+      throw new Error(
+        "Expected the saved Training draft to resume."
+      );
+    }
+
+    const repeatedAfterResume =
+      recordAdaptivePerformance(
+        resumed.draft.adaptiveDifficulty,
+        "adaptive-3",
+        { correct: 0, total: 1 }
+      );
+
+    expect(repeatedAfterResume).toBe(
+      resumed.draft.adaptiveDifficulty
+    );
+  });
+
+  it("loads a legacy draft without adaptive state at medium", () => {
+    const draft = createTrainingDraft({
+      owner: { kind: "guest" },
+      mode: "auto"
+    });
+    const {
+      adaptiveDifficulty: _adaptiveDifficulty,
+      ...legacyDraft
+    } = draft;
+    const validation = validateTrainingDraft(
+      legacyDraft
+    );
+
+    expect(validation.valid).toBe(true);
+    if (validation.valid) {
+      expect(validation.draft.adaptiveDifficulty)
+        .toEqual({
+          level: "medium",
+          recentPerformance: [],
+          processedEventIds: [],
+          challengeLevels: {}
+        });
+    }
+  });
+
+  it("rejects malformed persisted adaptive state", () => {
+    const draft = createTrainingDraft({
+      owner: { kind: "guest" },
+      mode: "auto"
+    });
+
+    expect(validateTrainingDraft({
+      ...draft,
+      adaptiveDifficulty: {
+        ...draft.adaptiveDifficulty,
+        level: "impossible"
+      }
+    }).valid).toBe(false);
+  });
+
+  it("persists writing feedback and restores it without a request", () => {
+    const draft = createTrainingDraft({
+      owner: { kind: "guest" },
+      mode: "manual",
+      selectedMethods: ["feynman"]
+    });
+    draft.writingJudgeResults[
+      "lab:feynman:set-1:explanation"
+    ] = {
+      methodId: "feynman",
+      taskId: "explanation",
+      userWriting:
+        "Metal moves heat away from a hand faster.",
+      result: {
+        score: 88,
+        accuracy: 95,
+        coverage: 80,
+        clarity: 90,
+        strengths: ["Accurate heat-transfer idea."],
+        missingPoints: ["Name thermal conductivity."],
+        misconceptions: [],
+        verdict: "strong",
+        nextAction:
+          "Add the name thermal conductivity."
+      }
+    };
+
+    writeLocalTrainingDraft(draft);
+    const resumed = readLocalTrainingDraft({
+      kind: "guest"
+    });
+
+    expect(resumed).toMatchObject({
+      valid: true,
+      draft: {
+        writingJudgeResults:
+          draft.writingJudgeResults
+      }
+    });
+  });
+
+  it("loads a legacy draft without writing feedback as empty", () => {
+    const draft = createTrainingDraft({
+      owner: { kind: "guest" },
+      mode: "auto"
+    });
+    const {
+      writingJudgeResults: _writingJudgeResults,
+      ...legacyDraft
+    } = draft;
+    const validation = validateTrainingDraft(
+      legacyDraft
+    );
+
+    expect(validation.valid).toBe(true);
+    if (validation.valid) {
+      expect(validation.draft.writingJudgeResults)
+        .toEqual({});
+    }
+  });
+
+  it("rejects malformed persisted writing feedback", () => {
+    const draft = createTrainingDraft({
+      owner: { kind: "guest" },
+      mode: "auto"
+    });
+
+    expect(validateTrainingDraft({
+      ...draft,
+      writingJudgeResults: {
+        invalid: {
+          methodId: "feynman",
+          taskId: "explanation",
+          userWriting: "Some writing",
+          result: {
+            score: 101
+          }
+        }
+      }
+    }).valid).toBe(false);
   });
 
   it.each([

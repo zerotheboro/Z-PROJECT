@@ -15,8 +15,16 @@ export type AIRecommendationPlan =
 export type AIRecommendationAccess = {
   limit: number;
   used: number;
+  reserved: number;
   remaining: number;
   plan: AIRecommendationPlan;
+  deep: {
+    limit: number;
+    used: number;
+    reserved: number;
+    remaining: number;
+    available: boolean;
+  };
   dayKey: string;
   timezone: "UTC";
 };
@@ -75,17 +83,45 @@ export function validateAIRecommendationAccess(
   const validPlan = candidate.plan === "guest"
     || candidate.plan === "free"
     || candidate.plan === "premium";
+  const deep = candidate.deep;
 
   if (
     !isNonNegativeInteger(candidate.limit)
     || !isNonNegativeInteger(candidate.used)
+    || !isNonNegativeInteger(candidate.reserved)
     || !isNonNegativeInteger(candidate.remaining)
     || candidate.remaining
       !== Math.max(
         0,
-        candidate.limit - candidate.used
+        candidate.limit
+          - candidate.used
+          - candidate.reserved
       )
     || !validPlan
+    || typeof deep !== "object"
+    || deep === null
+    || Array.isArray(deep)
+    || !isNonNegativeInteger(
+      (deep as Record<string, unknown>).limit
+    )
+    || !isNonNegativeInteger(
+      (deep as Record<string, unknown>).used
+    )
+    || !isNonNegativeInteger(
+      (deep as Record<string, unknown>).reserved
+    )
+    || !isNonNegativeInteger(
+      (deep as Record<string, unknown>).remaining
+    )
+    || (deep as Record<string, unknown>).remaining
+      !== Math.max(
+        0,
+        ((deep as Record<string, number>).limit)
+          - ((deep as Record<string, number>).used)
+          - ((deep as Record<string, number>).reserved)
+      )
+    || typeof (deep as Record<string, unknown>).available
+      !== "boolean"
     || typeof candidate.dayKey !== "string"
     || !/^\d{4}-\d{2}-\d{2}$/.test(
       candidate.dayKey
@@ -95,11 +131,34 @@ export function validateAIRecommendationAccess(
     return null;
   }
 
+  const validatedDeep = deep as {
+    limit: number;
+    used: number;
+    reserved: number;
+    remaining: number;
+    available: boolean;
+  };
+  const expectedDeepAvailable =
+    candidate.plan === "premium"
+    && candidate.remaining > 0
+    && validatedDeep.remaining > 0;
+
+  if (
+    validatedDeep.limit
+      !== (candidate.plan === "premium" ? 1 : 0)
+    || validatedDeep.available
+      !== expectedDeepAvailable
+  ) {
+    return null;
+  }
+
   return {
     limit: candidate.limit,
     used: candidate.used,
+    reserved: candidate.reserved,
     remaining: candidate.remaining,
     plan: candidate.plan as AIRecommendationPlan,
+    deep: validatedDeep,
     dayKey: candidate.dayKey,
     timezone: "UTC"
   };

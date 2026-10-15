@@ -14,7 +14,8 @@ export default defineConfig({
       "billing.test.js",
       "billingServer.test.js",
       "server.test.js",
-      "trainingQuota.test.js"
+      "trainingQuota.test.js",
+      "writingJudge.test.js"
     ]
   }
 });

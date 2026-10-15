@@ -357,6 +357,9 @@ function Training() {
         aiRecommendationsError={
           aiRecommendationAccess.error
         }
+        aiRecommendationsPlan={
+          aiRecommendationAccess.access?.plan ?? null
+        }
         aiRecommendationsUsed={
           aiRecommendationAccess.access?.used ?? 0
         }
@@ -367,6 +370,14 @@ function Training() {
               : trainingAccess.user
                 ? FREE_AI_RECOMMENDATION_LIMIT
                 : GUEST_AI_RECOMMENDATION_LIMIT)
+        }
+        aiDeepRemaining={
+          aiRecommendationAccess.access?.deep.remaining
+            ?? null
+        }
+        aiDeepAvailable={
+          aiRecommendationAccess.access?.deep.available
+            ?? null
         }
         billingBusy={billingBusy}
         billingError={billingError}
