@@ -49,43 +49,54 @@ export function useUserProfile() {
 
   useEffect(() => {
 
+    let active = true;
+    let generation = 0;
+    let currentUid: string | null = null;
+
     const unsubscribe =
       onAuthStateChanged(
         auth,
 
         async (firebaseUser) => {
 
+          if (!active) return;
+          const request = ++generation;
+          currentUid = firebaseUser?.uid ?? null;
+
           setUser(
             firebaseUser
           );
 
+          // Unmount the previous owner's results/disclosures before reading.
+          setLearningProfile(null);
+          setLoading(Boolean(firebaseUser));
+
           if (!firebaseUser) {
-
-            setLearningProfile(
-              null
-            );
-
-            setLoading(false);
-
             return;
           }
+
+          const uid = firebaseUser.uid;
+          const isCurrent = () => active && request === generation &&
+            currentUid === uid && auth.currentUser?.uid === uid;
 
           try {
 
             const profile =
               await getLearningProfile(
-                firebaseUser.uid
+                uid
               );
 
+            if (!isCurrent()) return;
             setLearningProfile(
               profile
             );
 
-          } catch (error) {
+          } catch {
+
+            if (!isCurrent()) return;
 
             console.error(
-              "FAILED TO LOAD LEARNING PROFILE:",
-              error
+              "FAILED TO LOAD LEARNING PROFILE"
             );
 
             setLearningProfile(
@@ -94,13 +105,18 @@ export function useUserProfile() {
 
           } finally {
 
-            setLoading(false);
+            if (isCurrent()) setLoading(false);
 
           }
         }
       );
 
-    return unsubscribe;
+    return () => {
+      active = false;
+      generation++;
+      currentUid = null;
+      unsubscribe();
+    };
 
   }, []);
 

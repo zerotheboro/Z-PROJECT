@@ -56,10 +56,9 @@ export function selectMethodsForVerification(
       };
 
     })
-    .sort(
-      (a, b) =>
-        b.internalScore -
-        a.internalScore
+    .sort((a, b) =>
+      b.internalScore - a.internalScore ||
+      (a.method < b.method ? -1 : a.method > b.method ? 1 : 0)
     );
 
   return ranked

@@ -318,12 +318,37 @@ function handleClickfor1(section_id){
 
     <div className="ways_grid">
 
+    {/* AI  */}
+    
+      <article className="way_card">
+
+        <span className="way_number">
+          01
+        </span>
+
+        <h2>
+          AI Deep Suggestion
+        </h2>
+
+        <p>
+          Describe what you're learning,
+          what you're struggling with, and
+          what you need. AI helps narrow down
+          methods worth trying.
+        </p>
+
+        <a href="#/library">
+          Ask AI →
+        </a>
+
+      </article>
+
       {/* TRAINING */}
 
       <article className="way_card">
 
         <span className="way_number">
-          01
+          02
         </span>
 
         <h2>
@@ -342,32 +367,6 @@ function handleClickfor1(section_id){
       >
         Start training →
       </Link>
-
-      </article>
-
-
-      {/* AI */}
-
-      <article className="way_card">
-
-        <span className="way_number">
-          02
-        </span>
-
-        <h2>
-          AI Deep Suggestion
-        </h2>
-
-        <p>
-          Describe what you're learning,
-          what you're struggling with, and
-          what you need. AI helps narrow down
-          methods worth trying.
-        </p>
-
-        <a href="#/library">
-          Ask AI →
-        </a>
 
       </article>
 
@@ -596,22 +595,10 @@ function handleClickfor1(section_id){
               <span className="premium-section__check">✓</span>
 
               <div>
-                <strong>Unlimited Test Me sessions</strong>
+                <strong>Unlimited Test Me, method tests</strong>
                 <p>
                   Keep discovering which learning methods work
                   best for you without daily training limits.
-                </p>
-              </div>
-            </li>
-
-            <li>
-              <span className="premium-section__check">✓</span>
-
-              <div>
-                <strong>Unlimited method tests</strong>
-                <p>
-                  Experiment with as many learning methods as you
-                  want.
                 </p>
               </div>
             </li>
@@ -636,6 +623,17 @@ function handleClickfor1(section_id){
                 <p>
                   Train, compare, and explore your learning
                   strategies without Free-plan restrictions.
+                </p>
+              </div>
+            </li>
+
+            <li>
+              <span className="premium-section__check">✓</span>
+
+              <div>
+                <strong>1 Week free trial</strong>
+                <p>
+                  Edulience's free trial lets you to test all features
                 </p>
               </div>
             </li>

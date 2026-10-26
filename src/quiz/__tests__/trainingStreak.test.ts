@@ -6,6 +6,7 @@ import {
 
 import {
   calculateNextStreak,
+  rebuildTrainingStreak,
   daysBetweenDayKeys,
   EMPTY_TRAINING_STREAK,
   getEffectiveCurrentStreak,
@@ -13,6 +14,16 @@ import {
 } from "../trainingStreak";
 
 describe("daily Training streak calculations", () => {
+  it("reconstructs shuffled, repeated, historical days deterministically", () => {
+    const expected = { currentStreak: 3, longestStreak: 3, lastCompletedDay: "2026-10-21", totalActiveDays: 3 };
+    expect(rebuildTrainingStreak(["2026-10-20", "2026-10-21", "2026-10-19"])).toEqual(expected);
+    expect(rebuildTrainingStreak(["2026-10-19", "2026-10-21", "2026-10-20", "2026-10-19"])).toEqual(expected);
+    expect(() => calculateNextStreak({ ...expected, currentStreak: 2, totalActiveDays: 2 }, "2026-10-19")).toThrow("reconstruction");
+  });
+
+  it("bridges historical gaps while preserving a later latest date and the true longest streak", () => {
+    expect(rebuildTrainingStreak(["2026-10-01", "2026-10-03", "2026-10-02", "2026-10-10"])).toEqual({ currentStreak: 1, longestStreak: 3, lastCompletedDay: "2026-10-10", totalActiveDays: 4 });
+  });
   it("creates streak one on the first completion", () => {
     expect(calculateNextStreak(
       EMPTY_TRAINING_STREAK,

@@ -8,6 +8,7 @@ export default defineConfig({
     clearMocks: true,
     restoreMocks: true,
     include: [
+      "backend/**/*.test.js",
       "src/**/*.test.{ts,tsx}",
       "firebaseAdmin.test.js",
       "aiRecommendationQuota.test.js",

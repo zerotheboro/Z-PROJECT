@@ -1,0 +1,11 @@
+{
+  "firestore": { "rules": "test-support/firestore/stage4b1-demo.rules" },
+  "emulators": {
+    "firestore": { "host": "127.0.0.1", "port": 18787 },
+    "auth": { "host": "127.0.0.1", "port": 9099 },
+    "hub": { "host": "127.0.0.1", "port": 18788 },
+    "logging": { "host": "127.0.0.1", "port": 18789 },
+    "ui": { "enabled": false },
+    "singleProjectMode": false
+  }
+}

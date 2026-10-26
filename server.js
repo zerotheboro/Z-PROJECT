@@ -730,6 +730,8 @@ export function createRecommendationApp({
   verifyFirebaseToken = verifyFirebaseIdToken,
   aiRecommendationQuotaManager,
   trainingQuotaManager,
+  trainingCompletionService,
+  trainingCompletionEnabled = process.env.TRAINING_COMPLETION_PHASE2A === "emulator-only",
   paddleClient,
   billingRepository,
   billingConfig,
@@ -846,6 +848,47 @@ export function createRecommendationApp({
     logger,
     now
   }));
+  // Phase 2A is deliberately incapable of production writes. No frontend uses
+  // this route. The explicit flag AND loopback/demo checks are server-owned.
+  let completionServicePromise;
+  app.post(
+    "/api/training/complete",
+    (req, res, next) => {
+      if (!trainingCompletionEnabled) {
+        res.status(404).json({ error: "Not found" });
+        return;
+      }
+      if (!/^demo-/.test(process.env.FIREBASE_PROJECT_ID ?? "") ||
+        !/^(127\.0\.0\.1|localhost):\d+$/.test(process.env.FIRESTORE_EMULATOR_HOST ?? "")) {
+        res.status(503).json({ error: "Training completion is inactive", code: "completion_emulator_only" });
+        return;
+      }
+      next();
+    },
+    requireVerifiedTrainingAuth,
+    createTrainingRateLimitMiddleware({ limit: 6, windowMs: RECOMMEND_RATE_WINDOW_MS, now }),
+    express.json({ limit: 64 * 1024 }),
+    async (req, res) => {
+      try {
+        completionServicePromise ??= trainingCompletionService
+          ? Promise.resolve(trainingCompletionService)
+          : import("./dist-backend/backend/trainingCompletion.js").then(module =>
+            module.createEmulatorTrainingCompletionService({ now }));
+        const service = await completionServicePromise;
+        const receipt = await service.complete(getAuthContext(req).uid, req.body);
+        res.json(receipt);
+      } catch (error) {
+        const status = [400, 403, 409, 413, 503].includes(error?.status) ? error.status : 503;
+        // No request/result/reflection/error-message serialization in this route.
+        writeLog(logger, "warn", { event: "training_completion_rejected", endpoint: req.path, status });
+        const capacityError = ["completion_capacity_exceeded", "completion_document_limit"].includes(error?.code);
+        res.status(status).json({ error: capacityError
+          ? "Training completion exceeds safe storage capacity; no changes were saved. Keep your completed work and contact support."
+          : "Training completion could not be saved", code:
+          typeof error?.code === "string" && /^[a-z_]{1,64}$/.test(error.code) ? error.code : "completion_unavailable" });
+      }
+    }
+  );
   app.use(express.json({ limit: "16kb" }));
 
   const trainingRateLimit =
@@ -1354,7 +1397,7 @@ export function createRecommendationApp({
     if (error?.type === "entity.too.large") {
       logRejectedRequest(logger, now, req, {
         status: 413,
-        errorMessage: "Request body exceeds 16kb"
+        errorMessage: req.path === "/api/training/complete" ? "Completion body exceeds 64kb" : "Request body exceeds 16kb"
       });
       res.status(413).json({ error: "Request body too large" });
       return;

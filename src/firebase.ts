@@ -1,7 +1,10 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getFunctions } from "firebase/functions";
+import { connectAuthEmulator, getAuth } from "firebase/auth";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
+import { localCompletionConfig } from "./services/localTrainingCompletionConfig";
+
+const localCompletion = localCompletionConfig();
 
 const firebaseConfig = {
   apiKey: "AIzaSyBmzLOSBtGmblLeFCFluMXvr5JiuppXb60",
@@ -13,7 +16,9 @@ const firebaseConfig = {
   measurementId: "G-03QZT9QZC7"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = localCompletion
+  ? initializeApp({ projectId: localCompletion.projectId, apiKey: "demo-local-only", authDomain: "localhost" }, "edulience-local-phase2b")
+  : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
@@ -24,5 +29,11 @@ export const functions = getFunctions(
   app,
   "asia-southeast1"
 );
+
+if (localCompletion) {
+  connectAuthEmulator(auth, `http://${localCompletion.authHost}:${localCompletion.authPort}`, { disableWarnings: true });
+  connectFirestoreEmulator(db, localCompletion.firestoreHost, localCompletion.firestorePort);
+  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+}
 
 export default app;

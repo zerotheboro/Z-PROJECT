@@ -32,6 +32,8 @@ import {
 } from "../services/aiRecommendationAccess";
 
 import NAV from "../HEADER/header";
+import TrainingCompletionRecovery from "../components/TrainingCompletionRecovery";
+import { localCompletionConfig } from "../services/localTrainingCompletionConfig";
 
 import DiscardTrainingDialog
   from "../quiz/DiscardTrainingDialog";
@@ -318,6 +320,9 @@ function Training() {
     <>
     <NAV/>
     <main className="training-page">
+      {!loading && owner?.kind === "user" && localCompletionConfig() && (
+        <TrainingCompletionRecovery key={owner.uid} uid={owner.uid} onRecovered={reload} />
+      )}
 
       <section className="training-hero">
 

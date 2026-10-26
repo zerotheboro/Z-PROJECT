@@ -1,4 +1,5 @@
 import {
+  type ReactElement,
   useCallback,
   useEffect,
   useMemo,
@@ -13,7 +14,13 @@ import {
 } from "react-router-dom";
 
 import NAV from "../HEADER/header";
+import TrainingCompletionRecovery from "../components/TrainingCompletionRecovery";
+import { localCompletionConfig } from "../services/localTrainingCompletionConfig";
+import { getLocalTrainingCompletionClient } from "../services/localTrainingCompletion";
+import { CompletionOutboxError } from "../services/trainingCompletionOutbox";
 import { saveAssessment } from "../services/assessment";
+import { loadAIRecommendation } from "../services/aiRecommendationPersistence";
+import type { SavedAIRecommendation } from "../services/aiRecommendationPersistence";
 import {
   reserveTrainingAccess
 } from "../services/trainingAccess";
@@ -34,6 +41,13 @@ import {
   WritingJudgeProvider
 } from "./engines/shared/WritingJudgeProvider";
 import { selectMethods } from "./methodSelector";
+import {
+  getAIRecommendationCandidates,
+  getAIRecommendationKey,
+  getRelevantAIRecommendedMethods
+} from "./aiRecommendationContext";
+import { loadRecommendationWithin } from "./aiRecommendationLookup";
+import { learningSituationQuestions } from "./assessmentData";
 import { buildLearningProfile } from "./profileBuilder";
 import BaselineChallenge from "./sections/BaselineChallenge";
 import LearningSituation from "./sections/LearningSituation";
@@ -268,6 +282,14 @@ function Assessment() {
     [isManualRequest, location.state]
   );
 
+  function guardLocalRecovery(content: ReactElement, pendingSessionId?: string) {
+    return localCompletionConfig() && owner?.kind === "user"
+      ? <TrainingCompletionRecovery key={`${owner.uid}:${pendingSessionId ?? "pending"}`} uid={owner.uid} sessionId={pendingSessionId}>
+          {content}
+        </TrainingCompletionRecovery>
+      : content;
+  }
+
   if (loading || !owner) {
     return <LoadingAssessment />;
   }
@@ -311,25 +333,25 @@ function Assessment() {
   }
 
   if (loadError) {
-    return (
+    return guardLocalRecovery(
       <AssessmentProblem
         title="Training progress is unavailable"
         message={loadError}
-      />
+      />, resumeSessionId ?? undefined
     );
   }
 
   if (resumeSessionId) {
     if (draft && draft.sessionId === resumeSessionId) {
-      return (
+      return guardLocalRecovery(
         <AssessmentSession
           initialDraft={draft}
           isNewSession={false}
-        />
+        />, resumeSessionId
       );
     }
 
-    return (
+    return guardLocalRecovery(
       <AssessmentProblem
         title="Saved training cannot be resumed"
         message={
@@ -342,7 +364,7 @@ function Assessment() {
           : undefined}
         busy={discarding}
         error={discardError}
-      />
+      />, resumeSessionId
     );
   }
 
@@ -406,7 +428,7 @@ function Assessment() {
     );
   }
 
-  return (
+  return guardLocalRecovery(
     <NewAssessmentSession
       user={user}
       owner={owner}
@@ -424,9 +446,12 @@ function AssessmentSession({
   isNewSession: boolean;
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [draft, setDraft] = useState<TrainingDraft>(initialDraft);
   const draftRef = useRef(draft);
   const sessionActive = useRef(true);
+  const mounted = useRef(true);
+  const durableQueuedRef = useRef(false);
   const canCreateCloudDraft = useRef(isNewSession);
   const saveInFlight = useRef<Promise<boolean> | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -435,7 +460,17 @@ function AssessmentSession({
   const [discarding, setDiscarding] = useState(false);
   const [finalSaveError, setFinalSaveError] = useState<string | null>(null);
   const [streakFeedback, setStreakFeedback] = useState<string | null>(null);
+  const [durableQueued, setDurableQueued] = useState(false);
+  const [selectingMethods, setSelectingMethods] = useState(
+    initialDraft.pendingAIConfirmation !== undefined
+  );
+  const [pendingAIContext, setPendingAIContext] = useState<
+    SavedAIRecommendation | null
+  >(null);
+  const [aiContextNotice, setAIContextNotice] = useState<string | null>(null);
+  const selectionInFlight = useRef(false);
   const finalSaveInFlight = useRef(false);
+  const completionTime = useRef<string | null | undefined>(undefined);
   const checkpointRef = useRef<(() => void) | null>(null);
 
   draftRef.current = draft;
@@ -559,43 +594,140 @@ function AssessmentSession({
     return () => window.clearInterval(checkpoint);
   }, [persistDraft]);
 
-  useEffect(() => () => {
-    sessionActive.current = false;
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; sessionActive.current = false; };
   }, []);
 
-  const selectedMethods = useMemo(() => {
-    if (draft.selectedMethods.length > 0) {
-      return draft.selectedMethods;
-    }
-    if (
-      !draft.completed.learningSituation ||
-      !draft.completed.baseline
-    ) {
-      return [];
-    }
-    return selectMethods(
-      draft.completed.learningSituation,
-      draft.completed.baseline
-    );
-  }, [
-    draft.completed.baseline,
-    draft.completed.learningSituation,
-    draft.selectedMethods
-  ]);
+  const selectedMethods = draft.selectedMethods;
 
-  useEffect(() => {
-    if (
-      draft.selectedMethods.length === 0 &&
-      selectedMethods.length > 0
-    ) {
+  function finishMethodSelection(
+    result: NonNullable<TrainingDraft["completed"]["baseline"]>,
+    aiRecommendedMethods: TrainingMethodId[]
+  ) {
+    if (!sessionActive.current || draftRef.current.selectedMethods.length > 0) {
+      return;
+    }
+
+    const situation = draftRef.current.completed.learningSituation;
+    if (!situation) {
+      return;
+    }
+
+    const methods = selectMethods(situation, result, aiRecommendedMethods);
+    updateDraft(current => {
+      const { pendingAIConfirmation: _pending, ...withoutPending } = current;
+      return {
+        ...withoutPending,
+        section: 3,
+        phase: phaseForSection(3),
+        selectedMethods: methods,
+        currentMethod: methods[0],
+        currentMethodIndex: 0,
+        completed: {
+          ...current.completed,
+          baseline: result
+        }
+      };
+    });
+    setPendingAIContext(null);
+    setSelectingMethods(false);
+    selectionInFlight.current = false;
+  }
+
+  async function resolveAIConfirmation(
+    result: NonNullable<TrainingDraft["completed"]["baseline"]>,
+    expectedKey: string | null,
+    resuming: boolean
+  ) {
+    const owner = draftRef.current.owner;
+    const situation = draftRef.current.completed.learningSituation;
+    if (owner.kind !== "user" || !situation) {
+      finishMethodSelection(result, []);
+      return;
+    }
+
+    const saved = await loadRecommendationWithin(() =>
+      loadAIRecommendation(owner)
+    );
+    if (!sessionActive.current || draftRef.current.selectedMethods.length > 0) {
+      selectionInFlight.current = false;
+      return;
+    }
+
+    const key = saved && getAIRecommendationKey(saved);
+    const candidates = getAIRecommendationCandidates(saved, situation, result);
+    if (saved && key && key.length <= 4_000 && candidates.length > 0 &&
+      (expectedKey === null || expectedKey === key)) {
       updateDraft(current => ({
         ...current,
-        selectedMethods,
-        currentMethod: selectedMethods[0],
-        currentMethodIndex: 0
+        pendingAIConfirmation: { recommendationKey: key }
       }));
+      setPendingAIContext(saved);
+      setSelectingMethods(false);
+      return;
     }
-  }, [draft.selectedMethods.length, selectedMethods, updateDraft]);
+
+    if (resuming) {
+      setAIContextNotice(
+        "The previous AI recommendation is no longer available for this session. Your Baseline result was kept, and four methods were selected from your assessment answers."
+      );
+    }
+    finishMethodSelection(result, []);
+  }
+
+  useEffect(() => {
+    if (!initialDraft.pendingAIConfirmation ||
+      !initialDraft.completed.baseline ||
+      initialDraft.selectedMethods.length > 0 ||
+      selectionInFlight.current) {
+      return;
+    }
+    selectionInFlight.current = true;
+    void resolveAIConfirmation(
+      initialDraft.completed.baseline,
+      initialDraft.pendingAIConfirmation.recommendationKey,
+      true
+    );
+  // Only an initially restored pending draft needs this lookup.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function completeBaseline(result: TrainingDraft["completed"]["baseline"]) {
+    if (selectionInFlight.current || !result) {
+      return;
+    }
+
+    const situation = draftRef.current.completed.learningSituation;
+    if (!situation) {
+      return;
+    }
+
+    selectionInFlight.current = true;
+    setSelectingMethods(true);
+
+    // Guest localStorage has no reliable person/session ownership.
+    if (draftRef.current.owner.kind === "guest") {
+      finishMethodSelection(result, []);
+      return;
+    }
+
+    // Commit the Baseline synchronously so the immediate save (including
+    // the browser recovery copy) carries this session and pending decision.
+    // A reload during lookup can safely retry without rerunning Baseline.
+    const current = draftRef.current;
+    const pendingDraft: TrainingDraft = {
+      ...current,
+      completed: { ...current.completed, baseline: result },
+      pendingAIConfirmation: { recommendationKey: null },
+      updatedAt: new Date().toISOString(),
+      revision: current.revision + 1
+    };
+    draftRef.current = pendingDraft;
+    setDraft(pendingDraft);
+    void persistDraft();
+    await resolveAIConfirmation(result, null, false);
+  }
 
   const advance = useCallback((
     section: number,
@@ -662,6 +794,13 @@ function AssessmentSession({
   }, [updateDraft]);
 
   async function saveAndExit() {
+    if (durableQueued) {
+      // The exact payload is already committed to IndexedDB. Recovery on the
+      // landing page does not need to resubmit reflection or reserve a session.
+      sessionActive.current = false;
+      navigate("/training");
+      return;
+    }
     checkpointRef.current?.();
     await Promise.resolve();
     const saved = await persistDraft();
@@ -672,6 +811,10 @@ function AssessmentSession({
   }
 
   async function discardCurrent() {
+    if (durableQueued || localCompletionConfig() && draft.phase === "final-save") {
+      setSaveError("Completed work is durably queued. Save and exit or retry final save; it must not be discarded as unfinished work.");
+      return;
+    }
     setDiscarding(true);
     setSaveError(null);
     sessionActive.current = false;
@@ -694,10 +837,47 @@ function AssessmentSession({
     }
   }
 
+  async function finishDurably(completedDraft: TrainingDraft, completedAt: string | null): Promise<boolean> {
+    const client = getLocalTrainingCompletionClient();
+    if (completedDraft.owner.kind !== "user") return false;
+    if (!client) {
+      if (localCompletionConfig()) throw new CompletionOutboxError("completion_owner_changed",
+        "Sign-in changed before completion could be queued. Keep this page and draft; sign back into the original account. No legacy save was attempted.");
+      return false;
+    }
+    // Keep ordinary draft autosaves running until IndexedDB confirms the exact
+    // final results and original timestamp are durable. No network lookup here.
+    const entry = await client.prepare(completedDraft, completedAt);
+    if (!entry) return false;
+    sessionActive.current = false;
+    durableQueuedRef.current = true;
+    if (mounted.current) setDurableQueued(true);
+    if (saveInFlight.current) await saveInFlight.current;
+    if (mounted.current && !new URLSearchParams(location.search).get("resume")) {
+      // Make refresh address the frozen session BEFORE any request can commit.
+      // Its outbox can recover even if the draft was never saved successfully.
+      navigate(`/training/assessment?resume=${encodeURIComponent(completedDraft.sessionId)}`, { replace: true });
+      return true;
+    }
+    // The outbox is sufficient to recover the final result even if the existing
+    // draft still points at Reflection. Do not rewrite a recovery pointer after
+    // another tab/session has taken over; cleanup is session-conditional.
+    const receipt = await client.resume(completedDraft.owner.uid, completedDraft.sessionId);
+    if (mounted.current) {
+      setStreakFeedback(receipt.status === "accepted"
+        ? "Training complete. This session was durably accepted by the isolated backend; cumulative profile publication remains disabled."
+        : "Training complete. Your completed work has been saved.");
+      updateDraft(current => ({ ...current, section: 7, phase: "final-save", completed: completedDraft.completed }));
+    }
+    return true;
+  }
+
   async function finishManual(result: ReflectionResult) {
     if (finalSaveInFlight.current) {
       return;
     }
+    completionTime.current ??= draft.phase === "final-save" ? null : new Date().toISOString();
+    const completedAt = completionTime.current;
 
     updateDraft(current => ({
       ...current,
@@ -712,6 +892,8 @@ function AssessmentSession({
     setFinalSaveError(null);
 
     try {
+      if (await finishDurably({ ...draftRef.current, phase: "final-save", section: 6,
+        completed: { ...draftRef.current.completed, reflection: result } }, completedAt)) return;
       const streak = await recordTrainingCompletion({
         owner: draft.owner,
         sessionId: draft.sessionId,
@@ -738,14 +920,17 @@ function AssessmentSession({
         }
       }));
     } catch (error) {
-      sessionActive.current = true;
+      if (localCompletionConfig() && !mounted.current) return;
+      sessionActive.current = !durableQueuedRef.current && !(error instanceof CompletionOutboxError && error.code === "completion_owner_changed");
       console.error(
         "Training completion or streak recording failed:",
         error
       );
       setFinalSaveError(
-        "Training is complete, but its daily activity or active draft could not be saved. Retry safely to finish."
+        localCompletionConfig() && error instanceof Error ? error.message :
+          "Training is complete, but its daily activity or active draft could not be saved. Retry safely to finish."
       );
+      if (localCompletionConfig() && sessionActive.current) void persistDraft();
     } finally {
       finalSaveInFlight.current = false;
     }
@@ -755,6 +940,8 @@ function AssessmentSession({
     if (finalSaveInFlight.current) {
       return;
     }
+    completionTime.current ??= draft.phase === "final-save" ? null : new Date().toISOString();
+    const completedAt = completionTime.current;
 
     const reflection = result ?? draft.completed.reflection;
     const learningSituation = draft.completed.learningSituation;
@@ -797,6 +984,8 @@ function AssessmentSession({
     setFinalSaveError(null);
 
     try {
+      if (await finishDurably({ ...draftRef.current, phase: "final-save", section: 6,
+        completed: { ...draftRef.current.completed, reflection, learningProfile } }, completedAt)) return;
       if (draft.owner.kind === "user") {
         await saveAssessment({
           userId: draft.owner.uid,
@@ -838,14 +1027,17 @@ function AssessmentSession({
         }
       }));
     } catch (error) {
-      sessionActive.current = true;
+      if (localCompletionConfig() && !mounted.current) return;
+      sessionActive.current = !durableQueuedRef.current && !(error instanceof CompletionOutboxError && error.code === "completion_owner_changed");
       console.error(
         "Assessment completion or streak recording failed:",
         error
       );
       setFinalSaveError(
-        "The completed assessment or its daily activity could not be saved, so the unfinished draft was kept. Retry safely when your connection is available."
+        localCompletionConfig() && error instanceof Error ? error.message :
+          "The completed assessment or its daily activity could not be saved, so the unfinished draft was kept. Retry safely when your connection is available."
       );
+      if (localCompletionConfig() && sessionActive.current) void persistDraft();
     } finally {
       finalSaveInFlight.current = false;
     }
@@ -883,6 +1075,12 @@ function AssessmentSession({
           </div>
         )}
 
+        {aiContextNotice && (
+          <p className="training-system-message" role="status">
+            {aiContextNotice}
+          </p>
+        )}
+
         {section === 1 && (
           <TrainingStateScope name="situation">
             <LearningSituation
@@ -891,11 +1089,59 @@ function AssessmentSession({
           </TrainingStateScope>
         )}
 
-        {section === 2 && (
+        {section === 2 && selectingMethods && (
+          <section className="training-system-message">
+            <h1>Choosing your methods...</h1>
+          </section>
+        )}
+
+        {section === 2 && pendingAIContext && !selectingMethods && (
+          <section className="training-system-message">
+            <h1>Use your recent AI Recommendation?</h1>
+            <p>Previous study problem: {pendingAIContext.inputs.biggestProblem}</p>
+            <p>Previous request: {pendingAIContext.inputs.methodQuestion}</p>
+            {pendingAIContext.inputs.extraContext && (
+              <p>Previous study context: {pendingAIContext.inputs.extraContext}</p>
+            )}
+            <p>Current learning goal: {
+              learningSituationQuestions.find(question => question.id === "goal")
+                ?.options.find(option => option.value === draft.completed.learningSituation?.goal)
+                ?.label ?? draft.completed.learningSituation?.goal
+            }</p>
+            <p>Use this recommendation only if it concerns the same subject or topic and goal as this Test Me session.</p>
+            <button type="button" onClick={() => {
+              const situation = draftRef.current.completed.learningSituation;
+              const baseline = draftRef.current.completed.baseline;
+              if (!situation || !baseline || !pendingAIContext) return;
+              const methods = getRelevantAIRecommendedMethods(
+                pendingAIContext, situation, baseline, true
+              );
+              if (methods.length === 0) {
+                setAIContextNotice(
+                  "The previous AI recommendation is no longer available for this session. Four methods were selected from your assessment answers."
+                );
+              }
+              finishMethodSelection(
+                baseline,
+                methods
+              );
+            }}>
+              Use this recommendation
+            </button>
+            <button type="button" className="secondary-action" onClick={() => {
+              const baseline = draftRef.current.completed.baseline;
+              if (baseline) finishMethodSelection(baseline, []);
+            }}>
+              Use standard selection
+            </button>
+          </section>
+        )}
+
+        {section === 2 && !selectingMethods && !pendingAIContext && (
           <TrainingStateScope name="baseline">
             <BaselineChallenge
               onContentSelected={recordBaselineContent}
-              onComplete={result => advance(3, { baseline: result })}
+              onComplete={result => void completeBaseline(result)}
             />
           </TrainingStateScope>
         )}
@@ -965,10 +1211,15 @@ function AssessmentSession({
                 : "Finish saving your assessment"}
             </h1>
             <p>
-              {isManualMode
+              {localCompletionConfig()
+                ? durableQueued
+                  ? "A browser completion checkpoint was confirmed before submission. Final acknowledgment and cleanup still need verification."
+                  : "A durable completion checkpoint has not been confirmed. Results remain on this page; keep it open and retry saving."
+                : isManualMode
                 ? "Your completed manual session is still available until its active draft is cleared."
                 : "Your completed work is still safely available as an unfinished draft."}
             </p>
+            {localCompletionConfig() && <p>Clearing browser data, browser storage eviction, or losing this device may destroy unsent evidence. Browser storage is not a cloud backup.</p>}
             {finalSaveError && <p role="alert">{finalSaveError}</p>}
             <button
               type="button"
@@ -1036,7 +1287,7 @@ function AssessmentSession({
           <button
             type="button"
             className="secondary-action"
-            disabled={saveStatus === "saving" || saveStatus === "conflict"}
+            disabled={selectingMethods || saveStatus === "saving" || saveStatus === "conflict"}
             onClick={() => void saveAndExit()}
           >
             Save and exit
@@ -1044,6 +1295,7 @@ function AssessmentSession({
           <button
             type="button"
             className="secondary-action"
+            disabled={durableQueued || Boolean(localCompletionConfig() && draft.phase === "final-save")}
             onClick={() => setShowDiscard(true)}
           >
             Discard current training

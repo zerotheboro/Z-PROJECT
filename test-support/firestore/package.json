@@ -1,0 +1,10 @@
+{
+  "name": "edulience-isolated-firestore-tests",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "12.19.0",
+    "firebase-tools": "15.34.0"
+  }
+}

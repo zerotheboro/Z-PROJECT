@@ -6,8 +6,8 @@ import {
   TRAINING_METHOD_IDS
 } from "./trainingMethodIds.js";
 
-export const FREE_TEST_ME_DAILY_LIMIT = 1;
-export const FREE_MANUAL_METHOD_DAILY_LIMIT = 3;
+export const FREE_TEST_ME_DAILY_LIMIT = 2;
+export const FREE_MANUAL_METHOD_DAILY_LIMIT = 4;
 export const TRAINING_TIMEZONE_MAX_LENGTH = 64;
 export const TRAINING_SESSION_ID_MAX_LENGTH = 200;
 

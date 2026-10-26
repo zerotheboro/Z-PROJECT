@@ -10,14 +10,21 @@ import {
 
 const firestore = vi.hoisted(() => ({
   doc: vi.fn((...segments: unknown[]) => segments.join("/")),
+  collection: vi.fn((...segments: unknown[]) => segments.join("/")),
   getDoc: vi.fn(),
+  getDocs: vi.fn(),
+  snapshotEqual: vi.fn((left, right) => JSON.stringify(left.exists() ? left.data() : null) === JSON.stringify(right.exists() ? right.data() : null)),
   runTransaction: vi.fn(),
   serverTimestamp: vi.fn(() => "server-timestamp")
 }));
 
 vi.mock("firebase/firestore", () => ({
   doc: firestore.doc,
+  collection: firestore.collection,
   getDoc: firestore.getDoc,
+  getDocFromServer: firestore.getDoc,
+  getDocsFromServer: firestore.getDocs,
+  snapshotEqual: firestore.snapshotEqual,
   runTransaction: firestore.runTransaction,
   serverTimestamp: firestore.serverTimestamp
 }));
@@ -38,6 +45,8 @@ const context = {
 };
 
 beforeEach(() => {
+  firestore.getDoc.mockReset().mockResolvedValue({ exists: () => false });
+  firestore.getDocs.mockReset().mockResolvedValue({ metadata: { hasPendingWrites: false }, docs: [] });
   const values = new Map<string, string>();
   Object.defineProperty(window, "localStorage", {
     configurable: true,
@@ -172,6 +181,12 @@ describe("Training streak persistence", () => {
   });
 
   it("does not write either Firestore document when today's activity exists", async () => {
+    const stats = { currentStreak: 3, longestStreak: 5, lastCompletedDay: "2026-10-06", totalActiveDays: 9 };
+    // Complete day history, not just a synthetic summary count. Its prior
+    // longest streak has five days; Oct 4-6 supply the current run of three.
+    const days = ["2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-05", "2026-09-10", "2026-10-04", "2026-10-05", "2026-10-06"];
+    firestore.getDoc.mockResolvedValue({ exists: () => true, data: () => stats });
+    firestore.getDocs.mockResolvedValue({ metadata: { hasPendingWrites: false }, docs: days.map(id => ({ id, data: () => ({ dayKey: id }) })) });
     const transaction = {
       get: vi.fn()
         .mockResolvedValueOnce({ exists: () => true })
@@ -203,5 +218,35 @@ describe("Training streak persistence", () => {
       wasNewDay: false
     });
     expect(transaction.set).not.toHaveBeenCalled();
+  });
+
+  it("rebuilds a late Oct 19 completion after Oct 20/21 without rolling the latest day backward", async () => {
+    const summary = { exists: () => true, data: () => ({ currentStreak: 2, longestStreak: 2, lastCompletedDay: "2026-10-21", totalActiveDays: 2 }) };
+    firestore.getDoc.mockResolvedValue(summary);
+    firestore.getDocs.mockResolvedValue({ metadata: { hasPendingWrites: false }, docs: ["2026-10-21", "2026-10-20"].map(id => ({ id, data: () => ({ dayKey: id }) })) });
+    const tx = { get: vi.fn().mockResolvedValueOnce({ exists: () => false }).mockResolvedValueOnce(summary), set: vi.fn() };
+    firestore.runTransaction.mockImplementation(async (_db, callback) => callback(tx));
+    const result = await recordTrainingCompletion({ owner: { kind: "user", uid: "user-a" }, sessionId: "late-oct-19", mode: "manual", methodIds: ["feynman"] }, { now: new Date("2026-10-19T12:00:00Z"), timeZone: "UTC" });
+    expect(result).toMatchObject({ currentStreak: 3, longestStreak: 3, totalActiveDays: 3, lastCompletedDay: "2026-10-21" });
+  });
+
+  it("reprepares history when another device updates the summary between query and transaction", async () => {
+    const empty = { exists: () => false };
+    const newer = { exists: () => true, data: () => ({ currentStreak: 1, longestStreak: 1, totalActiveDays: 1, lastCompletedDay: "2026-10-21" }) };
+    firestore.getDoc.mockResolvedValueOnce(empty).mockResolvedValue(newer);
+    firestore.getDocs.mockResolvedValueOnce({ metadata: { hasPendingWrites: false }, docs: [] }).mockResolvedValue({ metadata: { hasPendingWrites: false }, docs: [{ id: "2026-10-21", data: () => ({ dayKey: "2026-10-21" }) }] });
+    const tx = { get: vi.fn().mockImplementation(async ref => String(ref).endsWith("/streak") ? newer : empty), set: vi.fn() };
+    firestore.runTransaction.mockImplementation(async (_db, callback) => callback(tx));
+    const result = await recordTrainingCompletion({ owner: { kind: "user", uid: "user-a" }, sessionId: "late-oct-20", mode: "auto", methodIds: ["feynman"] }, { now: new Date("2026-10-20T12:00:00Z"), timeZone: "UTC" });
+    expect(firestore.getDocs).toHaveBeenCalledTimes(2);
+    expect(tx.set).toHaveBeenCalledTimes(2); // no writes from discarded preparation
+    expect(result).toMatchObject({ currentStreak: 2, lastCompletedDay: "2026-10-21", totalActiveDays: 2 });
+  });
+
+  it("never publishes a streak reconstructed from partial cached or uncommitted history", async () => {
+    firestore.getDocs.mockResolvedValue({ metadata: { fromCache: true, hasPendingWrites: false }, docs: [] });
+    firestore.runTransaction.mockClear();
+    await expect(recordTrainingCompletion({ owner: { kind: "user", uid: "user-a" }, sessionId: "offline-history", mode: "manual", methodIds: ["feynman"] }, context)).rejects.toThrow("not confirmed by the server");
+    expect(firestore.runTransaction).not.toHaveBeenCalled();
   });
 });

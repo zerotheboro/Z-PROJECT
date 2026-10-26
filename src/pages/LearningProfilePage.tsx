@@ -1,5 +1,5 @@
 import {
-  useNavigate
+  useNavigate, useLocation
 } from "react-router-dom";
 
 import NAV from "../HEADER/header";
@@ -10,9 +10,13 @@ import {
 
 import Results
   from "../quiz/sections/Results";
+import { lazy, Suspense } from "react";
+import { localCumulativeProfileConfig } from "../services/localCumulativeProfileConfig";
+
+const LocalCumulativeProfilePage = lazy(() => import("./CumulativeLearningProfilePage"));
 
 
-function LearningProfilePage() {
+function LatestLearningProfilePage() {
 
   const navigate =
     useNavigate();
@@ -137,6 +141,7 @@ function LearningProfilePage() {
       <main className="learning-profile-page">
 
         <Results
+          key={user.uid}
           profile={
             learningProfile
           }
@@ -162,4 +167,11 @@ function LearningProfilePage() {
   );
 }
 
-export default LearningProfilePage;
+export default function LearningProfilePage() {
+  const location = useLocation();
+  // Explicit local opt-in only. The existing root snapshot remains unchanged.
+  if (localCumulativeProfileConfig() && new URLSearchParams(location.search).get("view") !== "latest") {
+    return <Suspense fallback={<p role="status">Loading recorded learning evidence...</p>}><LocalCumulativeProfilePage /></Suspense>;
+  }
+  return <LatestLearningProfilePage />;
+}

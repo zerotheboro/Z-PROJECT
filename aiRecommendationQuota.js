@@ -11,8 +11,8 @@ import {
   resolveTrainingPlan
 } from "./trainingQuota.js";
 
-export const GUEST_AI_DAILY_LIMIT = 2;
-export const FREE_AI_DAILY_LIMIT = 4;
+export const GUEST_AI_DAILY_LIMIT = 1;
+export const FREE_AI_DAILY_LIMIT = 3;
 export const PREMIUM_AI_DAILY_LIMIT = 10;
 export const PREMIUM_DEEP_AI_DAILY_LIMIT = 1;
 export const AI_QUOTA_TIMEZONE = "UTC";

@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../firebase";
+import { localCompletionConfig } from "./localTrainingCompletionConfig";
 
 import {
   getGuestDraftStorageKey,
@@ -36,11 +37,20 @@ export class TrainingDraftConflictError extends Error {
   }
 }
 
-function getStorage(): Storage | null {
+function getStorage(): Pick<Storage, "getItem" | "setItem" | "removeItem"> | null {
   try {
-    return typeof window === "undefined"
-      ? null
-      : window.localStorage;
+    if (typeof window === "undefined") return null;
+    const storage = window.localStorage;
+    const local = localCompletionConfig();
+    if (!local) return storage;
+    // Demo Auth UIDs must never recover a production project's browser draft,
+    // even when a developer deliberately creates the same UID in the Emulator.
+    const prefix = `edulience.local.${local.projectId}.`;
+    return {
+      getItem: key => storage.getItem(prefix + key),
+      setItem: (key, value) => storage.setItem(prefix + key, value),
+      removeItem: key => storage.removeItem(prefix + key)
+    };
   } catch {
     return null;
   }

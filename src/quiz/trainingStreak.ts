@@ -97,6 +97,9 @@ export function calculateNextStreak(
       isNewDay: false
     };
   }
+  if (previous.lastCompletedDay !== null && daysBetweenDayKeys(previous.lastCompletedDay, completedDay) < 0) {
+    throw new Error("Historical activity requires reconstruction from activity history.");
+  }
 
   const consecutive = previous.lastCompletedDay !== null &&
     daysBetweenDayKeys(
@@ -119,6 +122,14 @@ export function calculateNextStreak(
     },
     isNewDay: true
   };
+}
+
+/** Exact, order-independent materialization of immutable activity-day records. */
+export function rebuildTrainingStreak(dayKeys: readonly string[]): TrainingStreakStats {
+  const days = [...new Set(dayKeys)].sort();
+  let stats = { ...EMPTY_TRAINING_STREAK };
+  for (const day of days) stats = calculateNextStreak(stats, day).stats;
+  return stats;
 }
 
 export function getEffectiveCurrentStreak(

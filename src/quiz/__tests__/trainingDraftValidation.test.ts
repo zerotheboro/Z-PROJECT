@@ -227,6 +227,30 @@ function questionsFor(
 }
 
 describe("semantic training-draft validation", () => {
+  it("accepts a completed Baseline only with an unresolved, bounded AI confirmation", () => {
+    const draft = makeDraft({ section: 2 });
+    draft.baselineContentSetIds = {
+      memory: baselineMemoryContentSets[0].id,
+      understanding: baselineConceptContentSets[0].id
+    };
+    draft.completed.baseline = {
+      memory: { score: 0.5, correct: 1, total: 2, confidence: 3, timeSpentMs: 100 },
+      understanding: { score: 0.5, correct: 1, total: 2, confidence: 3, timeSpentMs: 100 }
+    };
+
+    expect(validateTrainingDraft(draft, draft.owner).valid).toBe(false);
+    draft.pendingAIConfirmation = { recommendationKey: null };
+    expectValid(draft);
+    draft.pendingAIConfirmation = { recommendationKey: "current-advice" };
+    expectValid(draft);
+    draft.pendingAIConfirmation = { recommendationKey: "x".repeat(4_001) };
+    expect(validateTrainingDraft(draft, draft.owner).valid).toBe(false);
+
+    const legacy = makeDraft({ section: 3 });
+    expect(legacy.pendingAIConfirmation).toBeUndefined();
+    expectValid(legacy);
+  });
+
   it.each([
     [1, "situation"],
     [2, "baseline"],

@@ -78,6 +78,11 @@ export type TrainingDraft = {
   phase: TrainingPhase;
   section: number;
   selectedMethods: TrainingMethodId[];
+  // Present only after an automatic Baseline has completed while its
+  // saved-AI-context confirmation is unresolved. Absent in older drafts.
+  pendingAIConfirmation?: {
+    recommendationKey: string | null;
+  };
   currentMethod: TrainingMethodId | null;
   currentMethodIndex: number | null;
   baselineContentSetIds: {

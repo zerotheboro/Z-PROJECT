@@ -43,6 +43,10 @@ import {
   createTrainingDraft
 } from "../quiz/trainingProgress";
 import {
+  baselineConceptContentSets,
+  baselineMemoryContentSets
+} from "../quiz/assessmentData";
+import {
   getMethodDefinition
 } from "../quiz/methodRegistry";
 
@@ -421,6 +425,42 @@ describe("cloud training draft safety", () => {
       valid: true,
       draft
     });
+  });
+
+  it("round-trips an unanswered AI confirmation and completed Baseline without changing the cloud path", async () => {
+    const draft = createTrainingDraft({
+      owner: { kind: "user", uid: "user-a" },
+      mode: "auto"
+    });
+    draft.section = 2;
+    draft.phase = "baseline";
+    draft.completed.learningSituation = {
+      goal: "remember-longer", difficulties: ["forgetting"],
+      contentTypes: ["facts"], currentApproach: "rereading",
+      sessionLength: "20-45", learningContext: "school"
+    };
+    draft.baselineContentSetIds = {
+      memory: baselineMemoryContentSets[0].id,
+      understanding: baselineConceptContentSets[0].id
+    };
+    draft.completed.baseline = {
+      memory: { score: 0.5, correct: 1, total: 2, confidence: 3, timeSpentMs: 100 },
+      understanding: { score: 0.5, correct: 1, total: 2, confidence: 3, timeSpentMs: 100 }
+    };
+    draft.pendingAIConfirmation = { recommendationKey: "current-advice" };
+
+    await saveTrainingDraft(draft, { allowCreate: true });
+    expect(firestore.doc).toHaveBeenCalledWith(
+      { name: "test-db" }, "users", "user-a", "trainingProgress", "active"
+    );
+    expect(latestCloudPayload()).toMatchObject({
+      schemaVersion: 1,
+      sessionId: draft.sessionId,
+      pendingAIConfirmation: { recommendationKey: "current-advice" }
+    });
+    firestore.cloudData = latestCloudPayload();
+    expect(await loadTrainingDraft(draft.owner)).toEqual({ valid: true, draft });
+    expect(readLocalTrainingDraft(draft.owner)).toEqual({ valid: true, draft });
   });
 
   it("keeps cloud-first loading and local recovery fallback behavior", async () => {

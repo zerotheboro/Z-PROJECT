@@ -1,6 +1,7 @@
 import type {
   User
 } from "firebase/auth";
+import { localCompletionConfig } from "./localTrainingCompletionConfig";
 
 import {
   getBrowserTimeZone,
@@ -217,6 +218,7 @@ function guestAccess(
 function apiBase(context: AccessContext): string {
   return (
     context.apiBase ??
+    localCompletionConfig()?.apiBase ??
     import.meta.env.VITE_API_BASE_URL ??
     DEFAULT_API_BASE
   ).replace(/\/$/, "");

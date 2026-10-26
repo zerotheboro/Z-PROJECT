@@ -1,0 +1,437 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+
+      // -----------------------------------------
+      // MAIN USER DOCUMENT
+      // -----------------------------------------
+      // DEMO ONLY. Protection never grants bootstrap/publication authority.
+      function hasLifecycle() {
+        return exists(/databases/$(database)/documents/trainingLifecycleAuthorities/$(userId));
+      }
+      function activeOwnerWrites() {
+        let path = /databases/$(database)/documents/trainingLifecycleAuthorities/$(userId);
+        let root = /databases/$(database)/documents/users/$(userId);
+        let fence = /databases/$(database)/documents/users/$(userId)/learningProfiles/cumulative;
+        return !hasLifecycle() || (
+          get(path).data.schemaVersion == 1 && get(path).data.uid == userId
+          && get(path).data.state == "active"
+          && get(path).data.writerProtocol == "stage4a-protection-only-v1"
+          && get(path).data.writerIdentity == "stage4a-isolated-coordinator-v1"
+          && get(path).data.namespaceVersion == "training-source-catalog-v1"
+          && get(path).data.admissionEligibility == "NOT VERIFIED"
+          && get(path).data.lifecycleEpoch is int && get(path).data.lifecycleEpoch >= 1
+          && get(path).data.fence is int && get(path).data.fence >= 1
+          && get(path).data.rootBinding is string && get(path).data.rootBinding.size() == 64
+          && get(root).data.trainingLifecycleBinding == get(path).data.rootBinding
+          && get(fence).data.persistenceVersion == 3
+          && get(fence).data.writerProtocol == "stage4a-protection-only-v1"
+          && get(fence).data.uid == userId
+          && get(fence).data.lifecycleEpoch == get(path).data.lifecycleEpoch
+          && get(fence).data.rootBinding == get(path).data.rootBinding
+        );
+      }
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId && !hasLifecycle();
+      allow update: if request.auth != null && request.auth.uid == userId
+        && activeOwnerWrites()
+        && (!hasLifecycle() || !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          "uid", "createdAt", "trainingLifecycleBinding", "learningProfile", "latestAssessmentId", "learningProfileUpdatedAt"
+        ]));
+      allow delete: if request.auth != null && request.auth.uid == userId && !hasLifecycle();
+
+
+      // -----------------------------------------
+      // ACTIVE TRAINING PROGRESS
+      // -----------------------------------------
+      match /trainingProgress/{draftId} {
+
+        allow read:
+          if request.auth != null
+          && request.auth.uid == userId
+          && draftId == "active";
+
+        allow create:
+          if request.auth != null
+          && request.auth.uid == userId
+          && draftId == "active"
+          && request.resource.data.schemaVersion == 1
+          && request.resource.data.sessionId is string
+          && request.resource.data.owner is map
+          && request.resource.data.owner.kind == "user"
+          && request.resource.data.owner.uid == request.auth.uid
+          && request.resource.data.mode in ["auto", "manual"]
+
+          && exists(
+            /databases/$(database)/documents/users/$(userId)/trainingReservations/$(request.resource.data.sessionId)
+          )
+
+          && get(
+            /databases/$(database)/documents/users/$(userId)/trainingReservations/$(request.resource.data.sessionId)
+          ).data.mode == request.resource.data.mode
+
+          && get(
+            /databases/$(database)/documents/users/$(userId)/trainingReservations/$(request.resource.data.sessionId)
+          ).data.methodIds == request.resource.data.selectedMethods
+          && activeOwnerWrites();
+
+        allow update:
+          if request.auth != null
+          && request.auth.uid == userId
+          && draftId == "active"
+          && request.resource.data.schemaVersion == 1
+          && request.resource.data.sessionId == resource.data.sessionId
+          && request.resource.data.owner is map
+          && request.resource.data.owner.kind == "user"
+          && request.resource.data.owner.uid == request.auth.uid
+          && request.resource.data.mode == resource.data.mode
+          && request.resource.data.mode in ["auto", "manual"]
+
+          && (
+            request.resource.data.selectedMethods
+              == resource.data.selectedMethods
+
+            || (
+              resource.data.mode == "auto"
+              && resource.data.selectedMethods.size() == 0
+            )
+          )
+          && activeOwnerWrites();
+
+        allow delete:
+          if request.auth != null
+          && request.auth.uid == userId
+          && draftId == "active"
+          && activeOwnerWrites();
+      }
+
+
+      // -----------------------------------------
+      // DAILY TRAINING ACTIVITY / STREAK DAYS
+      // -----------------------------------------
+      match /trainingActivity/{dayKey} {
+
+        allow read:
+          if request.auth != null
+          && request.auth.uid == userId;
+
+        allow create:
+          if request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.dayKey == dayKey
+          && dayKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && request.resource.data.firstSessionId is string
+          && request.resource.data.firstMode in ["auto", "manual"]
+          && request.resource.data.methodIds is list
+          && request.resource.data.timezone is string
+          && activeOwnerWrites();
+
+        allow update, delete: if false;
+      }
+
+
+      // -----------------------------------------
+      // TRAINING STREAK SUMMARY
+      // -----------------------------------------
+      match /trainingStats/{statsId} {
+
+        allow read:
+          if request.auth != null
+          && request.auth.uid == userId
+          && statsId == "streak";
+
+        allow create, update:
+          if request.auth != null
+          && request.auth.uid == userId
+          && statsId == "streak"
+          && request.resource.data.currentStreak is int
+          && request.resource.data.currentStreak >= 1
+          && request.resource.data.longestStreak is int
+          && request.resource.data.longestStreak
+             >= request.resource.data.currentStreak
+          && request.resource.data.lastCompletedDay is string
+          && request.resource.data.lastCompletedDay.matches(
+            '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+          )
+          && request.resource.data.totalActiveDays is int
+          && request.resource.data.totalActiveDays >= 1
+          && activeOwnerWrites();
+
+        allow delete: if false;
+      }
+
+
+      // -----------------------------------------
+      // PLAN / PREMIUM ENTITLEMENT
+      // -----------------------------------------
+      match /entitlements/{entitlementId} {
+
+        allow read:
+          if request.auth != null
+          && request.auth.uid == userId
+          && entitlementId == "current";
+
+        allow create, update, delete: if false;
+      }
+
+
+      // -----------------------------------------
+      // SERVER-OWNED DAILY TRAINING QUOTA
+      // -----------------------------------------
+      match /trainingUsage/{dayKey} {
+
+        allow read:
+          if request.auth != null
+          && request.auth.uid == userId;
+
+        allow create, update, delete: if false;
+      }
+
+
+      match /trainingUsage/{dayKey}/reservations/{sessionId} {
+
+        allow read:
+          if request.auth != null
+          && request.auth.uid == userId;
+
+        allow create, update, delete: if false;
+      }
+
+
+      // -----------------------------------------
+      // DIRECT SESSION RESERVATION INDEX
+      // -----------------------------------------
+      match /trainingReservations/{sessionId} {
+
+        allow read:
+          if request.auth != null
+          && request.auth.uid == userId;
+
+        allow create, update, delete: if false;
+      }
+
+
+      // -----------------------------------------
+      // SAVED AI RECOMMENDATION
+      // STANDARD + PREMIUM DEEP
+      // -----------------------------------------
+      match /aiRecommendations/{recommendationId} {
+
+        function validMethod(method) {
+          return method is map
+            && method.keys().hasOnly([
+              "name",
+              "branch",
+              "reason",
+              "warning"
+            ])
+            && method.name is string
+            && method.name.size() <= 160
+            && method.branch is string
+            && method.branch.size() <= 160
+            && method.reason is string
+            && method.reason.size() <= 2000
+            && method.warning is string
+            && method.warning.size() <= 2000;
+        }
+
+        function validRecommendation(data) {
+          return data.keys().hasOnly([
+              "schemaVersion",
+              "mode",
+              "inputs",
+              "result",
+              "updatedAt"
+            ])
+
+            && data.schemaVersion == 1
+
+            // Accept legacy recommendations without mode.
+            // New recommendations may use standard or deep.
+            && (
+              !data.keys().hasAny(["mode"])
+              || data.mode in ["standard", "deep"]
+            )
+
+            && data.updatedAt is timestamp
+
+            && data.inputs is map
+            && data.inputs.keys().hasOnly([
+              "biggestProblem",
+              "methodQuestion",
+              "extraContext"
+            ])
+
+            && data.inputs.biggestProblem is string
+            && data.inputs.biggestProblem.size() <= 300
+
+            && data.inputs.methodQuestion is string
+            && data.inputs.methodQuestion.size() <= 300
+
+            && data.inputs.extraContext is string
+            && data.inputs.extraContext.size() <= 1000
+
+            && data.result is map
+            && data.result.keys().hasOnly([
+              "user_problem",
+              "recommended_methods",
+              "study_plan",
+              "final_note"
+            ])
+
+            && data.result.user_problem is string
+            && data.result.user_problem.size() <= 2000
+
+            && data.result.recommended_methods is list
+            && data.result.recommended_methods.size() >= 1
+            && data.result.recommended_methods.size() <= 3
+
+            && validMethod(
+              data.result.recommended_methods[0]
+            )
+
+            && (
+              data.result.recommended_methods.size() < 2
+              || validMethod(
+                data.result.recommended_methods[1]
+              )
+            )
+
+            && (
+              data.result.recommended_methods.size() < 3
+              || validMethod(
+                data.result.recommended_methods[2]
+              )
+            )
+
+            && data.result.study_plan is string
+            && data.result.study_plan.size() <= 5000
+
+            && data.result.final_note is string
+            && data.result.final_note.size() <= 3000;
+        }
+
+        allow read:
+          if request.auth != null
+          && request.auth.uid == userId
+          && recommendationId == "latest";
+
+        allow create, update:
+          if request.auth != null
+          && request.auth.uid == userId
+          && recommendationId == "latest"
+          && validRecommendation(request.resource.data)
+          && activeOwnerWrites();
+
+        allow delete: if false;
+      }
+
+
+      // -----------------------------------------
+      // PHASE 2 CUMULATIVE LEARNING EVIDENCE
+      // Backend writes through Firebase Admin SDK.
+      // -----------------------------------------
+      match /learningEvidence/{evidenceId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create, update, delete: if false;
+      }
+
+      match /learningProfiles/{profileId} {
+        allow read: if request.auth != null && request.auth.uid == userId
+          && profileId == "cumulative";
+        allow create, update, delete: if false;
+      }
+
+      match /learningEvidenceIdentityEvents/{decisionId} {
+        allow read, write: if false;
+      }
+
+      match /learningEvidenceSourceIndex/{sourceHash} {
+        allow read, write: if false;
+      }
+
+
+      // Excluded from the catch-all: a separate deny cannot override its allow.
+      match /assessments/{record=**} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if request.auth != null && request.auth.uid == userId && !hasLifecycle();
+      }
+      match /quizAttempts/{record=**} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if request.auth != null && request.auth.uid == userId && !hasLifecycle();
+      }
+
+      // -----------------------------------------
+      // OTHER EXISTING USER SUBCOLLECTIONS
+      // -----------------------------------------
+      match /{collectionId}/{document=**} {
+
+        allow read:
+          if request.auth != null
+          && request.auth.uid == userId
+
+          && collectionId != "assessments"
+          && collectionId != "quizAttempts"
+          && collectionId != "trainingProgress"
+          && collectionId != "trainingActivity"
+          && collectionId != "trainingStats"
+          && collectionId != "entitlements"
+          && collectionId != "trainingUsage"
+          && collectionId != "trainingReservations"
+          && collectionId != "aiRecommendations"
+          && collectionId != "learningEvidence"
+          && collectionId != "learningProfiles"
+          && collectionId != "learningEvidenceIdentityEvents"
+          && collectionId != "learningEvidenceSourceIndex";
+
+        allow write:
+          if request.auth != null && activeOwnerWrites()
+          && request.auth.uid == userId
+
+          && collectionId != "assessments"
+          && collectionId != "quizAttempts"
+          && collectionId != "trainingProgress"
+          && collectionId != "trainingActivity"
+          && collectionId != "trainingStats"
+          && collectionId != "entitlements"
+          && collectionId != "trainingUsage"
+          && collectionId != "trainingReservations"
+          && collectionId != "aiRecommendations"
+          && collectionId != "learningEvidence"
+          && collectionId != "learningProfiles"
+          && collectionId != "learningEvidenceIdentityEvents"
+          && collectionId != "learningEvidenceSourceIndex";
+      }
+    }
+
+
+    // -----------------------------------------
+    // SERVER-OWNED AI DAILY QUOTA
+    // -----------------------------------------
+    // Guest: 2/day
+    // Free: 4/day
+    // Premium: 10/day
+    // Premium Deep: 1/day within the 10 total
+    //
+    // These limits are enforced by the backend.
+    //
+    // Frontend obtains access through:
+    // GET /api/recommend/access
+    //
+    // Firebase Admin bypasses client Firestore rules.
+    // Browsers cannot manipulate quota counters.
+
+    // Durable outside the deletable root. Admin bypasses client security rules.
+    match /trainingLifecycleAuthorities/{uid}/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /aiRecommendationDailyUsage/{usageId} {
+      allow read, write: if false;
+    }
+
+  }
+}

@@ -492,12 +492,13 @@ export default function AIRecommendation() {
                   <label
                     className={
                       `mode-option${
-                        mode === "deep" ? " selected" : ""
+                        mode === "deep" ? " selected premium" : ""
                       }${
                         quotaAccess.deep.available
                           ? ""
                           : " unavailable"
                       }`
+                      
                     }
                   >
                     <input
@@ -509,7 +510,7 @@ export default function AIRecommendation() {
                       onChange={() => setMode("deep")}
                     />
                     <span>
-                      <strong>Deep Recommendation</strong>
+                      <strong>PREMIUM Recommendation</strong>
                       More detailed reasoning and personalized planning.
                       <small>
                         {quotaAccess.deep.available

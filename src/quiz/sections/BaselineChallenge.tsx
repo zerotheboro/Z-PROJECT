@@ -399,7 +399,7 @@ function BaselineChallenge({
           </p>
 
           <h2>
-            Baseline Challenge
+            Entry Test
           </h2>
 
           <p>

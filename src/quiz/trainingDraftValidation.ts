@@ -1255,6 +1255,20 @@ export function validateTrainingDraftSemantics(
   const baselineIds = draft.baselineContentSetIds as UnknownRecord;
   const completed = draft.completed as UnknownRecord;
   const internalState = draft.internalState as UnknownRecord;
+  const pendingAIConfirmation = draft.pendingAIConfirmation;
+
+  if (pendingAIConfirmation !== undefined && (
+    !isRecord(pendingAIConfirmation) ||
+    !hasOnlyKeys(pendingAIConfirmation, ["recommendationKey"]) ||
+    !Object.hasOwn(pendingAIConfirmation, "recommendationKey") ||
+    (pendingAIConfirmation.recommendationKey !== null && (
+      typeof pendingAIConfirmation.recommendationKey !== "string" ||
+      pendingAIConfirmation.recommendationKey.length < 1 ||
+      pendingAIConfirmation.recommendationKey.length > 4_000
+    ))
+  )) {
+    return "The pending AI confirmation is invalid.";
+  }
 
   const expectedPhase = section === 6
     ? ["reflection", "final-save"]
@@ -1282,7 +1296,10 @@ export function validateTrainingDraftSemantics(
   if (
     mode === "manual" && section < 3 ||
     mode === "auto" && section < 3 && selectedMethods.length > 0 ||
-    section >= 3 && selectedMethods.length < 1
+    section >= 3 && selectedMethods.length < 1 ||
+    pendingAIConfirmation !== undefined && (
+      mode !== "auto" || section !== 2
+    )
   ) {
     return "The saved training mode and selected methods are inconsistent.";
   }
@@ -1403,7 +1420,9 @@ export function validateTrainingDraftSemantics(
     }
   } else if (
     section >= 2 && situation === null ||
-    section >= 3 && baseline === null
+    section >= 3 && baseline === null ||
+    pendingAIConfirmation !== undefined && baseline === null ||
+    section === 2 && baseline !== null && pendingAIConfirmation === undefined
   ) {
     return "The automatic assessment is missing required earlier evidence.";
   }
@@ -1418,7 +1437,7 @@ export function validateTrainingDraftSemantics(
 
   if (
     section < 2 && situation !== null ||
-    section < 3 && baseline !== null ||
+    section < 3 && baseline !== null && pendingAIConfirmation === undefined ||
     section < 4 && introduction !== null ||
     section < 5 && lab !== null ||
     section < 6 && (

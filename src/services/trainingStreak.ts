@@ -1,13 +1,17 @@
 import {
+  collection,
   doc,
   getDoc,
+  getDocFromServer,
+  getDocsFromServer,
   runTransaction,
+  snapshotEqual,
   serverTimestamp
 } from "firebase/firestore";
 
 import { db } from "../firebase";
 import {
-  calculateNextStreak,
+  rebuildTrainingStreak,
   daysBetweenDayKeys,
   EMPTY_TRAINING_STREAK,
   getBrowserTimeZone,
@@ -273,10 +277,10 @@ export async function recordTrainingCompletion(
       };
     }
 
-    const next = calculateNextStreak(record.stats, dayKey);
+    const nextStats = rebuildTrainingStreak([...Object.keys(record.activities), dayKey]);
     const updated: GuestStreakRecord = {
       schemaVersion: 1,
-      stats: next.stats,
+      stats: nextStats,
       activities: {
         ...record.activities,
         [dayKey]: activity
@@ -289,7 +293,7 @@ export async function recordTrainingCompletion(
     );
 
     return {
-      ...next.stats,
+      ...nextStats,
       completedToday: true,
       wasNewDay: true
     };
@@ -297,45 +301,45 @@ export async function recordTrainingCompletion(
 
   const uid = input.owner.uid;
 
-  return runTransaction(db, async transaction => {
+  // Web transactions cannot query collections. Fence the complete immutable
+  // history with the summary document, which every normal day-creation writer
+  // updates atomically. A competing device/SDK retry invalidates preparation;
+  // rebuild OUTSIDE the retryable callback rather than publishing stale stats.
+  class ActivityHistoryChanged extends Error {}
+  const summaryRef = statsRef(uid);
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const preparedSummary = await getDocFromServer(summaryRef);
+    const history = await getDocsFromServer(collection(db, "users", uid, "trainingActivity"));
+    if (history.metadata.hasPendingWrites || history.metadata.fromCache) throw new Error("Activity history is not confirmed by the server; retry safely.");
+    const days = history.docs.map(item => {
+      if (item.data().dayKey !== item.id) throw new Error("Activity history has an invalid day identity; no streak was changed.");
+      return item.id;
+    });
+    const rebuilt = rebuildTrainingStreak([...days, dayKey]);
+    try { return await runTransaction(db, async transaction => {
     const dailyRef = activityRef(uid, dayKey);
-    const summaryRef = statsRef(uid);
     const [dailySnapshot, summarySnapshot] =
       await Promise.all([
         transaction.get(dailyRef),
         transaction.get(summaryRef)
       ]);
-    const storedStats = summarySnapshot.exists()
-      ? readStats(summarySnapshot.data())
-      : { ...EMPTY_TRAINING_STREAK };
-
-    if (dailySnapshot.exists()) {
-      return {
-        ...storedStats,
-        currentStreak: getEffectiveCurrentStreak(
-          storedStats,
-          dayKey
-        ),
-        completedToday: true,
-        wasNewDay: false
-      };
-    }
-
-    const next = calculateNextStreak(storedStats, dayKey);
-
-    transaction.set(dailyRef, {
+    if (!snapshotEqual(preparedSummary, summarySnapshot)) throw new ActivityHistoryChanged();
+    if (!dailySnapshot.exists()) transaction.set(dailyRef, {
       ...activity,
       firstCompletedAt: serverTimestamp()
     });
-    transaction.set(summaryRef, {
-      ...next.stats,
+    const stored = summarySnapshot.exists() ? readStats(summarySnapshot.data()) : EMPTY_TRAINING_STREAK;
+    if (!dailySnapshot.exists() || Object.keys(rebuilt).some(key => rebuilt[key as keyof TrainingStreakStats] !== stored[key as keyof TrainingStreakStats])) transaction.set(summaryRef, {
+      ...rebuilt,
       updatedAt: serverTimestamp()
     });
 
     return {
-      ...next.stats,
+      ...rebuilt,
       completedToday: true,
-      wasNewDay: true
+      wasNewDay: !dailySnapshot.exists()
     };
-  });
+    }); } catch (error) { if (!(error instanceof ActivityHistoryChanged)) throw error; }
+  }
+  throw new Error("Activity changed on another device. Completed work was retained; retry streak recording.");
 }

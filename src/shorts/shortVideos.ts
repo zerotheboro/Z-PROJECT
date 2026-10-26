@@ -29,18 +29,43 @@ export let RAW_VIDEOS = [
     title: "Edulience Short 4"
   },
   {
-    id: "short-4",
+    id: "short-5",
     youtubeId: "z6EhhEffxRA",
     title: "Edulience Short 4"
   },
   {
-    id: "short-4",
+    id: "short-6",
     youtubeId: "mJwDQL0D67M",
     title: "Edulience Short 4"
   },
   {
-    id: "short-4",
+    id: "short-7",
     youtubeId: "gb8Bz8l_ILQ",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-8",
+    youtubeId: "AEO-GMWnfIM",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-9",
+    youtubeId: "bh7jRjyIg5c",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-10",
+    youtubeId: "z7O_B2ahx8s",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-11",
+    youtubeId: "4-TkN4ta9cY",
+    title: "Edulience Short 4"
+  },
+  {
+    id: "short-4",
+    youtubeId: "DrH9t6XNA7M",
     title: "Edulience Short 4"
   },
   {
@@ -50,24 +75,15 @@ export let RAW_VIDEOS = [
   },
   {
     id: "short-4",
-    youtubeId: "bh7jRjyIg5c",
+    youtubeId: "DsgxD40nPVc",
     title: "Edulience Short 4"
   },
   {
     id: "short-4",
-    youtubeId: "z7O_B2ahx8s",
+    youtubeId: "ULJjo37h55s",
     title: "Edulience Short 4"
   },
-  {
-    id: "short-4",
-    youtubeId: "4-TkN4ta9cY",
-    title: "Edulience Short 4"
-  },
-  {
-    id: "short-4",
-    youtubeId: "DrH9t6XNA7M",
-    title: "Edulience Short 4"
-  },]
+]
 
 function scrambleArray<T>(array: T[]): T[] {
   // Create a shallow copy to keep the function pure
