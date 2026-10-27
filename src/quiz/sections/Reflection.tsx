@@ -136,21 +136,6 @@ function Reflection({
         reflectionText.trim()
     };
 
-    console.log(
-      "SECTION 5 REFLECTION:",
-      result
-    );
-
-    console.log(
-      "METHOD LAB:",
-      methodLab
-    );
-
-    console.log(
-      "METHOD MATCH:",
-      methodMatch
-    );
-
     onComplete(result);
   }
 

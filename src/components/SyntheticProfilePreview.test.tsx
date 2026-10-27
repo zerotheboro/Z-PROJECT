@@ -17,7 +17,7 @@ it("renders accepted unpublished fixtures, paginates, filters subjects/topics an
   expect(screen.getByText("Showing 4 of 4 readable history records matching these filters.")).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Topic"), { target: { value: "value:Probability" } });
   expect(screen.getByText("Showing 4 of 4 readable history records matching these filters.")).toBeTruthy();
-  const history = screen.getByRole("heading", { name: "Learning History" }).parentElement!;
+  const history = screen.getByRole("heading", { name: "Learning History" }).closest("section")!;
   expect(within(history).queryByText(/Cell transport/)).toBeNull();
   fireEvent.change(screen.getByLabelText("Synthetic student"), { target: { value: "student-b" } });
   expect(screen.queryByText("Showing 4 of 4 readable history records matching these filters.")).toBeNull();

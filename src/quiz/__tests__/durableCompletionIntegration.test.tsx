@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   enabled: true, uid: "local-student", client: null as TrainingCompletionClient | null,
   load: vi.fn(), save: vi.fn(), discard: vi.fn(), legacy: vi.fn(), streak: vi.fn(), reserve: vi.fn()
 }));
+vi.mock('../../services/manualTrainingHistory', () => ({ restoreManualTraining: (draft: unknown) => ({draft, completedAt: null, error: null}), freezeManualTraining: (_draft: unknown, completedAt: string | null) => ({completedAt}), saveManualTraining: async () => {} }));
 vi.mock("../../HEADER/header", () => ({ default: () => <nav>Navigation</nav> }));
 vi.mock("../../firebase", () => ({ auth: { currentUser: null } }));
 vi.mock("../../services/localTrainingCompletionConfig", () => ({ localCompletionConfig: () => mocks.enabled ? { projectId: "demo-phase2b" } : null }));

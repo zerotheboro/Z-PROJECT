@@ -21,6 +21,7 @@ import type { WriterGuardContext } from "./writerGuard";
 import { readSealParticipant, queueSealParticipant } from "./sealingCoordination";
 import { readProtectedTrainingState } from "./protectedTrainingPolicy";
 import { createSyntheticPublicationBoundary } from "./syntheticPublicationBoundary";
+import { trainingOwnerUID } from "./ownerUID";
 
 type Data = Record<string, unknown>;
 type Handle = Readonly<{ uid: string; generationId: string; fence: number; workerId: string; writerContext: WriterGuardContext }>;
@@ -46,6 +47,7 @@ const sameRecords = (left: readonly unknown[], right: readonly unknown[]) =>
 const timeJSON = (time: Timestamp) => ({ seconds: time.seconds, nanoseconds: time.nanoseconds });
 const atTime = (time: ShadowPin["readTime"]) => new Timestamp(time.seconds, time.nanoseconds);
 export function shadowReferences(db: ReturnType<ReturnType<typeof createShadowEmulatorTransport>["getFirestore"]>, uid: string, generationId?: string) {
+  trainingOwnerUID(uid);
   parseJournalAnchor({ uid, lifecycleEpoch: 1, revision: 0, headHash: null });
   if (generationId !== undefined) hash(generationId);
   const refs = acceptanceReferences(db, uid), pointer = refs.user.collection("learningProfiles").doc("shadowWorker");
@@ -114,7 +116,7 @@ export function createShadowWorker(options: Options = {}) {
   function pointer(value: unknown) {
     const data = object(value, ["schemaVersion", "uid", "lifecycleEpoch", "generationId", "fence"]);
     requireContract(data.schemaVersion === 1 && data.lifecycleEpoch === 1, "shadow_pointer_invalid");
-    integer(data.fence, 1); text(data.uid, 128); hash(data.generationId); return data;
+    integer(data.fence, 1); trainingOwnerUID(data.uid); hash(data.generationId); return data;
   }
   async function owned(tx: Transaction, handle: Handle) {
     const current = await controls(tx, handle.uid);
@@ -172,8 +174,9 @@ export function createShadowWorker(options: Options = {}) {
       const cp = proposeCheckpointLease(job.checkpoint, workerId, now, new Date(current.readTime.toMillis() + leaseMs).toISOString());
       const updated = parseShadowJob({ ...job, checkpoint: cp });
       const refs = shadowReferences(db(), uid, cp.generationId);
+      const nextPointer = pointer({ schemaVersion: 1, uid, lifecycleEpoch: cp.lifecycleEpoch, generationId: cp.generationId, fence: cp.fencingToken });
       queueSealParticipant(tx, current.sealCoordination); tx.set(refs.job, updated as unknown as Data);
-      tx.set(refs.pointer, { schemaVersion: 1, uid, lifecycleEpoch: cp.lifecycleEpoch, generationId: cp.generationId, fence: cp.fencingToken });
+      tx.set(refs.pointer, { ...nextPointer });
       return Object.freeze({ uid, generationId: cp.generationId, fence: cp.fencingToken, workerId, writerContext: current.protection.context });
     });
     if (handle) await options.onEvent?.("claimed", handle); return handle;

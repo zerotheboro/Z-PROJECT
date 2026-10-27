@@ -43,7 +43,9 @@ export async function syntheticProfileHash(domain: string, value: unknown) {
 
 /** Injected authenticated loopback transport. Every page is pinned to an
  * immutable generation; neither acceptance revisions nor pagination are profiles.
- * No client aggregation or profile writes. */
+ * At most one next page is prefetched while the current page is hashed. Nothing
+ * is returned until the complete original chain and coverage are verified.
+ * No cross-call cache, partial-profile presentation, aggregation or writes. */
 export function createSyntheticPublishedProfileReader(request: (path: string) => Promise<unknown>, check: (uid: string) => void,
   pending: (uid: string) => Promise<PendingCompletionStatus[]>) {
   return async (uid: string): Promise<CumulativeProfileSnapshot> => {
@@ -68,12 +70,31 @@ export function createSyntheticPublishedProfileReader(request: (path: string) =>
       requireValue(publishedSessions <= accepted.sessionCount && publishedSessions <= 10_000);
       let offset = 0, historyHash = await syntheticProfileHash("synthetic-history-start-stage4g-v1", { uid, generationId });
       const ids = new Set<string>(), sessions = new Set<string>(), revisions = new Set<number>();
+      const loadPage = async (after: number) => {
+        try {
+          check(uid);
+          const value = await request(`history?generationId=${generationId}&after=${after}&limit=20`);
+          check(uid); return { ok: true as const, value };
+        } catch (error) {
+          // A rejected prefetch is always handled, even when verification of
+          // the current page fails before this result can be consumed.
+          return { ok: false as const, error };
+        }
+      };
+      let pageResult = loadPage(0);
       while (offset < publishedSessions) {
-        const page = await request(`history?generationId=${generationId}&after=${offset}&limit=20`); check(uid);
+        const result = await pageResult; check(uid);
+        if (!result.ok) throw result.error;
+        const page = result.value;
         requireValue(record(page) && page.protocol === SYNTHETIC_PUBLICATION_PROTOCOL && page.uid === uid && page.generationId === generationId &&
           page.publicationHash === p.publicationHash && page.offset === offset && page.total === publishedSessions && Array.isArray(page.rows));
         const data = page as { rows: unknown[]; next: unknown };
         requireValue(data.rows.length > 0 && data.rows.length <= 20 && offset + data.rows.length <= publishedSessions);
+        const end = offset + data.rows.length;
+        requireValue(data.next === (end < publishedSessions ? end : null));
+        // The cursor follows actual returned rows, not an assumed full page.
+        // Only one page ahead; hash folding remains strictly in source order.
+        if (end < publishedSessions) pageResult = loadPage(end);
         for (const value of data.rows) {
           requireValue(record(value)); const row = value as Record<string, unknown>;
           requireValue(typeof row.id === "string" && record(row.data) && record(row.data.evidence) && typeof row.data.evidence.sessionId === "string" &&
@@ -89,7 +110,6 @@ export function createSyntheticPublishedProfileReader(request: (path: string) =>
           if (record(row.data) && record(row.data.evidence) && row.data.evidence.mode === "auto")
             legacy.push({ id: String(row.data.evidence.sessionId), data: row.details });
         }
-        requireValue(data.next === (offset < publishedSessions ? offset : null));
       }
       requireValue(historyHash === p.historyHash);
     } else requireValue(s.profile === null);

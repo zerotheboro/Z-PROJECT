@@ -509,7 +509,7 @@ function Training() {
           </p>
 
           <h2>
-            Choose my methods
+            Individual methods
           </h2>
 
           <p>

@@ -12,9 +12,16 @@ import {
 } from "../services/aiRecommendationPersistence";
 import './AISTYLE.scss';
 
+import {
+  NavLink,
+  Link,
+  useNavigate
+} from "react-router-dom";
+
 
 
 export default function AIRecommendation() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
 
   const [biggestProblem, setBiggestProblem] = useState("");
@@ -307,7 +314,7 @@ export default function AIRecommendation() {
   return (
     <section className="ai-adviser" id="AI-recommendation">
       <div className="ai-container" id="aiinner">
-        <h1>Edulience's deep suggestion</h1>
+        <h1>Edulience's suggestion</h1>
 
         {!result && (
           <div className="progress">
@@ -640,7 +647,14 @@ export default function AIRecommendation() {
               <div className="final-note">
                 <p>{result.final_note}</p>
               </div>
-
+              
+              <button
+                type="button"
+                className="restart-button"
+                onClick={() => navigate("/training/assessment")}
+              >
+                Apply Methods →
+              </button>
 
               <button
                 className="restart-button"

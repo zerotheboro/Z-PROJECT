@@ -51,6 +51,7 @@ const flowMocks = vi.hoisted(() => ({
   selectMethods: vi.fn()
 }));
 
+vi.mock('../../services/manualTrainingHistory', () => ({ restoreManualTraining: (draft: unknown) => ({draft, completedAt: null, error: null}), freezeManualTraining: (_draft: unknown, completedAt: string | null) => ({completedAt}), saveManualTraining: async () => {} }));
 vi.mock("../../HEADER/header", () => ({
   default: () => <nav>Navigation</nav>
 }));
@@ -74,6 +75,7 @@ vi.mock("../../services/auth", () => ({
 
 vi.mock("../../services/trainingProgress", () => ({
   TrainingDraftConflictError: class extends Error {},
+  writeLocalTrainingDraft: vi.fn(),
   loadTrainingDraft: flowMocks.loadTrainingDraft,
   saveTrainingDraft: flowMocks.saveTrainingDraft,
   discardTrainingDraft: flowMocks.discardTrainingDraft,
@@ -749,7 +751,7 @@ describe("manual assessment entry", () => {
       ).toHaveBeenCalledWith(expect.objectContaining({
         mode: "manual",
         methodIds: methods
-      }));
+      }), expect.objectContaining({ now: expect.any(Date) }));
       expect(
         flowMocks.reserveTrainingAccess
       ).toHaveBeenCalledTimes(1);

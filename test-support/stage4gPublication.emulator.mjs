@@ -18,7 +18,9 @@ const bundled = await build({ stdin: { resolveDir: process.cwd(), loader: "ts", 
   'export * from "./backend/scalability/syntheticPublicationApp";', 'export * from "./backend/scalability/syntheticPublication";',
   'export * from "./backend/scalability/origin";', 'export * from "./backend/scalability/authority";', 'export * from "./backend/scalability/bootstrapTransport";',
   'export * from "./backend/scalability/publication";', 'export * from "./backend/scalability/shadowWorker";',
-  'export * from "./backend/scalability/values";', 'export * from "./src/services/syntheticPublishedProfile";'
+  'export * from "./backend/scalability/values";', 'export * from "./src/services/syntheticPublishedProfile";',
+  'export * from "./backend/scalability/acceptance";', 'export * from "./backend/scalability/acceptanceTransport";',
+  'export * from "./backend/scalability/journal";'
 ].join("\n") }, bundle: true, packages: "external", platform: "node", target: "node24", format: "esm", write: false });
 await mkdir("dist-stage2", { recursive: true }); await writeFile("dist-stage2/stage4g-test-api.mjs", bundled.outputFiles[0].text);
 const api = await import("../dist-stage2/stage4g-test-api.mjs");
@@ -33,8 +35,8 @@ after(async () => {
   for (const r of resources) await r.close();
   await new Promise(resolve => server.close(resolve)); await app.close(); await service.close(); await authority.close(); await origin.close(); await operator.close();
 });
-async function student() {
-  const requestId = "stage4g-" + crypto.randomUUID(), p = await origin.prepare({ requestId, identityForm: "ascii" });
+async function student(identityForm = "ascii") {
+  const requestId = "stage4g-" + crypto.randomUUID(), p = await origin.prepare({ requestId, identityForm });
   const response = await fetch("http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=demo-stage4g-only", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: p.customToken, returnSecureToken: true }) });
   assert.equal(response.status, 200); const token = (await response.json()).idToken;
@@ -245,4 +247,178 @@ test("an otherwise valid Emulator account without synthetic origin provenance ca
   await assert.rejects(service.status(user.idToken), /synthetic_origin_required/);
   await assert.rejects(service.publish(user.idToken, "0".repeat(64)), /synthetic_origin_required/);
   assert.equal((await root.get()).exists, false); assert.equal((await root.collection("learningProfiles").get()).empty, true);
+});
+test("repair: original unicode58 aggregation and publication preserve exact identity, evidence and quotas", async () => {
+  const s = await student("unicode58"), completed = await accept(s), quota = await usage(s);
+  assert.equal(s.uid.length, 58); assert.equal(Buffer.byteLength(s.uid), 158);
+  const evidence = s.root.collection("learningEvidence").doc(completed.receipt.evidenceId), original = (await evidence.get()).data();
+  const fingerprint = api.typedHash("stage4g-repair-evidence-check-v1", original);
+  const generationId = await ready(s), published = await service.publish(s.token, generationId);
+  assert.equal(published.uid, s.uid); assert.equal(published.context.uid, s.uid); assert.equal(published.source.uid, s.uid);
+  assert.equal((await service.aggregate(s.token)).handle.generationId, generationId);
+  assert.deepEqual(await service.publish(s.token, generationId), published);
+  assert.deepEqual(await request(s, "/api/development/training/complete-protected-v2", "POST", completed.input), completed.receipt);
+  assert.equal(api.typedHash("stage4g-repair-evidence-check-v1", (await evidence.get()).data()), fingerprint);
+  assert.equal((await s.root.collection("learningEvidence").get()).size, 1); assert.deepEqual(await usage(s), quota);
+  const view = await reader(s)(s.uid); assert.equal(view.history[0].evidence.owner.uid, s.uid);
+  assert.deepEqual(view.publication, { kind: "synthetic-emulator-publication", authority: "NOT VERIFIED", publication: "published",
+    generationId, acceptedSessions: 1, publishedSessions: 1, pendingSessions: 0, publishedAt: published.publishedAt });
+});
+test("repair: original control-counter drift cannot produce false accepted or pending counts", async () => {
+  const s = await fixture(); await service.publish(s.token, s.generationId);
+  const control = s.root.collection("learningProfiles").doc("journalControl"), before = (await control.get()).data();
+  assert.equal(before.nativeAcceptedCount, 1); assert.equal(before.headRevision, 2);
+  const quota = await usage(s), published = (await pointer(s).get()).data();
+  try {
+    await control.update({ nativeAcceptedCount: 2 });
+    await assert.rejects(service.status(s.token), /acceptance_checkpoint/);
+    await assert.rejects(reader(s)(s.uid));
+    await assert.rejects(service.history(s.token, s.generationId), /acceptance_checkpoint/);
+    await assert.rejects(service.publish(s.token, s.generationId), /acceptance_checkpoint/);
+    assert.deepEqual((await pointer(s).get()).data(), published); assert.deepEqual(await usage(s), quota);
+    assert.equal((await s.root.collection("learningEvidence").get()).size, 1);
+  } finally { await control.set(before); }
+  const restored = await reader(s)(s.uid);
+  assert.deepEqual([restored.publication.acceptedSessions, restored.publication.publishedSessions, restored.publication.pendingSessions], [1, 1, 0]);
+});
+test("repair: unicode128 origin survives the complete pipeline without changing any owner text", async () => {
+  const s = await student("unicode128"), completed = await accept(s);
+  assert.equal(s.uid.length, 128); assert.equal(Buffer.byteLength(s.uid), 378);
+  const quota = await usage(s), original = (await s.root.collection("learningEvidence").doc(completed.receipt.evidenceId).get()).data();
+  const generationId = await ready(s), record = await service.publish(s.token, generationId), view = await reader(s)(s.uid);
+  assert.equal(record.uid, s.uid); assert.equal(view.history[0].evidence.owner.uid, s.uid);
+  assert.deepEqual((await s.root.collection("learningEvidence").doc(completed.receipt.evidenceId).get()).data(), original);
+  assert.deepEqual(await usage(s), quota); assert.equal(view.publication.pendingSessions, 0);
+});
+test("repair: established ASCII, BMP and supplementary UID boundaries pass the actual worker pointer flow", async () => {
+  const random = crypto.randomUUID().replaceAll("-", "");
+  const owners = ["a".repeat(96) + random,
+    Array.from({ length: 128 }, (_, i) => String.fromCharCode(0x4e00 + parseInt(random[i % 32], 16))).join(""),
+    Array.from({ length: 64 }, (_, i) => String.fromCodePoint(0x1f300 + parseInt(random[i % 32], 16))).join("")];
+  assert.deepEqual(owners.map(uid => [uid.length, Buffer.byteLength(uid)]), [[128, 128], [128, 384], [128, 256]]);
+  for (const uid of owners) {
+    await operator.getAuthClient().createUser({ uid });
+    const customToken = await operator.getAuthClient().createCustomToken(uid);
+    const response = await fetch("http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=demo-stage4g-only", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: customToken, returnSecureToken: true }) });
+    assert.equal(response.status, 200); const token = (await response.json()).idToken;
+    const root = db.doc(`users/${uid}`); await root.set({ uid, learningProfile: null });
+    const transport = api.createStage2EmulatorTransport(); resources.push(transport);
+    await api.createStage2AcceptanceService(transport).admitFreshOwner(token);
+    const worker = api.createShadowWorker(); resources.push(worker);
+    const result = await worker.processOwner(uid); assert.equal(result.job.state, "ready");
+    assert.equal(result.job.pin.source.uid, uid);
+    const saved = (await root.collection("learningProfiles").doc("shadowWorker").get()).data();
+    assert.equal(saved.uid, uid); assert.equal(await worker.processOwner(uid), null);
+    assert.equal((await root.collection("learningEvidence").get()).size, 0);
+    assert.equal((await root.collection("trainingUsage").get()).size, 0);
+  }
+  // The UTF-16 bound limits well-formed UIDs to at most 384 UTF-8 bytes;
+  // there is no legitimate 512-byte / <=128-code-unit UID to fabricate.
+});
+test("repair: invalid owner identities reject before a worker pointer or job can be written", async () => {
+  const worker = api.createShadowWorker(); resources.push(worker);
+  for (const uid of ["", "   ", "a".repeat(129), "a".repeat(513), "\u754c".repeat(171), "\u{1f9e0}".repeat(65),
+    ".", "..", "__reserved__", "other/owner", "bad-\ud800", "bad-\udfff", null, 42, ["owner"]]) {
+    await assert.rejects(worker.claim(uid));
+  }
+  assert.equal(worker.metrics.writes, 0); assert.equal(worker.metrics.reads, 0);
+});
+test("repair: a previously committed Unicode working job resumes with a fresh worker fence and no migration", async () => {
+  const s = await student("unicode58"), completed = await accept(s), quota = await usage(s);
+  const original = (await s.root.collection("learningEvidence").doc(completed.receipt.evidenceId).get()).data();
+  let oldHandle;
+  const oldWorker = api.createShadowWorker({ syntheticOwnerToken: s.token, leaseMs: 1_000,
+    onEvent: async (event, handle) => { if (event === "claimed") { oldHandle = handle; throw new api.ShadowWorkerInterruption("process stopped after claim"); } } });
+  resources.push(oldWorker);
+  await assert.rejects(oldWorker.claim(s.uid), /process stopped after claim/);
+  const jobRef = s.root.collection("learningProfiles").doc("shadow-" + oldHandle.generationId), saved = (await jobRef.get()).data();
+  assert.equal(saved.state, "working"); assert.equal(saved.checkpoint.cursor.processedCount, 0);
+  // This is the same durable state left by the old pointer-parser failure.
+  // Allow the short test lease to expire naturally; do not rewrite the job.
+  await new Promise(resolve => setTimeout(resolve, 1_100));
+  const reconstructed = api.createShadowWorker({ syntheticOwnerToken: s.token }); resources.push(reconstructed);
+  const resumed = await reconstructed.processOwner(s.uid);
+  assert.equal(resumed.job.state, "ready"); assert.equal(resumed.handle.generationId, oldHandle.generationId);
+  assert.ok(resumed.handle.fence > oldHandle.fence); assert.deepEqual(resumed.job.pin, saved.pin);
+  await assert.rejects(oldWorker.heartbeat(oldHandle), /stale_worker_fence/);
+  const published = await service.publish(s.token, resumed.handle.generationId);
+  assert.deepEqual(await service.publish(s.token, resumed.handle.generationId), published);
+  assert.deepEqual(await request(s, "/api/development/training/complete-protected-v2", "POST", completed.input), completed.receipt);
+  assert.deepEqual((await s.root.collection("learningEvidence").doc(completed.receipt.evidenceId).get()).data(), original);
+  assert.equal((await s.root.collection("learningEvidence").get()).size, 1); assert.deepEqual(await usage(s), quota);
+});
+test("repair: valid pending/publication counts stay generation-pinned across concurrent acceptance and repeated reads", async () => {
+  const s = await student(), first = await accept(s);
+  let view = await reader(s)(s.uid);
+  assert.deepEqual([view.publication.acceptedSessions, view.publication.publishedSessions, view.publication.pendingSessions], [1, 0, 1]);
+  const originalGeneration = await ready(s), originalRecord = await service.publish(s.token, originalGeneration);
+  assert.deepEqual(await request(s, "/api/development/training/complete-protected-v2", "POST", first.input), first.receipt);
+  await accept(s, "auto", 4); const quota = await usage(s);
+  view = await reader(s)(s.uid);
+  assert.deepEqual([view.publication.acceptedSessions, view.publication.publishedSessions, view.publication.pendingSessions], [2, 1, 1]);
+  const pinned = api.createSyntheticPublishedProfileReader(async path => {
+    const response = await request(s, "/api/development/profile/" + path);
+    if (path === "status") await service.publish(s.token, await ready(s));
+    return response;
+  }, uid => assert.equal(uid, s.uid), async () => []);
+  const oldView = await pinned(s.uid);
+  assert.equal(oldView.publication.generationId, originalGeneration); assert.equal(oldView.history.length, 1);
+  assert.deepEqual([oldView.publication.acceptedSessions, oldView.publication.publishedSessions, oldView.publication.pendingSessions], [2, 1, 1]);
+  for (let i = 0; i < 3; i++) {
+    const current = await reader(s)(s.uid);
+    assert.deepEqual([current.publication.acceptedSessions, current.publication.publishedSessions, current.publication.pendingSessions], [2, 2, 0]);
+    assert.equal(current.history.length, 2); assert.deepEqual(current.warnings, []);
+  }
+  const latest = (await pointer(s).get()).data();
+  assert.deepEqual(await service.publish(s.token, originalGeneration), originalRecord);
+  assert.deepEqual((await pointer(s).get()).data(), latest); assert.deepEqual(await usage(s), quota);
+});
+test("repair: malformed checkpoints, heads, committed batches and journal tails fail closed without rewriting evidence", async () => {
+  const s = await student(); await accept(s); await accept(s, "auto", 3);
+  const generationId = await ready(s); await service.publish(s.token, generationId);
+  const profiles = s.root.collection("learningProfiles"), controlRef = profiles.doc("journalControl"), checkpointRef = profiles.doc("acceptanceCheckpoint");
+  const control = (await controlRef.get()).data(), checkpoint = (await checkpointRef.get()).data();
+  const batchRef = controlRef.collection("acceptanceBatches").doc(checkpoint.batchId), batch = (await batchRef.get()).data();
+  const predecessorRef = controlRef.collection("acceptanceBatches").doc(batch.previous.batchId), predecessor = (await predecessorRef.get()).data();
+  const entryRef = controlRef.collection("journal").doc(api.journalIdentity(batch, batch.firstRevision)), entry = (await entryRef.get()).data();
+  const originals = new Map([[controlRef, control], [checkpointRef, checkpoint], [batchRef, batch], [predecessorRef, predecessor], [entryRef, entry]]);
+  const quota = await usage(s), published = (await pointer(s).get()).data();
+  const evidence = (await s.root.collection("learningEvidence").orderBy("__name__").get()).docs.map(row => row.data());
+  const variants = [
+    [controlRef, { ...control, nativeAcceptedCount: 0 }], [controlRef, { ...control, nativeAcceptedCount: 3 }],
+    [controlRef, { ...control, headRevision: control.headRevision + 1 }], [controlRef, { ...control, headHash: "f".repeat(64) }],
+    [checkpointRef, { ...checkpoint, ordinal: 1 }], [checkpointRef, { ...checkpoint, headRevision: checkpoint.headRevision + 1 }],
+    [checkpointRef, { ...checkpoint, headHash: "f".repeat(64) }], [checkpointRef, { ...checkpoint, uid: "different-owner" }],
+    [checkpointRef, { ...checkpoint, lifecycleEpoch: 2 }], [checkpointRef, null], [batchRef, null],
+    [batchRef, { ...batch, batchHash: "f".repeat(64) }], [entryRef, null], [entryRef, { ...entry, entryHash: "f".repeat(64) }],
+    [predecessorRef, null], [predecessorRef, { ...predecessor, batchHash: "f".repeat(64) }]
+  ];
+  for (const [ref, value] of variants) {
+    try {
+      if (value === null) await ref.delete(); else await ref.set(value);
+      await assert.rejects(service.status(s.token));
+    } finally { await ref.set(originals.get(ref)); }
+    assert.equal((await service.status(s.token)).accepted.sessionCount, 2);
+    assert.deepEqual((await pointer(s).get()).data(), published);
+  }
+  assert.deepEqual((await s.root.collection("learningEvidence").orderBy("__name__").get()).docs.map(row => row.data()), evidence);
+  assert.deepEqual(await usage(s), quota);
+});
+test("repair: a stranded acceptance checkpoint cannot masquerade as an empty account", async () => {
+  const s = await student(), ref = s.root.collection("learningProfiles").doc("acceptanceCheckpoint");
+  await ref.set({ schemaVersion: 1, uid: s.uid, lifecycleEpoch: 1, ordinal: 0, batchId: null, batchHash: null, headRevision: 0, headHash: null });
+  await assert.rejects(service.status(s.token), /acceptance_checkpoint_invalid/);
+});
+test("repair: a jointly reset control and checkpoint cannot hide a committed unpublished batch", async () => {
+  const s = await student(); await accept(s);
+  const controlRef = s.root.collection("learningProfiles").doc("journalControl"), checkpointRef = s.root.collection("learningProfiles").doc("acceptanceCheckpoint");
+  const control = (await controlRef.get()).data(), checkpoint = (await checkpointRef.get()).data();
+  try {
+    await controlRef.set({ ...control, nativeAcceptedCount: 0, headRevision: 0, headHash: null });
+    await checkpointRef.set({ ...checkpoint, ordinal: 0, headRevision: 0, headHash: null, batchId: null, batchHash: null });
+    await assert.rejects(service.status(s.token), /acceptance_checkpoint_invalid/);
+  } finally { await controlRef.set(control); await checkpointRef.set(checkpoint); }
+  const view = await reader(s)(s.uid);
+  assert.deepEqual([view.publication.acceptedSessions, view.publication.publishedSessions, view.publication.pendingSessions], [1, 0, 1]);
 });

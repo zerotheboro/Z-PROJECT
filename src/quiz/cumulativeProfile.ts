@@ -203,7 +203,9 @@ export function rebuildCompletedEvidenceHistory(
     const base = groupKey(item);
     const conditions = exposure.byObservation.get(item.observationId)!;
     const key = base === null ? null : canonical([base, conditions.content, conditions.questions, conditions.questionStates]);
-    if (key !== null) grouped.set(key, [...(grouped.get(key) ?? []), item]);
+    if (key !== null) {
+      const items = grouped.get(key) ?? []; items.push(item); grouped.set(key, items);
+    }
   }
   const performanceGroups: ContextualPerformanceGroup[] = [...grouped]
     .sort(([a], [b]) => compareEvidenceIds(a, b))
@@ -262,14 +264,14 @@ export function rebuildCompletedEvidenceHistory(
     for (const item of items) {
       if (item.context.contentSetId !== null && item.context.contentVersion !== null) {
         const key = canonical([item.context.contentSetId, item.context.contentVersion]);
-        exposureMap.set(key, [...(exposureMap.get(key) ?? []), item]);
+        const seen = exposureMap.get(key) ?? []; seen.push(item); exposureMap.set(key, seen);
       }
     }
     const contentExposures = [...exposureMap].sort(([a], [b]) => compareEvidenceIds(a, b))
       .map(([, seen]) => {
         if (seen.length > 1) flags.add("repeated-content");
-        if (seen.some(item => item.phase === "match" &&
-          seen.some(other => other.phase === "lab" && other.sessionId === item.sessionId))) {
+        const labSessions = new Set(seen.filter(item => item.phase === "lab").map(item => item.sessionId));
+        if (seen.some(item => item.phase === "match" && labSessions.has(item.sessionId))) {
           flags.add("verification-content-reused");
         }
         return {

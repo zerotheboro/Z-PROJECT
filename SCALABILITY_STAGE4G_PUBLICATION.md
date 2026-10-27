@@ -101,3 +101,102 @@ Documentation: this file. Total: 23 files. Existing unrelated working-tree chang
 - Real interactive-browser desktop/mobile visual QA: **NOT VERIFIED**. The browser Firebase SDK and DOM tests are not screenshots or interactive browser testing.
 
 No production Firebase, paid API, migration, deployed-rule change, commit, push or deployment was used.
+
+## Targeted audit repairs
+
+Only the two reproduced MEDIUM findings are repaired. No activation flags,
+publication/acceptance wire contracts, scoring, quota code or deployed rules change.
+
+### Exact owner UID validation
+
+`shadowWorker.ts` now uses the established `trainingOwnerUID()` validator both
+when constructing owner references and when parsing worker pointers. `claim()`
+validates the next pointer with that same parser before queuing any writes.
+The generic `text()` byte limit and all UID/hash encodings are unchanged.
+
+Before repair, the real `unicode58` regression accepted a Manual completion but
+failed aggregation with `invalid_text`. After repair, its exact 58-code-unit,
+158-byte UID works through aggregation, publication, retries and the reader.
+The 128-code-unit origin case and actual ASCII/BMP/supplementary worker boundaries
+also pass. Invalid paths, reserved IDs, malformed surrogates and excess lengths
+reject before worker reads/writes. With the existing 128-code-unit constraint,
+384 bytes is the reachable maximum for a well-formed UID; no valid 512-byte UID
+is invented for testing.
+
+An existing `working` job needs no migration or manual rewrite. After its normal
+lease expires, a reconstructed worker reads the original pointer and obtains a
+new fence using the existing claim transaction. Both a regression with the same
+durable post-claim state and the actual job stranded by the pre-repair failing
+test resumed successfully. The actual job kept its generation ID, evidence,
+original receipts and quota records while its worker fence advanced from 1 to 2.
+
+### Verified acceptance counts
+
+The shared synthetic publication `checked()` transaction now compares the control
+with `acceptanceCheckpoint` and reuses `verifyAcceptanceCheckpoint()` to verify
+the committed tail batch, its two/three journal entries and applicable immutable
+predecessor batch. These additional reads are bounded independently of history
+size. This is consistency verification, not independently authenticated inventory
+or IAM authority. It performs no corrective writes.
+
+The three displayed counts have distinct sources:
+
+- Accepted sessions: the validated checkpoint ordinal, matching the control and
+  committed batch. `accepted.revision` remains the journal head revision.
+- Published sessions: the existing immutable synthetic generation record's count
+  at its verified source cutoff.
+- Pending sessions: the existing reader's difference between those consistent
+  counts. No clamping, invented replacement value or profile revision is added.
+
+Missing/mismatched checkpoints, heads, owners/epochs, tail journal entries or
+batches now reject status/history/publication operations rather than returning
+authoritative-looking counts. A claimed zero checkpoint cannot conceal a
+nonempty committed batch/journal, and an orphan checkpoint cannot be presented
+as a fresh empty account. Healthy retries and generation-pinned older history
+remain supported after newer acceptance. The frontend's existing safe error path
+withholds old data when a read rejects; no frontend runtime or styling change
+was necessary.
+
+Before repair, the counter-only drift regression failed because no rejection was
+returned. After repair, count 2 versus checkpoint ordinal 1 rejects with
+`acceptance_checkpoint_invalid`; the published record, evidence and quota remain
+unchanged. Restoring the synthetic test corruption returns counts 1/1/0. Test-only
+corruption/restoration is confined to newly created demo Emulator accounts.
+
+Repair inventory: `backend/scalability/shadowWorker.ts`,
+`backend/scalability/syntheticPublication.ts`,
+`test-support/stage4gPublication.emulator.mjs`,
+`src/hooks/useCumulativeProfile.test.tsx`, and this document.
+
+Independent re-audit is still required. Production authority/IAM/revocation,
+capacity and activation blockers described above remain unresolved. No Stage 4H
+work, production writes or migration is included.
+
+### Executed repair validation (26 October 2026)
+
+- Both original Emulator regressions failed before the implementation repair
+  (`invalid_text` and missing rejection), then passed unchanged after it: **2/2**.
+- Ten targeted repair Emulator regressions: **10/10 passed**. The final unchanged
+  complete Stage 4G rerun passed **29/29**, including all four Training journeys.
+  An earlier full run had 28 passes and one `fetch failed` transport error in the
+  original four-journey test; that test passed alone on immediate unchanged retry
+  before the final complete passing run. No assertion was weakened.
+- Consolidated contracts/Training/completion/profile/privacy/routing tests:
+  **681 passed across 33 files**, zero failures. Focused owner/worker/checkpoint/
+  reader/hook/page run: **107 passed across six files** (overlaps that total).
+- Selected Stage 3A, 3B, 4C and 4D Emulator regressions: **3 each, 12 passed**.
+  Large-history benchmarks and the unrelated full suite were not rerun.
+- Backend typecheck, active backend build and separate Stage 3A/3B/4C/4D/4E/4G
+  builds passed. Active backend metafile still has **zero scalability inputs**.
+- Production frontend build passed with `.env` loading disabled; the existing
+  chunk-size warning remains. Frontend typecheck remains at the existing **108
+  errors** (106 in `info_every_tips.tsx`, two in `Library.tsx`), with no new errors.
+- Current repair `git diff --check` passes. The preceding Stage 4G validation
+  section records its earlier worktree snapshot; the repair began from a clean
+  committed worktree and modifies only the five files listed above.
+- Interactive desktop/mobile browser visual QA was not performed. DOM and real
+  local browser-SDK integration tests do not substitute for visual inspection.
+
+All execution used sanitized Node 24.19.0 and isolated loopback demo Emulators.
+Production admission remains **NOT VERIFIED**, genuine publication remains
+disabled, and no active endpoint, rule, quota or frontend runtime was changed.

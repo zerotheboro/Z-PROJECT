@@ -17,7 +17,7 @@ it("renders four named, navigable sections and descriptive non-ranking results",
   mount();
   for (const title of ["Learning Overview", "Study Method Evidence", "Learning History", "Progress Over Time"]) expect(screen.getByRole("heading", { name: title })).toBeTruthy();
   expect(screen.getByRole("navigation", { name: "Learning profile sections" })).toBeTruthy();
-  expect(screen.getByText("More comparable learning sessions are needed to assess progress.", { selector: ".cumulative-notice p" })).toBeTruthy();
+  expect(screen.getByText("Not enough comparable results yet.")).toBeTruthy();
   expect(screen.getByRole("link", { name: "View latest assessment snapshot" }).getAttribute("href")).toBe("/training/profile?view=latest");
 });
 it("keeps private Reflection out of the DOM until explicit reveal", () => {

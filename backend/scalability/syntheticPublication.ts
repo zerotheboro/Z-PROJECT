@@ -12,6 +12,8 @@ import { createShadowWorker } from "./shadowWorker";
 import { createSyntheticPublicationBoundary, assertSyntheticPublicationEnvironment } from "./syntheticPublicationBoundary";
 import { parseShadowJob } from "./shadowContracts";
 import { parseReplayPacket } from "./shadowReplay";
+import { parseAcceptanceBatch, parseAcceptanceCheckpoint, verifyAcceptanceCheckpoint } from "./acceptanceBatches";
+import { journalIdentity } from "./journal";
 import { assertCompletionDocumentBudget } from "../completionFirestoreValues";
 import { canonicalJSON, hash, integer, jsonBytes, requireContract, typedHash } from "./values";
 
@@ -45,8 +47,31 @@ export function createSyntheticPublicationService(options: { onEvent?: (event: H
   async function checked(tx: Transaction, principal: Awaited<ReturnType<typeof guard.authenticate>>) {
     const p = await guard.read(tx, principal); guard.assertDevelopmentTrainingAccess(p, tx);
     const seal = await readSealParticipant(tx, p, "publication"), r = refs(principal.uid);
-    const [admission, control] = await tx.getAll(r.admission, r.control);
+    const [admission, control, savedCheckpoint] = await tx.getAll(r.admission, r.control, r.checkpoint);
     const state = await readProtectedTrainingState(tx, p, seal, admission.data(), control.data());
+    requireContract(savedCheckpoint.exists, "acceptance_checkpoint_invalid");
+    const checkpoint = parseAcceptanceCheckpoint(savedCheckpoint.data());
+    requireContract(checkpoint.uid === state.control.uid && checkpoint.lifecycleEpoch === state.control.lifecycleEpoch &&
+      checkpoint.ordinal === state.control.nativeAcceptedCount && checkpoint.headRevision === state.control.headRevision &&
+      checkpoint.headHash === state.control.headHash, "acceptance_checkpoint_invalid");
+    // The mutable count is not an independent source of accepted sessions.
+    // Reuse the bounded committed-tail verifier; this does not assert full
+    // inventory/origin authority or rewrite any evidence, counter or receipt.
+    if (checkpoint.ordinal === 0) {
+      verifyAcceptanceCheckpoint(state.control, checkpoint);
+      const [batches, journal] = await Promise.all([tx.get(r.batches.limit(1)), tx.get(r.journal.limit(1))]);
+      requireContract(batches.empty && journal.empty, "acceptance_checkpoint_invalid");
+    } else {
+      const savedBatch = await tx.get(r.batches.doc(checkpoint.batchId!));
+      requireContract(savedBatch.exists, "acceptance_checkpoint_invalid");
+      const batch = parseAcceptanceBatch(savedBatch.data());
+      const entries = Array.from({ length: batch.lastRevision - batch.firstRevision + 1 }, (_, offset) =>
+        r.journal.doc(journalIdentity(batch, batch.firstRevision + offset)));
+      const rows = await tx.getAll(...entries, ...(batch.previous.batchId === null ? [] : [r.batches.doc(batch.previous.batchId)]));
+      requireContract(rows.every(row => row.exists), "acceptance_checkpoint_invalid");
+      verifyAcceptanceCheckpoint(state.control, checkpoint, batch, rows.slice(0, entries.length).map(row => row.data()),
+        batch.previous.batchId === null ? undefined : rows.at(-1)!.data());
+    }
     if (seal!.control.phase === "sealed") {
       const attempt = await tx.get(seal!.ref.collection("attempts").doc(seal!.control.sealId!)), data = attempt.data();
       requireContract(data?.phase === "sealed", "synthetic_seal_metadata_invalid");
@@ -58,7 +83,7 @@ export function createSyntheticPublicationService(options: { onEvent?: (event: H
       requireContract(pages.size === manifest.pageCount, "synthetic_seal_metadata_invalid");
       verifySealPages(handle, manifest, pages.docs.map(row => row.data()));
     }
-    return { p, seal: seal!, state, r };
+    return { p, seal: seal!, state, r, checkpoint };
   }
   async function scan(tx: Transaction, query: Query, visit: (r: DocumentSnapshot) => void) {
     let after: string | null = null, count = 0;
@@ -171,8 +196,9 @@ export function createSyntheticPublicationService(options: { onEvent?: (event: H
       const { boundary, principal } = await operation(token);
       try { return await guard.transaction(async tx => {
         const p = await guard.read(tx, principal); guard.assertDevelopmentTrainingAccess(p, tx);
-        const r0 = refs(principal.uid), [admission, control] = await tx.getAll(r0.admission, r0.control);
+        const r0 = refs(principal.uid), [admission, control, checkpoint] = await tx.getAll(r0.admission, r0.control, r0.checkpoint);
         if (!admission.exists && !control.exists) {
+          requireContract(!checkpoint.exists, "acceptance_checkpoint_invalid");
           // An empty freshly provisioned synthetic student is not a missing
           // published generation. Partial/unindexed histories are never zeros.
           const histories = await Promise.all([r0.journal, r0.archives, r0.batches, ...["learningEvidence", "assessments", "learningEvidenceIdentityEvents",
@@ -181,7 +207,7 @@ export function createSyntheticPublicationService(options: { onEvent?: (event: H
           return { protocol: SYNTHETIC_PUBLICATION_PROTOCOL, uid: principal.uid, authority: "NOT VERIFIED", accepted: { sessionCount: 0, revision: 0, headHash: null }, publication: null, profile: null };
         }
         const c = await checked(tx, principal), saved = await tx.get(c.r.pointer);
-        const accepted = { sessionCount: c.state.control.nativeAcceptedCount, revision: c.state.control.headRevision, headHash: c.state.control.headHash };
+        const accepted = { sessionCount: c.checkpoint.ordinal, revision: c.checkpoint.headRevision, headHash: c.checkpoint.headHash };
         if (!saved.exists) return { protocol: SYNTHETIC_PUBLICATION_PROTOCOL, uid: principal.uid, authority: "NOT VERIFIED", accepted, publication: null, profile: null };
         const publication = validateRecord(saved.data()!, principal.uid, c.p.context), r = refs(principal.uid, String(publication.generationId));
         requireContract((publication.source as { revision: number }).revision <= accepted.revision, "synthetic_publication_rollback");

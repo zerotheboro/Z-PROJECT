@@ -22,7 +22,7 @@ export default function SyntheticProfilePreview() {
   const current = state?.key === key ? state : null;
   return <>
     <aside className="cumulative-profile cumulative-demo-controls" aria-label="Synthetic preview controls">
-      <h2>Synthetic student preview</h2>
+      <div className="profile-demo-heading"><span className="profile-status-pill">DEMO DATA</span><h2>Synthetic student preview</h2></div>
       <p>Demonstration data only. These sessions and receipts are fixtures, not actual backend acceptances or a verified publication. Nothing here is saved to an account.</p>
       <div className="cumulative-filters">
         <label>Synthetic student<select value={student} onChange={event => setStudent(event.target.value as SyntheticStudent)}>
@@ -35,7 +35,7 @@ export default function SyntheticProfilePreview() {
       </div>
     </aside>
     {current?.data ? <CumulativeProfileDashboard key={key} data={current.data} refresh={() => setRevision(value => value + 1)} />
-      : <main className="cumulative-profile" id="cumulative-profile-main" tabIndex={-1} aria-busy={!current}>
+      : <main className="cumulative-profile profile-state" id="cumulative-profile-main" tabIndex={-1} aria-busy={!current}>
         <h1>Your learning, over time</h1>
         {current?.error ? <><p role="alert">Synthetic preview is unavailable. No account data was accessed or changed.</p><button type="button" onClick={() => { setScenario("normal"); setRevision(value => value + 1); }}>Retry preview</button></>
           : <p role="status">Loading synthetic learning evidence...</p>}

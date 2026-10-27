@@ -20,7 +20,7 @@ export default function CumulativeLearningProfilePage() {
     catch { setPublicationError(true); }
     finally { setPublishing(false); }
   };
-  return <>
+  return <div className="profile-workspace">
     <a className="cumulative-skip" href="#cumulative-profile-main" onClick={event => {
       const main = document.getElementById("cumulative-profile-main");
       if (!main) return;
@@ -32,9 +32,9 @@ export default function CumulativeLearningProfilePage() {
       <button type="button" disabled={publishing} onClick={() => void publish()}>{publishing ? "Verifying synthetic generation..." : "Aggregate and publish synthetic profile"}</button>
       {publicationError && <p role="alert">Synthetic publication was not confirmed. Refresh or retry. Accepted evidence remains recorded; no legacy write was attempted.</p>}
     </div>}
-    {synthetic ? <Suspense fallback={<main id="cumulative-profile-main" tabIndex={-1}><p role="status">Loading synthetic preview...</p></main>}><SyntheticProfilePreview /></Suspense>
+    {synthetic ? <Suspense fallback={<main className="cumulative-profile profile-state" id="cumulative-profile-main" tabIndex={-1}><p role="status">Loading synthetic preview...</p></main>}><SyntheticProfilePreview /></Suspense>
       : state.data && state.uid ? <CumulativeProfileDashboard key={state.uid} data={state.data} refresh={state.refresh} />
-      : <main className="cumulative-profile" id="cumulative-profile-main" tabIndex={-1} aria-busy={state.loading}>
+      : <main className="cumulative-profile profile-state" id="cumulative-profile-main" tabIndex={-1} aria-busy={state.loading}>
         <p className="cumulative-eyebrow">LOCAL DEMO · LEARNING EVIDENCE</p><h1>Your learning, over time</h1>
         {state.loading ? <p role="status">Loading your recorded learning evidence...</p>
           : state.signedOut ? <><h2>Sign in to your local demo account</h2><p>Guest Training remains available. Browser-only guest work is not imported into an account or presented as authenticated cumulative evidence.</p>
@@ -42,5 +42,5 @@ export default function CumulativeLearningProfilePage() {
             : <><p role="alert">{state.error}</p><button type="button" onClick={state.refresh}>Retry loading evidence</button></>}
         <Link to="/training">Back to Training</Link>
       </main>}
-  </>;
+  </div>;
 }

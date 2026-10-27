@@ -31,3 +31,12 @@ it("clears existing data while another account's read is still pending", async (
   act(() => mocks.listener!(user("second"))); await waitFor(() => expect(screen.getByText("Loading")).toBeTruthy());
   expect(screen.queryByText("Account first: 1")).toBeNull();
 });
+it("withholds previous data and shows the existing safe error when acceptance integrity checks reject a refresh", async () => {
+  const log = vi.spyOn(console, "error"), owner = user("first");
+  mocks.read.mockResolvedValueOnce({ revision: 1 }).mockRejectedValueOnce({ code: "acceptance_checkpoint_invalid", privateData: "do not display" });
+  render(<Harness />); act(() => mocks.listener!(owner)); await screen.findByText("Account first: 1");
+  act(() => mocks.listener!(owner));
+  await screen.findByText(/Recorded evidence could not be loaded safely/);
+  expect(screen.queryByText("Account first: 1")).toBeNull(); expect(screen.queryByText(/do not display/)).toBeNull();
+  expect(log).not.toHaveBeenCalled(); log.mockRestore();
+});

@@ -158,12 +158,16 @@ export function buildCumulativeProfileView(uid: string, rawSummary: unknown, evi
     else warnings.push("An earlier assessment snapshot is partial or unreadable and is not included in recorded totals.");
   }
   let history: HistoryEntry[] = [];
+  // Preserve find()'s first-record behavior for duplicate legacy IDs.
+  const legacyById = new Map<string, unknown>();
+  for (const row of legacyRows) if (!legacyById.has(row.id)) legacyById.set(row.id, row.data);
   try {
     const normalized = normalizeCompletedEvidence({ kind: "user", uid }, filtered.map(item => item.evidence));
     const sources = new Map(filtered.map(item => [canonicalEvidence([item.evidence.provenance.kind, item.evidence.provenance.recordId ?? item.evidence.sessionId]), item]));
     history = normalized.map(evidence => {
-      const snapshot = legacyRows.find(row => row.id === (evidence.provenance.kind === "native"
-        ? linkedLegacy.has(evidence.sessionId) ? evidence.sessionId : null : evidence.provenance.recordId))?.data;
+      const legacyId = evidence.provenance.kind === "native"
+        ? linkedLegacy.has(evidence.sessionId) ? evidence.sessionId : null : evidence.provenance.recordId;
+      const snapshot = legacyId === null ? undefined : legacyById.get(legacyId);
       return { evidence,
         serverRecorded: sources.get(canonicalEvidence([evidence.provenance.kind, evidence.provenance.recordId ?? evidence.sessionId]))!.serverRecorded,
         details: evidence.mode === "manual" ? nativeDetail.get(evidence.sessionId) ?? null

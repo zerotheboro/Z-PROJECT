@@ -17,6 +17,7 @@ vi.mock("../firebase", () => ({ auth: mocks.auth }));
 vi.mock("../services/user", () => ({ getLearningProfile: (uid: string) => mocks.read(uid) }));
 vi.mock("../services/localCumulativeProfileConfig", () => ({ localCumulativeProfileConfig: () => null }));
 vi.mock("../HEADER/header", () => ({ default: () => <nav>Navigation</nav> }));
+vi.mock('../hooks/useManualTrainingHistory', () => ({ useManualTrainingHistory: () => ({ records: [], loading: false, error: null, hasMore: false, loadMore: () => {}, refresh: () => {} }) }));
 import LearningProfilePage from "./LearningProfilePage";
 
 function deferred() {

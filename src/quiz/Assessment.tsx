@@ -19,6 +19,7 @@ import { localCompletionConfig } from "../services/localTrainingCompletionConfig
 import { getLocalTrainingCompletionClient } from "../services/localTrainingCompletion";
 import { CompletionOutboxError } from "../services/trainingCompletionOutbox";
 import { saveAssessment } from "../services/assessment";
+import { freezeManualTraining, restoreManualTraining, saveManualTraining } from "../services/manualTrainingHistory";
 import { loadAIRecommendation } from "../services/aiRecommendationPersistence";
 import type { SavedAIRecommendation } from "../services/aiRecommendationPersistence";
 import {
@@ -30,6 +31,7 @@ import {
 import {
   discardTrainingDraft,
   forceDiscardTrainingDraft,
+  writeLocalTrainingDraft,
   saveTrainingDraft,
   TrainingDraftConflictError
 } from "../services/trainingProgress";
@@ -447,7 +449,8 @@ function AssessmentSession({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [draft, setDraft] = useState<TrainingDraft>(initialDraft);
+  const [manualRecovery] = useState(() => restoreManualTraining(initialDraft));
+  const [draft, setDraft] = useState<TrainingDraft>(manualRecovery.draft);
   const draftRef = useRef(draft);
   const sessionActive = useRef(true);
   const mounted = useRef(true);
@@ -458,7 +461,7 @@ function AssessmentSession({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showDiscard, setShowDiscard] = useState(false);
   const [discarding, setDiscarding] = useState(false);
-  const [finalSaveError, setFinalSaveError] = useState<string | null>(null);
+  const [finalSaveError, setFinalSaveError] = useState<string | null>(manualRecovery.error);
   const [streakFeedback, setStreakFeedback] = useState<string | null>(null);
   const [durableQueued, setDurableQueued] = useState(false);
   const [selectingMethods, setSelectingMethods] = useState(
@@ -470,7 +473,7 @@ function AssessmentSession({
   const [aiContextNotice, setAIContextNotice] = useState<string | null>(null);
   const selectionInFlight = useRef(false);
   const finalSaveInFlight = useRef(false);
-  const completionTime = useRef<string | null | undefined>(undefined);
+  const completionTime = useRef<string | null | undefined>(manualRecovery.draft !== initialDraft ? manualRecovery.completedAt : undefined);
   const checkpointRef = useRef<(() => void) | null>(null);
 
   draftRef.current = draft;
@@ -892,18 +895,28 @@ function AssessmentSession({
     setFinalSaveError(null);
 
     try {
-      if (await finishDurably({ ...draftRef.current, phase: "final-save", section: 6,
-        completed: { ...draftRef.current.completed, reflection: result } }, completedAt)) return;
+      const completedDraft: TrainingDraft = { ...draftRef.current, phase: "final-save", section: 6,
+        completed: { ...draftRef.current.completed, reflection: result } };
+      // Legacy Manual previously recorded only activity, then deleted all results.
+      // Freeze complete results synchronously before entering any async saving path.
+      const legacy = !localCompletionConfig() || draft.owner.kind === "guest"
+        ? freezeManualTraining(completedDraft, completedAt) : null;
+      if (legacy) writeLocalTrainingDraft(completedDraft);
+      if (await finishDurably(completedDraft, completedAt)) return;
+      if (draft.owner.kind === "user") {
+        if (!legacy) throw new Error("Individual completion has no verified saving path. The draft was kept.");
+        await saveManualTraining(draft.owner.uid, legacy);
+      }
       const streak = await recordTrainingCompletion({
         owner: draft.owner,
         sessionId: draft.sessionId,
         mode: "manual",
         methodIds: selectedMethods
-      });
+      }, legacy?.completedAt ? { now: new Date(legacy.completedAt) } : undefined);
       setStreakFeedback(current => current ?? (
-        streak.wasNewDay
-          ? `🔥 ${streak.currentStreak} day streak! Today's training is complete.`
-          : "Training complete. You've already kept your streak today."
+        draft.owner.kind === "user"
+          ? `Individual results saved to your account's practice history. Cumulative aggregation/publication was not performed. ${streak.wasNewDay ? `🔥 ${streak.currentStreak} day streak!` : "You've already kept your streak today."}`
+          : "Guest results saved only on this browser. Clearing browser data or losing this device may remove them; they are not saved to an account."
       ));
 
       sessionActive.current = false;
@@ -922,15 +935,11 @@ function AssessmentSession({
     } catch (error) {
       if (localCompletionConfig() && !mounted.current) return;
       sessionActive.current = !durableQueuedRef.current && !(error instanceof CompletionOutboxError && error.code === "completion_owner_changed");
-      console.error(
-        "Training completion or streak recording failed:",
-        error
-      );
       setFinalSaveError(
-        localCompletionConfig() && error instanceof Error ? error.message :
-          "Training is complete, but its daily activity or active draft could not be saved. Retry safely to finish."
+        error instanceof Error ? error.message :
+          "Individual results, daily activity or draft cleanup were not confirmed. Keep the draft and retry the same session."
       );
-      if (localCompletionConfig() && sessionActive.current) void persistDraft();
+      if (sessionActive.current && mounted.current) void persistDraft();
     } finally {
       finalSaveInFlight.current = false;
     }
@@ -1216,7 +1225,7 @@ function AssessmentSession({
                   ? "A browser completion checkpoint was confirmed before submission. Final acknowledgment and cleanup still need verification."
                   : "A durable completion checkpoint has not been confirmed. Results remain on this page; keep it open and retry saving."
                 : isManualMode
-                ? "Your completed manual session is still available until its active draft is cleared."
+                ? "Saving is not complete. A browser checkpoint may be available, but account saving and cleanup are not confirmed. Keep this draft and retry the same session."
                 : "Your completed work is still safely available as an unfinished draft."}
             </p>
             {localCompletionConfig() && <p>Clearing browser data, browser storage eviction, or losing this device may destroy unsent evidence. Browser storage is not a cloud backup.</p>}
@@ -1255,6 +1264,9 @@ function AssessmentSession({
             {streakFeedback && (
               <p role="status">{streakFeedback}</p>
             )}
+            {draft.owner.kind === "user" && <button type="button" onClick={() => navigate("/training/profile")}>
+              View Learning Profile
+            </button>}
             <button type="button" onClick={() => navigate("/training")}>
               Back to training
             </button>
