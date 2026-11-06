@@ -2,7 +2,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef
 } from "react";
@@ -10,11 +9,6 @@ import {
 import type {
   ReactNode
 } from "react";
-
-import {
-  assignChallengeDifficulty,
-  recordAdaptivePerformance
-} from "./adaptiveDifficulty";
 
 import type {
   AdaptiveDifficulty,
@@ -97,6 +91,7 @@ export function useAdaptiveChallenge(
   questionId: string
 ): {
   difficulty: AdaptiveDifficulty | null;
+  legacyOptionDifficulty: AdaptiveDifficulty | null;
   commit: (
     performance: ObjectivePerformance
   ) => void;
@@ -106,42 +101,19 @@ export function useAdaptiveChallenge(
   const eventId = root && scope
     ? `${scope}:${questionId}`
     : null;
-  const difficulty = eventId && root
-    ? root.state.challengeLevels[eventId] ??
-      root.state.level
+  // Only assignments already present in a saved draft describe a previously
+  // offered 2/3/4-choice question. New questions never create assignments.
+  const legacyOptionDifficulty = eventId && root
+    ? root.state.challengeLevels[eventId] ?? null
     : null;
-
-  useEffect(() => {
-    if (!root || !eventId) {
-      return;
-    }
-
-    root.update(current =>
-      assignChallengeDifficulty(
-        current,
-        eventId
-      )
-    );
-  }, [eventId, root]);
-
-  const commit = useCallback((
-    performance: ObjectivePerformance
-  ) => {
-    if (!root || !eventId) {
-      return;
-    }
-
-    root.update(current =>
-      recordAdaptivePerformance(
-        current,
-        eventId,
-        performance
-      )
-    );
-  }, [eventId, root]);
+  const difficulty = legacyOptionDifficulty ?? root?.state.level ?? null;
+  // Retain the public callback and historical metadata contract. Performance
+  // no longer adapts labels or alters any later question.
+  const commit = useCallback((_performance: ObjectivePerformance) => {}, []);
 
   return {
     difficulty,
+    legacyOptionDifficulty,
     commit
   };
 }

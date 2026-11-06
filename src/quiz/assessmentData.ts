@@ -258,7 +258,7 @@ export const baselineMemoryContent = {
 
   title: "Meet Europa",
 
-  studyTime: 30,
+  studyTime: 60,
 
   facts: [
     "Europa is one of Jupiter's largest moons.",
@@ -301,9 +301,9 @@ export const baselineMemoryContent = {
         "What may exist beneath Europa's surface?",
       options: [
         "A salty ocean",
-        "A liquid iron layer",
-        "A dense atmosphere",
-        "Large forests"
+        "A reservoir of liquid methane",
+        "An ocean of liquid nitrogen",
+        "A layer of liquid carbon dioxide"
       ],
       correct: "A salty ocean"
     },
@@ -326,7 +326,7 @@ export const baselineMemoryContent = {
 const emperorPenguinMemoryContent = {
   id: "baseline-memory-02",
   title: "Emperor penguin survival",
-  studyTime: 30,
+  studyTime: 60,
   facts: [
     "Emperor penguins live around Antarctica and breed on sea ice during winter.",
     "The female lays a single egg and transfers it to the male.",
@@ -342,9 +342,9 @@ const emperorPenguinMemoryContent = {
         "Where do emperor penguins breed during the Antarctic winter?",
       options: [
         "On sea ice",
-        "In forest nests",
-        "On tropical beaches",
-        "Inside freshwater caves"
+        "On exposed rock ledges",
+        "In burrows beneath coastal snow",
+        "On floating freshwater lake ice"
       ],
       correct: "On sea ice"
     },
@@ -354,9 +354,9 @@ const emperorPenguinMemoryContent = {
         "Where does the male keep the egg while incubating it?",
       options: [
         "On his feet beneath a brood pouch",
-        "Under the sea ice",
-        "Inside a nest made from branches",
-        "Between rocks at the shoreline"
+        "Against his chest beneath his flippers",
+        "On the ice beneath his body",
+        "Between his legs in a shallow snow nest"
       ],
       correct:
         "On his feet beneath a brood pouch"
@@ -367,9 +367,9 @@ const emperorPenguinMemoryContent = {
         "Why do male emperor penguins huddle together?",
       options: [
         "To reduce heat loss",
-        "To build a shared nest",
-        "To search for fish",
-        "To make the ice melt"
+        "To keep eggs in a single communal nest",
+        "To trap fish beneath the sea ice",
+        "To keep a pool of seawater unfrozen"
       ],
       correct: "To reduce heat loss"
     },
@@ -379,9 +379,9 @@ const emperorPenguinMemoryContent = {
         "How do emperor penguin parents feed their chick?",
       options: [
         "By regurgitating food collected at sea",
-        "By bringing it seaweed",
-        "By teaching it to hunt immediately",
-        "By feeding it pieces of ice"
+        "By carrying whole fish in their beaks",
+        "By giving it small crustaceans to catch",
+        "By bringing it algae gathered at sea"
       ],
       correct:
         "By regurgitating food collected at sea"
@@ -392,7 +392,7 @@ const emperorPenguinMemoryContent = {
 const octopusMemoryContent = {
   id: "baseline-memory-03",
   title: "Octopus adaptations",
-  studyTime: 30,
+  studyTime: 60,
   facts: [
     "An octopus has three hearts.",
     "Two hearts pump blood through the gills, while one pumps it around the rest of the body.",
@@ -420,9 +420,9 @@ const octopusMemoryContent = {
         "What do two of an octopus's hearts pump blood through?",
       options: [
         "The gills",
-        "The arms only",
-        "The skin",
-        "The eyes"
+        "The digestive organs",
+        "The main body tissues",
+        "The brain and eyes"
       ],
       correct: "The gills"
     },
@@ -432,9 +432,9 @@ const octopusMemoryContent = {
         "Why does octopus blood appear blue?",
       options: [
         "It contains hemocyanin",
-        "It absorbs seawater",
-        "It contains chlorophyll",
-        "It has no oxygen-carrying protein"
+        "It contains iron-based hemoglobin",
+        "It contains dissolved blue pigment from food",
+        "It contains blue blood cells instead of plasma"
       ],
       correct: "It contains hemocyanin"
     },
@@ -444,9 +444,9 @@ const octopusMemoryContent = {
         "What helps an octopus change its appearance?",
       options: [
         "Chromatophores in its skin",
-        "A rigid outer shell",
-        "Feathers around its body",
-        "Air stored in its arms"
+        "Reflective scales on its skin",
+        "Pigment released into the surrounding water",
+        "Changes in the color of its blood"
       ],
       correct:
         "Chromatophores in its skin"
@@ -466,7 +466,7 @@ export const baselineConceptContent = {
 
   title: "Why does ice float?",
 
-  studyTime: 35,
+  studyTime: 60,
 
   explanation: `
     Most substances become denser when they freeze,
@@ -491,9 +491,9 @@ export const baselineConceptContent = {
 
       options: [
         "Ice is less dense than liquid water",
-        "Ice contains no molecules",
-        "Liquid water pushes everything upward",
-        "Ice becomes heavier when frozen"
+        "Ice traps air that always supplies its upward force",
+        "Liquid water is less dense than ice",
+        "Frozen water has no weight in liquid water"
       ],
 
       correct:
@@ -508,8 +508,8 @@ export const baselineConceptContent = {
 
       options: [
         "Its molecules form a more open structure",
-        "Its molecules disappear",
-        "Its molecules become heavier",
+        "Its molecules lose mass as water freezes",
+        "Its molecules expand in size as water freezes",
         "Its molecules collapse closer together"
       ],
 
@@ -525,9 +525,9 @@ export const baselineConceptContent = {
 
       options: [
         "The solid could become denser and sink",
-        "The solid would contain no mass",
-        "The water would stop freezing",
-        "Density would no longer matter"
+        "The solid would remain afloat regardless of density",
+        "The solid would keep the same density despite the smaller volume",
+        "The solid would lose mass in proportion to its smaller volume"
       ],
 
       correct:
@@ -539,7 +539,7 @@ export const baselineConceptContent = {
 const seasonsConceptContent = {
   id: "baseline-concept-02",
   title: "Why do seasons change?",
-  studyTime: 35,
+  studyTime: 60,
   explanation: `
     Earth's axis is tilted relative to its path around
     the Sun.
@@ -562,8 +562,8 @@ const seasonsConceptContent = {
       options: [
         "Earth's axis is tilted as Earth orbits the Sun",
         "Earth repeatedly moves much closer to the Sun",
-        "The Sun changes size during the year",
-        "Clouds permanently move between hemispheres"
+        "Earth rotates faster during summer",
+        "The Sun releases more energy toward both hemispheres in summer"
       ],
       correct:
         "Earth's axis is tilted as Earth orbits the Sun"
@@ -574,9 +574,9 @@ const seasonsConceptContent = {
         "What happens when a hemisphere is tilted toward the Sun?",
       options: [
         "It receives more direct sunlight and has longer days",
-        "It receives no sunlight",
-        "Its oceans stop absorbing energy",
-        "Its distance from the Sun doubles"
+        "It receives more direct sunlight but has shorter days",
+        "It receives less direct sunlight but has longer days",
+        "It receives the same sunlight angle and day length as in winter"
       ],
       correct:
         "It receives more direct sunlight and has longer days"
@@ -588,8 +588,8 @@ const seasonsConceptContent = {
       options: [
         "It is tilted away and receives less direct sunlight",
         "It is also tilted toward the Sun",
-        "It has no day-and-night cycle",
-        "It becomes permanently colder"
+        "It receives more direct sunlight despite being tilted away",
+        "It experiences the same season because both hemispheres share one orbit"
       ],
       correct:
         "It is tilted away and receives less direct sunlight"
@@ -600,7 +600,7 @@ const seasonsConceptContent = {
 const dewConceptContent = {
   id: "baseline-concept-03",
   title: "Why does dew form?",
-  studyTime: 35,
+  studyTime: 60,
   explanation: `
     Surfaces such as grass can lose heat during the night
     and become cooler than the surrounding air.
@@ -621,9 +621,9 @@ const dewConceptContent = {
         "What happens to air that touches a sufficiently cool surface?",
       options: [
         "The air cools",
-        "The air loses all its gases",
-        "The air immediately becomes warmer",
-        "The air stops containing water vapor"
+        "The air warms",
+        "Its temperature stays constant",
+        "Its water vapor immediately freezes"
       ],
       correct: "The air cools"
     },
@@ -633,9 +633,9 @@ const dewConceptContent = {
         "What occurs when the nearby air reaches its dew point?",
       options: [
         "Water vapor condenses into liquid droplets",
-        "Liquid water turns into sunlight",
-        "The surface begins producing water",
-        "All moisture disappears from the air"
+        "Liquid droplets evaporate back into water vapor",
+        "Water vapor freezes directly into frost regardless of temperature",
+        "Water rises from inside the surface to form droplets"
       ],
       correct:
         "Water vapor condenses into liquid droplets"
@@ -646,9 +646,9 @@ const dewConceptContent = {
         "Why can a clear, calm night encourage dew formation?",
       options: [
         "It allows surfaces to cool effectively",
-        "It prevents surfaces from losing heat",
-        "It removes all water vapor",
-        "It keeps grass warmer than the air"
+        "It traps outgoing heat and keeps surfaces warm",
+        "It increases warm-air mixing close to the surface",
+        "It raises the temperature at which nearby air becomes saturated"
       ],
       correct:
         "It allows surfaces to cool effectively"

@@ -10,6 +10,8 @@ import { canonicalCompletionJSON } from "./trainingCompletionOutbox";
 import { normalizeEvidenceTimestamp } from "../quiz/learningEvidence";
 import { localCompletionConfig } from "./localTrainingCompletionConfig";
 import { adaptLegacyAutomaticAssessment } from "../quiz/legacyAssessmentEvidence";
+import { recordedEconomicsMetadata } from "../quiz/economics9708/recordedContext";
+import type { ObservationMetadata } from "../quiz/learningEvidence";
 import type { CompletedSessionEvidence } from "../quiz/learningEvidence";
 
 /** Owner-editable legacy practice, NOT cumulative evidence or a V2 receipt. */
@@ -47,7 +49,7 @@ function results(p: Record<string, unknown>): p is Record<string, unknown> & { s
     (reflection.surprisedByResults === null || typeof reflection.surprisedByResults === "boolean") && typeof reflection.reflectionText === "string" && reflection.reflectionText.length <= 10000;
 }
 
-export function readManualTrainingRecord(value: unknown, uid: string): { record: ManualTrainingRecord; draft: TrainingDraft } {
+export function readManualTrainingRecord(value: unknown, uid: string): { record: ManualTrainingRecord; draft: TrainingDraft; metadata: ObservationMetadata[] } {
   if (!object(value) || value.schemaVersion !== 1 || value.kind !== "legacy-manual" || typeof value.sessionId !== "string" ||
     !validId(value.sessionId) || typeof value.payloadJSON !== "string" ||
     value.completedAt !== null && (typeof value.completedAt !== "string" || normalizeEvidenceTimestamp(value.completedAt) !== value.completedAt) ||
@@ -60,7 +62,7 @@ export function readManualTrainingRecord(value: unknown, uid: string): { record:
   const draft: TrainingDraft = { ...base, phase: "final-save", section: 6, selectedMethods: p.selectedMethods,
     verificationMethodOrder: p.methodMatch.methods.map(m => m.method).filter(isTrainingMethodId), completed: { ...base.completed,
       methodIntroduction: p.methodIntroduction, methodLab: p.methodLab, methodMatch: p.methodMatch, reflection: p.reflection } };
-  return { record: { schemaVersion: 1, kind: "legacy-manual", sessionId: value.sessionId, completedAt: value.completedAt as string | null, payloadJSON: value.payloadJSON }, draft };
+  return { record: { schemaVersion: 1, kind: "legacy-manual", sessionId: value.sessionId, completedAt: value.completedAt as string | null, payloadJSON: value.payloadJSON }, draft, metadata: recordedEconomicsMetadata(p.metadata) };
 }
 
 function owner(uid: string) {

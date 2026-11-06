@@ -8,6 +8,7 @@ import ManualPracticeHistory from "./ManualPracticeHistory";
 import type { ManualPracticeState } from "./ManualPracticeHistory";
 import { buildSavedLearningProfileView } from "../quiz/savedLearningProfileView";
 import type { SavedMethodAttempt } from "../quiz/savedLearningProfileView";
+import type { ReactNode } from "react";
 
 const completionLabel = (value: string | null) => value ? new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(value)) + " UTC" : "Completion time not recorded";
 function RecordedAttempt({ attempt }: { attempt: SavedMethodAttempt }) {
@@ -22,7 +23,7 @@ function RecordedAttempt({ attempt }: { attempt: SavedMethodAttempt }) {
 }
 
 /** One owner-scoped read model; the latest snapshot never stands in for all history. */
-export default function LatestProfileDashboard({ profile, cumulativeAvailable, manual, ownerUid = manual?.uid ?? null }: { profile: LearningProfile | null; cumulativeAvailable: boolean; manual?: ManualPracticeState; ownerUid?: string | null }) {
+export default function LatestProfileDashboard({ profile, cumulativeAvailable, manual, ownerUid = manual?.uid ?? null, strategy }: { profile: LearningProfile | null; cumulativeAvailable: boolean; manual?: ManualPracticeState; ownerUid?: string | null; strategy?: ReactNode }) {
   const [active, setActive] = useState("learning-overview");
   const view = useMemo(() => buildSavedLearningProfileView(ownerUid, profile, manual),
     [ownerUid, profile, manual?.ownerUid, manual?.uid, manual?.records, manual?.assessments, manual?.loading, manual?.error, manual?.hasMore]);
@@ -35,6 +36,7 @@ export default function LatestProfileDashboard({ profile, cumulativeAvailable, m
       <div className="profile-scope-banner"><span className="profile-status-pill">{profile ? "Latest assessment & Training history" : "Saved Training history"}</span><p>{profile ? "This is your latest saved Test Me snapshot, not your complete Training history." : "Your saved Test Me and Test Method records are shown below. No latest Test Me summary has been recorded."} Cumulative publication is not enabled for genuine accounts. Individual practice does not replace your Test Me snapshot.</p>
         {cumulativeAvailable && <Link to="/training/profile">View cumulative learning evidence →</Link>}</div>
 
+      {strategy}
       <section id="learning-overview" aria-labelledby="latest-overview-title">
         <ProfileSectionTitle number="01" title="Learning Overview" id="latest-overview-title" description="Your saved practice and latest Test Me snapshot, with their scopes kept clear." />
         <dl className="cumulative-metrics">

@@ -243,6 +243,8 @@ export function optionsForDifficulty(
   correctAnswer: string,
   difficulty: AdaptiveDifficulty | null
 ): string[] {
+  // Compatibility adapter for an already assigned historical question only.
+  // New Training questions pass null and display the full authored bank.
   if (difficulty === null) {
     return [...options];
   }

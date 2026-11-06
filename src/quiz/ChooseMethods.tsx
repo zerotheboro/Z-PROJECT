@@ -4,10 +4,12 @@ import {
 } from "react";
 
 import {
-  useNavigate
+  useNavigate, useLocation
 } from "react-router-dom";
 
 import NAV from "../HEADER/header";
+import EconomicsTopicPicker from "./economics9708/EconomicsTopicPicker";
+import { economicsMethodGap } from "./economics9708/methodContentMapping";
 import {
   useTrainingAccess
 } from "../hooks/useTrainingAccess";
@@ -65,6 +67,8 @@ const methodGroups =
 
 function ChooseMethods() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [economicsTopicId, setEconomicsTopicId] = useState(() => new URLSearchParams(location.search).get("economics") ?? "");
   const trainingAccess = useTrainingAccess();
 
   const [selectedMethods, setSelectedMethods] =
@@ -141,6 +145,7 @@ function ChooseMethods() {
         owner,
         mode: "manual",
         methodIds: selectedMethods,
+        ...(economicsTopicId ? { economicsTopicId } : {}),
         sessionId: pendingSessionId.current
       });
       const state: ManualTrainingState = {
@@ -168,6 +173,10 @@ function ChooseMethods() {
       <NAV />
 
       <main className="training-page method-picker-page">
+        <EconomicsTopicPicker value={economicsTopicId} onChange={topic => {
+          setEconomicsTopicId(topic);
+          if (topic) setSelectedMethods(methods => methods.filter(method => !economicsMethodGap(method)));
+        }} disabled={starting} />
         <section className="training-hero">
           <p>
             EDULIENCE TRAINING
@@ -232,6 +241,7 @@ function ChooseMethods() {
                           selectedMethods.includes(
                             definition.id
                           );
+                        const unsupported = Boolean(economicsTopicId && economicsMethodGap(definition.id));
 
                         return (
                           <button
@@ -240,7 +250,7 @@ function ChooseMethods() {
                             aria-checked={selected}
                             disabled={
                               trainingAccess.loading ||
-                              Boolean(trainingAccess.error)
+                              Boolean(trainingAccess.error) || unsupported
                             }
                             className={
                               selected
@@ -266,6 +276,7 @@ function ChooseMethods() {
                                   .description
                               }
                             </span>
+                            {unsupported && <span>Not available for this Economics activity.</span>}
                           </button>
                         );
                       }

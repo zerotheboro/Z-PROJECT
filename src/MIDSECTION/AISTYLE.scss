@@ -507,6 +507,19 @@
       }
     }
 
+    .method-how-to {
+      margin-top: var(--space-1);
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: clamp(0.95rem, 0.3vw + 0.9rem, 1.1rem);
+      line-height: 1.65;
+
+      > strong { display: block; color: var(--darker-black); }
+      ol { margin: 0.4rem 0; padding-left: 1.5rem; list-style: decimal outside; }
+      li { margin-top: 0.35rem; }
+      small { display: block; font-size: 0.8em; }
+    }
+
     .warning {
       padding: var(--space-1);
 

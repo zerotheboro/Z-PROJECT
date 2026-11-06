@@ -11,6 +11,8 @@ import {
   validateRecommendationResult
 } from "../services/aiRecommendationPersistence";
 import './AISTYLE.scss';
+import { getReviewedHowTo, getReviewedMethodPresentation } from "../../recommendationHowTo.js";
+import { resolveRecommendationApiBase } from "../services/recommendationApi";
 
 import {
   NavLink,
@@ -18,6 +20,14 @@ import {
   useNavigate
 } from "react-router-dom";
 
+function MethodHowTo({ name }) {
+  const steps = getReviewedHowTo(name);
+  return <div className="method-how-to">
+    <strong>How to use it</strong>
+    {steps ? <ol>{steps.map(step => <li key={step}>{step}</li>)}</ol>
+      : <p>Practical steps are unavailable for this saved method.</p>}
+  </div>;
+}
 
 
 export default function AIRecommendation() {
@@ -174,7 +184,7 @@ export default function AIRecommendation() {
         : null;
 
       const response = await fetch(
-        "https://z-project-ba3t.onrender.com/api/recommend",
+        `${resolveRecommendationApiBase()}/api/recommend`,
         {
           method: "POST",
           headers: {
@@ -606,7 +616,9 @@ export default function AIRecommendation() {
 
               <div className="recommendations">
                 {result.recommended_methods.map(
-                  (method, index) => (
+                  (savedMethod, index) => {
+                    const method = getReviewedMethodPresentation(savedMethod);
+                    return (
                     <article
                       className="method-card"
                       key={method.name}
@@ -627,13 +639,16 @@ export default function AIRecommendation() {
                           {method.reason}
                         </p>
 
+                        <MethodHowTo name={method.name} />
+
                         <p className="warning">
                           <strong>Keep in mind</strong>
                           {method.warning}
                         </p>
                       </div>
                     </article>
-                  )
+                    );
+                  }
                 )}
               </div>
 

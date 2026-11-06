@@ -1,5 +1,7 @@
 import {
   type ReactElement,
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -19,6 +21,12 @@ import { localCompletionConfig } from "../services/localTrainingCompletionConfig
 import { getLocalTrainingCompletionClient } from "../services/localTrainingCompletion";
 import { CompletionOutboxError } from "../services/trainingCompletionOutbox";
 import { saveAssessment } from "../services/assessment";
+import { readEconomicsSelection, readEconomicsActivityVersion } from "./economics9708/selection";
+import { supportedEconomicsMethods } from "./economics9708/runtime";
+import { collectMaterialPresentations } from "./economics9708/presentationRecords";
+import { collectEconomicsResponses } from "./economics9708/collectAssessmentResponses";
+import { economicsTopic } from "./economics9708/syllabus";
+import { completionFromDraft } from "../services/trainingCompletion";
 import { freezeManualTraining, restoreManualTraining, saveManualTraining } from "../services/manualTrainingHistory";
 import { loadAIRecommendation } from "../services/aiRecommendationPersistence";
 import type { SavedAIRecommendation } from "../services/aiRecommendationPersistence";
@@ -49,6 +57,9 @@ import {
   getRelevantAIRecommendedMethods
 } from "./aiRecommendationContext";
 import { loadRecommendationWithin } from "./aiRecommendationLookup";
+import { AssessmentQuestionUXProvider, AssessmentSoundToggle } from "./AssessmentQuestionUX";
+import type { QuestionInteractionControl } from "./AssessmentQuestionUX";
+import { questionUXStorageKey } from "./questionUXState";
 import { learningSituationQuestions } from "./assessmentData";
 import { buildLearningProfile } from "./profileBuilder";
 import BaselineChallenge from "./sections/BaselineChallenge";
@@ -90,6 +101,7 @@ import type {
 } from "./type";
 
 const AUTOSAVE_DEBOUNCE_MS = 1_200;
+const ProgressPilotBoundary = import.meta.env.DEV ? lazy(() => import("./economics9708/progressPilot/ProgressPilotBoundary")) : null;
 const TIMER_CHECKPOINT_MS = 15_000;
 
 type SaveStatus =
@@ -472,9 +484,11 @@ function AssessmentSession({
   >(null);
   const [aiContextNotice, setAIContextNotice] = useState<string | null>(null);
   const selectionInFlight = useRef(false);
+  const confirmationInFlight = useRef(false);
   const finalSaveInFlight = useRef(false);
   const completionTime = useRef<string | null | undefined>(manualRecovery.draft !== initialDraft ? manualRecovery.completedAt : undefined);
   const checkpointRef = useRef<(() => void) | null>(null);
+  const questionInteractions = useRef<QuestionInteractionControl | null>(null);
 
   draftRef.current = draft;
 
@@ -603,10 +617,13 @@ function AssessmentSession({
   }, []);
 
   const selectedMethods = draft.selectedMethods;
+  const economicsPack = readEconomicsSelection(draft.internalState);
+  const economicsActivityVersion = readEconomicsActivityVersion(draft.internalState);
 
   function finishMethodSelection(
     result: NonNullable<TrainingDraft["completed"]["baseline"]>,
-    aiRecommendedMethods: TrainingMethodId[]
+    aiRecommendedMethods: TrainingMethodId[],
+    announceCompletion = true
   ) {
     if (!sessionActive.current || draftRef.current.selectedMethods.length > 0) {
       return;
@@ -617,7 +634,8 @@ function AssessmentSession({
       return;
     }
 
-    const methods = selectMethods(situation, result, aiRecommendedMethods);
+    const methods = selectMethods(situation, result, aiRecommendedMethods,
+      economicsActivityVersion ? supportedEconomicsMethods() : undefined);
     updateDraft(current => {
       const { pendingAIConfirmation: _pending, ...withoutPending } = current;
       return {
@@ -636,6 +654,7 @@ function AssessmentSession({
     setPendingAIContext(null);
     setSelectingMethods(false);
     selectionInFlight.current = false;
+    if (announceCompletion) questionInteractions.current?.complete("section:2");
   }
 
   async function resolveAIConfirmation(
@@ -646,7 +665,7 @@ function AssessmentSession({
     const owner = draftRef.current.owner;
     const situation = draftRef.current.completed.learningSituation;
     if (owner.kind !== "user" || !situation) {
-      finishMethodSelection(result, []);
+      finishMethodSelection(result, [], !resuming);
       return;
     }
 
@@ -659,7 +678,8 @@ function AssessmentSession({
     }
 
     const key = saved && getAIRecommendationKey(saved);
-    const candidates = getAIRecommendationCandidates(saved, situation, result);
+    const candidates = getAIRecommendationCandidates(saved, situation, result)
+      .filter(method => !economicsActivityVersion || supportedEconomicsMethods().includes(method));
     if (saved && key && key.length <= 4_000 && candidates.length > 0 &&
       (expectedKey === null || expectedKey === key)) {
       updateDraft(current => ({
@@ -675,8 +695,50 @@ function AssessmentSession({
       setAIContextNotice(
         "The previous AI recommendation is no longer available for this session. Your Baseline result was kept, and four methods were selected from your assessment answers."
       );
+    } else {
+      setAIContextNotice(
+        saved
+          ? "Your saved AI recommendation isn't eligible for this session. Four methods were selected from your assessment answers."
+          : "No recent AI recommendation was available for this session. Four methods were selected from your assessment answers."
+      );
     }
-    finishMethodSelection(result, []);
+    finishMethodSelection(result, [], !resuming);
+  }
+
+  async function confirmAIRecommendation() {
+    const current = draftRef.current;
+    const { learningSituation: situation, baseline } = current.completed;
+    if (confirmationInFlight.current || !sessionActive.current ||
+      current.selectedMethods.length > 0 || current.owner.kind !== "user" ||
+      !situation || !baseline || !pendingAIContext) return;
+
+    const owner = current.owner;
+    const expectedKey = getAIRecommendationKey(pendingAIContext);
+    confirmationInFlight.current = true;
+    setSelectingMethods(true);
+    try {
+      // Apply is navigation, not consent. Re-read this owner's exact saved
+      // advice when their explicit decision is committed, not just on display.
+      const saved = await loadRecommendationWithin(() => loadAIRecommendation(owner));
+      const latest = draftRef.current;
+      if (!sessionActive.current || latest.selectedMethods.length > 0 ||
+        ownerKey(latest.owner) !== ownerKey(owner)) return;
+
+      const methods = saved && expectedKey !== null &&
+        latest.pendingAIConfirmation?.recommendationKey === expectedKey &&
+        getAIRecommendationKey(saved) === expectedKey
+          ? getRelevantAIRecommendedMethods(saved, situation, baseline, true)
+            .filter(method => !economicsActivityVersion || supportedEconomicsMethods().includes(method))
+          : [];
+      if (methods.length === 0) {
+        setAIContextNotice(
+          "The previous AI recommendation is no longer available for this session. Four methods were selected from your assessment answers."
+        );
+      }
+      finishMethodSelection(baseline, methods);
+    } finally {
+      confirmationInFlight.current = false;
+    }
   }
 
   useEffect(() => {
@@ -736,6 +798,8 @@ function AssessmentSession({
     section: number,
     completed: Partial<TrainingDraft["completed"]>
   ) => {
+    const previousSection = draftRef.current.section;
+    if (!sessionActive.current || previousSection !== section - 1) return;
     updateDraft(current => ({
       ...current,
       section,
@@ -745,6 +809,11 @@ function AssessmentSession({
         ...completed
       }
     }));
+    // The last Lab/Match already announces its activity completion. Do not
+    // overlay a second sound when that activity also completes the section.
+    if (previousSection !== 4 && previousSection !== 5) {
+      questionInteractions.current?.complete(`section:${previousSection}`);
+    }
   }, [updateDraft]);
 
   const recordBaselineContent = useCallback((content: {
@@ -797,6 +866,7 @@ function AssessmentSession({
   }, [updateDraft]);
 
   async function saveAndExit() {
+    questionInteractions.current?.pause();
     if (durableQueued) {
       // The exact payload is already committed to IndexedDB. Recovery on the
       // landing page does not need to resubmit reflection or reserve a session.
@@ -810,6 +880,8 @@ function AssessmentSession({
     if (saved) {
       sessionActive.current = false;
       navigate("/training");
+    } else {
+      questionInteractions.current?.resume();
     }
   }
 
@@ -828,6 +900,7 @@ function AssessmentSession({
       }
 
       await discardTrainingDraft(draft.owner, draft.sessionId);
+      questionInteractions.current?.clear();
       setShowDiscard(false);
       navigate("/training", { replace: true });
     } catch {
@@ -1005,7 +1078,11 @@ function AssessmentSession({
           methodLab,
           methodMatch,
           reflection,
-          learningProfile
+          learningProfile,
+          ...(collectMaterialPresentations(draftRef.current) ? { materialPresentations: collectMaterialPresentations(draftRef.current) } : {}),
+          ...(collectEconomicsResponses(draftRef.current) ? { economicsResponses: collectEconomicsResponses(draftRef.current) } : {}),
+          ...(economicsPack ? { metadata: completionFromDraft({ ...draftRef.current,
+            completed: { ...draftRef.current.completed, reflection, learningProfile } }, completedAt).metadata } : {})
         });
       }
 
@@ -1055,7 +1132,7 @@ function AssessmentSession({
   const section = draft.section;
   const isManualMode = draft.mode === "manual";
 
-  return (
+  const trainingExperience = (
     <WritingJudgeProvider
       sessionId={draft.sessionId}
       state={draft.writingJudgeResults}
@@ -1070,8 +1147,11 @@ function AssessmentSession({
           onChange={updateInternalState}
           checkpointRef={checkpointRef}
         >
+        <AssessmentQuestionUXProvider controlRef={questionInteractions} blocked={showDiscard || saveStatus === "conflict"}
+          storageKey={questionUXStorageKey(draft.owner, draft.sessionId)} finished={section === 7}>
         <main className="assessment assessment-v2">
         <NAV />
+        {economicsPack && <p className="training-system-message" role="status">Economics 9708 AS · {economicsPack.topicId} {economicsTopic(economicsPack.topicId)!.title} · Controlled pilot</p>}
 
         {saveError && (
           <div className="training-save-error" role="alert">
@@ -1118,23 +1198,7 @@ function AssessmentSession({
                 ?.label ?? draft.completed.learningSituation?.goal
             }</p>
             <p>Use this recommendation only if it concerns the same subject or topic and goal as this Test Me session.</p>
-            <button type="button" onClick={() => {
-              const situation = draftRef.current.completed.learningSituation;
-              const baseline = draftRef.current.completed.baseline;
-              if (!situation || !baseline || !pendingAIContext) return;
-              const methods = getRelevantAIRecommendedMethods(
-                pendingAIContext, situation, baseline, true
-              );
-              if (methods.length === 0) {
-                setAIContextNotice(
-                  "The previous AI recommendation is no longer available for this session. Four methods were selected from your assessment answers."
-                );
-              }
-              finishMethodSelection(
-                baseline,
-                methods
-              );
-            }}>
+            <button type="button" onClick={() => void confirmAIRecommendation()}>
               Use this recommendation
             </button>
             <button type="button" className="secondary-action" onClick={() => {
@@ -1149,6 +1213,7 @@ function AssessmentSession({
         {section === 2 && !selectingMethods && !pendingAIContext && (
           <TrainingStateScope name="baseline">
             <BaselineChallenge
+              contentIds={draft.baselineContentSetIds}
               onContentSelected={recordBaselineContent}
               onComplete={result => void completeBaseline(result)}
             />
@@ -1158,6 +1223,7 @@ function AssessmentSession({
         {section === 3 && selectedMethods.length > 0 && (
           <TrainingStateScope name="introduction">
             <MethodIntroduction
+              economicsTopicId={economicsPack?.topicId}
               methods={selectedMethods}
               mode={isManualMode ? "manual" : "auto"}
               learningSituation={draft.completed.learningSituation ?? undefined}
@@ -1173,6 +1239,8 @@ function AssessmentSession({
         {section === 4 && selectedMethods.length > 0 && (
           <TrainingStateScope name="lab-controller">
             <MethodLab
+              economicsTopicId={economicsPack?.topicId}
+              economicsActivityVersion={economicsActivityVersion}
               methods={selectedMethods}
               onProgress={recordLabProgress}
               onComplete={(result: MethodLabResult) =>
@@ -1185,6 +1253,8 @@ function AssessmentSession({
         {section === 5 && draft.completed.methodLab && (
           <TrainingStateScope name="match-controller">
             <MethodMatchChallenge
+              economicsTopicId={economicsPack?.topicId}
+              economicsActivityVersion={economicsActivityVersion}
               methodLab={draft.completed.methodLab}
               onProgress={recordMatchProgress}
               onComplete={(result: MethodMatchResult) =>
@@ -1289,6 +1359,7 @@ function AssessmentSession({
           </section>
         )}
         <div className="training-save-toolbar">
+          <AssessmentSoundToggle />
           <span aria-live="polite">
             {saveStatus === "saving" && "Saving..."}
             {saveStatus === "saved" && "Saved"}
@@ -1308,7 +1379,7 @@ function AssessmentSession({
             type="button"
             className="secondary-action"
             disabled={durableQueued || Boolean(localCompletionConfig() && draft.phase === "final-save")}
-            onClick={() => setShowDiscard(true)}
+            onClick={() => { questionInteractions.current?.pause(); setShowDiscard(true); }}
           >
             Discard current training
           </button>
@@ -1318,6 +1389,7 @@ function AssessmentSession({
             busy={discarding}
             error={saveError}
             onCancel={() => {
+              questionInteractions.current?.resume();
               setShowDiscard(false);
               setSaveError(null);
             }}
@@ -1325,10 +1397,14 @@ function AssessmentSession({
           />
         )}
         </main>
+        </AssessmentQuestionUXProvider>
         </TrainingProgressStateProvider>
       </AdaptiveDifficultyProvider>
     </WritingJudgeProvider>
   );
+  return ProgressPilotBoundary && import.meta.env.DEV && import.meta.env.VITE_ECONOMICS_PROGRESS_PILOT === "memory-only"
+    ? <Suspense fallback={<LoadingAssessment />}><ProgressPilotBoundary draft={draft}>{trainingExperience}</ProgressPilotBoundary></Suspense>
+    : trainingExperience;
 }
 
 export default Assessment;

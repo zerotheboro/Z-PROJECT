@@ -182,7 +182,7 @@ export function createStage2AcceptanceService(transport: Stage2Transport, { now 
       try { input = copyJSON(raw); }
       catch { throw new CompletionError(400, "invalid_completion_json"); }
       requireCompletion(jsonBytes(input) <= 64 * 1024, "completion_too_large", 413);
-      const { request, requestHash, evidence, legacy } = validateCompletion(uid, input, recordedAt);
+      const { request, requestHash, evidence, legacy, objectiveEvidence } = validateCompletion(uid, input, recordedAt);
       const db = transport.getFirestore(), refs = acceptanceReferences(db, uid);
       const evidenceId = nativeCompletionIdentity(request.sessionId);
       const evidenceRef = refs.user.collection("learningEvidence").doc(evidenceId);
@@ -259,6 +259,8 @@ export function createStage2AcceptanceService(transport: Stage2Transport, { now 
             mode: request.mode, evidenceId, requestHash, lifecycleEpoch: 1, acceptedRevision: nextRevision(control.headRevision), recordedAt,
             legacyAssessmentId: legacy === null ? null : request.sessionId, legacyProfileUpdated: updateProfile }) as CompletionReceiptV2;
           const row = copyJSON({ schemaVersion: 1, evidence, requestHash, receipt,
+            ...(objectiveEvidence ? { objectiveEvidence } : {}),
+            ...(request.materialPresentations ? { materialPresentations: request.materialPresentations } : {}),
             ...(request.mode === "manual" ? { completionDetails: { schemaVersion: 1, methodIntroduction: request.methodIntroduction, reflection: request.reflection } } : {}),
             resultAuthority: "client-reported", selectionContextAuthority: "client-advisory" }) as Data;
           const anchor = { uid, lifecycleEpoch: 1, revision: control.headRevision, headHash: control.headHash };

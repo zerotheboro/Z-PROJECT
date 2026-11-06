@@ -7,6 +7,10 @@ import type { CompletedSessionEvidence, ObservationMetadata } from "../src/quiz/
 import { selectMethodsForVerification } from "../src/quiz/methodMatchSelector";
 import { buildLearningProfile } from "../src/quiz/profileBuilder";
 import { isTrainingMethodId } from "../src/quiz/type";
+import { assertMaterialPresentations } from "../src/quiz/economics9708/presentationRecords";
+import type { MaterialPresentations } from "../src/quiz/economics9708/presentationRecords";
+import { deriveEconomicsObjectiveEvidence } from "../src/quiz/economics9708/assessmentEvidence";
+import type { EconomicsResponses, EconomicsObjectiveEvidence } from "../src/quiz/economics9708/assessmentEvidence";
 import type {
   LearningSituation, BaselineResult, MethodIntroductionResult, MethodLabResult,
   MethodMatchResult, ReflectionResult, TrainingMethodId
@@ -77,17 +81,20 @@ export type CompletionRequest = {
   methodMatch: MethodMatchResult; reflection: ReflectionResult;
   learningSituation?: LearningSituation; baseline?: BaselineResult;
   metadata?: ObservationMetadata[]; completedAt?: string | null;
+  materialPresentations?: MaterialPresentations;
+  economicsResponses?: EconomicsResponses;
   selectionContext?: CompletedSessionEvidence["selectionContext"];
 };
 export type ValidatedCompletion = {
   request: CompletionRequest; requestHash: string; evidence: CompletedSessionEvidence;
   legacy: Record<string, unknown> | null;
+  objectiveEvidence?: EconomicsObjectiveEvidence;
 };
 
 /** Strict wire boundary. Ownership, scores and profile outputs are not accepted as claims. */
 export function validateCompletion(uid: string, raw: unknown, recordedAt: string): ValidatedCompletion {
   requireCompletion(typeof uid === "string" && uid.length > 0 && uid.length <= 128 && !uid.includes("/"), "invalid_owner", 401);
-  const root = object(raw, ["schemaVersion", "sessionId", "mode", "selectedMethods", "methodIntroduction", "methodLab", "methodMatch", "reflection", "learningSituation", "baseline", "metadata", "completedAt", "selectionContext"]);
+  const root = object(raw, ["schemaVersion", "sessionId", "mode", "selectedMethods", "methodIntroduction", "methodLab", "methodMatch", "reflection", "learningSituation", "baseline", "metadata", "completedAt", "selectionContext", "materialPresentations", "economicsResponses"]);
   boundedJSON(root);
   requireCompletion(evidenceBytes(raw) <= COMPLETION_BODY_BYTES, "completion_too_large", 413);
   requireCompletion(root.schemaVersion === COMPLETION_VERSION, "unsupported_completion_version");
@@ -179,6 +186,14 @@ export function validateCompletion(uid: string, raw: unknown, recordedAt: string
   try {
     request.completedAt = normalizeEvidenceTimestamp(request.completedAt ?? null);
     requireCompletion(request.completedAt === null || Date.parse(request.completedAt) <= Date.parse(recordedAt), "future_completion");
+    if (request.materialPresentations !== undefined) {
+      assertMaterialPresentations(request.materialPresentations);
+      for (const record of request.materialPresentations.records) {
+        requireCompletion(selected.includes(record.methodId) && (record.phase !== "match" || matches.some(m => m.method === record.methodId)) &&
+          request.metadata?.some(m => m.methodId === record.methodId && m.phase === record.phase && m.context?.exerciseTopic === record.contentSetId), "presentation_assignment_mismatch");
+        requireCompletion(Date.parse(record.presentedAt) <= Date.parse(request.completedAt ?? recordedAt), "future_presentation");
+      }
+    }
     for (const item of request.metadata ?? []) if (item.completedAt !== undefined) {
       (item as { completedAt: string | null }).completedAt = normalizeEvidenceTimestamp(item.completedAt);
       requireCompletion(item.completedAt === null || Date.parse(item.completedAt) <= Date.parse(recordedAt), "future_completion");
@@ -190,14 +205,20 @@ export function validateCompletion(uid: string, raw: unknown, recordedAt: string
       selectionContext: request.selectionContext ?? { kind: request.mode === "manual" ? "manual" : "traditional", nominatedMethodIds: [] },
       preference: { methodId: request.reflection.preferredMethod, priority: request.reflection.priority }
     });
+    if (request.economicsResponses) requireCompletion(canonicalEvidence(request.methodMatch.methods.map(m => m.method)) ===
+      canonicalEvidence(selectMethodsForVerification(request.methodLab.experiments)), "objective_verification_order_mismatch");
+    const objectiveEvidence = deriveEconomicsObjectiveEvidence(request);
+    requireCompletion(!objectiveEvidence?.sessionStartedAt || Date.parse(objectiveEvidence.sessionStartedAt) <= Date.parse(recordedAt), "future_session_start");
     const legacy = request.mode === "manual" ? null : {
+      ...(request.economicsResponses ? { economicsResponses: request.economicsResponses } : {}),
+      ...(request.materialPresentations ? { materialPresentations: request.materialPresentations } : {}),
       status: "completed", learningSituation: request.learningSituation!, baseline: request.baseline!,
       methodIntroduction: request.methodIntroduction, methodLab: request.methodLab,
       methodMatch: request.methodMatch, reflection: request.reflection,
       learningProfile: buildLearningProfile({ baseline: request.baseline!, methodIntroduction: request.methodIntroduction,
         methodLab: request.methodLab, methodMatch: request.methodMatch, reflection: request.reflection })
     };
-    return { request, evidence, legacy, requestHash: digest({ contract: "training-complete-v1", uid, request }) };
+    return { request, evidence, legacy, ...(objectiveEvidence ? { objectiveEvidence } : {}), requestHash: digest({ contract: "training-complete-v1", uid, request }) };
   } catch (error) {
     if (error instanceof CompletionError) throw error;
     throw new CompletionError(400, "invalid_completion_evidence");

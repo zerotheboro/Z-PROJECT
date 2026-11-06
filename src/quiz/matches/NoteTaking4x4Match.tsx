@@ -207,6 +207,7 @@ function NoteTaking4x4Match({
           </p>
           <MultipleChoiceRunner
             question={currentQuestion}
+            progress={{ questions: data.questions, answers: answers, id: "answers", label: "Current method quiz" }}
             selectedAnswer={
               answers[currentQuestion.id]
             }

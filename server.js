@@ -34,6 +34,7 @@ import {
   PREMIUM_AI_DAILY_LIMIT
 } from "./aiRecommendationQuota.js";
 import { METHOD_POOL } from "./methodPool.js";
+import { attachRecommendationHowTo, hasReviewedHowTo } from "./recommendationHowTo.js";
 import {
   createFirebaseTrainingQuotaManager,
   TrainingQuotaExceededError,
@@ -381,7 +382,7 @@ function validateRecommendationInput(body) {
   return { value: validated };
 }
 
-function isRecommendationResult(value) {
+function isRecommendationResult(value, requireReviewedHowTo = false) {
   if (
     !value
     || typeof value !== "object"
@@ -404,6 +405,7 @@ function isRecommendationResult(value) {
     && typeof method.branch === "string"
     && typeof method.reason === "string"
     && typeof method.warning === "string"
+    && (!requireReviewedHowTo || hasReviewedHowTo(method))
   );
 }
 
@@ -1297,12 +1299,16 @@ export function createRecommendationApp({
           });
         }
 
-        const result = JSON.parse(response.output_text);
+        const selection = JSON.parse(response.output_text);
 
-        if (!isRecommendationResult(result)) {
+        if (!isRecommendationResult(selection)) {
           throw new Error(
             "OpenAI returned an invalid recommendation payload"
           );
+        }
+        const result = attachRecommendationHowTo(selection);
+        if (!isRecommendationResult(result, true)) {
+          throw new Error("Invalid reviewed recommendation instructions");
         }
 
         try {

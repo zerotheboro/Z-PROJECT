@@ -1,6 +1,7 @@
 import { buildCumulativeProfileView } from "../quiz/cumulativeProfileView";
 import type { ProfileRow } from "../quiz/cumulativeProfileView";
 import type { CumulativeProfileSnapshot, PendingCompletionStatus } from "./cumulativeProfileReader";
+import { strategyEvidenceSnapshot } from "./cumulativeProfileReader";
 
 export const SYNTHETIC_PUBLICATION_PROTOCOL = "synthetic-emulator-publication-stage4g-v1";
 export type SyntheticPublicationStatus = { kind: "synthetic-emulator-publication"; authority: "NOT VERIFIED";
@@ -118,7 +119,10 @@ export function createSyntheticPublishedProfileReader(request: (path: string) =>
     if (publication !== null) requireValue(view.coverageComplete && view.summary?.sessionCount === publishedSessions);
     let local: PendingCompletionStatus[] = [], browserStorageVerified = true;
     try { local = await pending(uid); } catch { browserStorageVerified = false; } check(uid);
-    return { ...view, pending: local, browserStorageVerified, publication: { kind: "synthetic-emulator-publication", authority: "NOT VERIFIED",
+    const strategyEvidence = publication === null ? accepted.sessionCount === 0 ? { ownerUid: uid, scope: "accepted-history" as const,
+      rows: [], pendingAcceptedSessions: 0, legacyReportsExcluded: false } : undefined
+      : strategyEvidenceSnapshot(uid, view, rows, "published-generation", accepted.sessionCount - publishedSessions, accepted.revision);
+    return { ...view, pending: local, browserStorageVerified, ...(strategyEvidence ? { strategyEvidence } : {}), publication: { kind: "synthetic-emulator-publication", authority: "NOT VERIFIED",
       publication: publication === null ? "not-published" : "published", generationId, acceptedSessions: accepted.sessionCount,
       publishedSessions, pendingSessions: accepted.sessionCount - publishedSessions, publishedAt } };
   };

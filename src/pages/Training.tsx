@@ -34,6 +34,9 @@ import {
 import NAV from "../HEADER/header";
 import TrainingCompletionRecovery from "../components/TrainingCompletionRecovery";
 import { localCompletionConfig } from "../services/localTrainingCompletionConfig";
+import EconomicsTopicPicker from "../quiz/economics9708/EconomicsTopicPicker";
+import { auth } from "../firebase";
+import { noteStudyTrainingVisit } from "../services/studyFollowThroughSession";
 
 import DiscardTrainingDialog
   from "../quiz/DiscardTrainingDialog";
@@ -85,6 +88,11 @@ function Training() {
     useState<string | null>(null);
   const [starting, setStarting] =
     useState(false);
+  const [economicsTopicId, setEconomicsTopicId] = useState("");
+  useEffect(() => {
+    if (import.meta.env.DEV && owner?.kind === "user" && auth.currentUser?.uid === owner.uid)
+      noteStudyTrainingVisit(auth.currentUser, new Date().toISOString());
+  }, [owner]);
   const [startError, setStartError] =
     useState<string | null>(null);
   const [billingBusy, setBillingBusy] =
@@ -193,6 +201,7 @@ function Training() {
         owner,
         mode: "auto",
         methodIds: [],
+        ...(economicsTopicId ? { economicsTopicId } : {}),
         sessionId: pendingAutomaticSessionId.current
       });
       trainingAccess.refreshAccess();
@@ -214,7 +223,7 @@ function Training() {
     if (!await clearExistingDraft()) {
       return;
     }
-    navigate("/training/choose");
+    navigate(economicsTopicId ? `/training/choose?economics=${encodeURIComponent(economicsTopicId)}` : "/training/choose");
   }
 
   async function confirmDiscard() {
@@ -460,6 +469,7 @@ function Training() {
         </p>
       )}
 
+      <EconomicsTopicPicker value={economicsTopicId} onChange={setEconomicsTopicId} disabled={starting || discarding} />
       <section
         className="training-entry-options"
         aria-label="Choose how to start training"

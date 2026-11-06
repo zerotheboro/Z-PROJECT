@@ -49,6 +49,17 @@ const RootContext =
 const ScopeContext =
   createContext<ScopeContextValue | null>(null);
 
+// Read-only scope identity for optional UI feedback; allocates no draft slot.
+export function useTrainingScopeName(): string {
+  return useContext(ScopeContext)?.scope ?? "standalone";
+}
+// Read-only: consumes no resumable slot and cannot shift existing engine state.
+export function useTrainingStage(): string | undefined {
+  const root = useContext(RootContext), scope = useContext(ScopeContext);
+  const stage = root && scope ? root.getScopeState(scope.scope)?.slots[0] : undefined;
+  return typeof stage === "string" ? stage : undefined;
+}
+
 export function TrainingProgressStateProvider({
   state,
   onChange,

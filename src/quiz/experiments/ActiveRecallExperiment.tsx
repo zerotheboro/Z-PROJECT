@@ -261,9 +261,9 @@ function ActiveRecallExperiment({
           </StudyPanel>
 
           {studySecondsRemaining !== null && (
-            <p role="timer">
+            <p role="timer" className="training-timer-value">
               Time remaining:{" "}
-              {studySecondsRemaining}s
+              <span className="training-timer-digits">{studySecondsRemaining}s</span>
             </p>
           )}
 
@@ -302,9 +302,9 @@ function ActiveRecallExperiment({
           />
 
           {retrievalSecondsRemaining !== null && (
-            <p role="timer">
+            <p role="timer" className="training-timer-value">
               Time remaining:{" "}
-              {retrievalSecondsRemaining}s
+              <span className="training-timer-digits">{retrievalSecondsRemaining}s</span>
             </p>
           )}
 
@@ -341,6 +341,7 @@ function ActiveRecallExperiment({
 
           <MultipleChoiceRunner
             question={currentQuestion}
+            progress={{ questions: data.questions, answers: answers, id: "answers", label: "Current method quiz" }}
             selectedAnswer={
               answers[currentQuestion.id]
             }
@@ -384,14 +385,12 @@ function ActiveRecallExperiment({
             confidence={{
               prompt: "Confidence",
               value: confidence,
-              onChange: setConfidence,
-              highlightSelection: false
+              onChange: setConfidence
             }}
             ease={{
               prompt: "How easy was it to use?",
               value: ease,
-              onChange: setEase,
-              highlightSelection: false
+              onChange: setEase
             }}
             willingnessToUse={{
               prompt: <>
@@ -399,8 +398,7 @@ function ActiveRecallExperiment({
                 this while studying?
               </>,
               value: willingnessToUse,
-              onChange: setWillingnessToUse,
-              highlightSelection: false
+              onChange: setWillingnessToUse
             }}
             completeLabel="Complete experiment"
             onComplete={finishExperiment}

@@ -8,7 +8,7 @@ export type SavedProfileInput = {
   uid: string; ownerUid?: string | null; records: readonly ManualTrainingRecord[];
   assessments?: readonly LegacyAssessmentRecord[]; loading: boolean; error: string | null; hasMore: boolean;
 };
-export type SavedProfileHistoryItem = ({ kind: "individual"; record: ManualTrainingRecord; methods: readonly MethodId[]; details: TrainingDraft["completed"] } |
+export type SavedProfileHistoryItem = ({ kind: "individual"; record: ManualTrainingRecord; methods: readonly MethodId[]; details: TrainingDraft["completed"]; contexts: Readonly<Record<string, { subject: string | null; topic: string | null }>> } |
   { kind: "test-me"; record: LegacyAssessmentRecord }) & { key: string; completedAt: string | null };
 export type SavedMethodAttempt = {
   key: string; historyKey: string; source: "individual" | "test-me"; methodId: MethodId;
@@ -55,7 +55,8 @@ export function buildSavedLearningProfileView(ownerUid: string | null, latest: L
     for (const record of unique(input.records, row => row.sessionId)) {
       try {
         const parsed = readManualTrainingRecord(record, ownerUid);
-        history.push({ kind: "individual", key: `manual:${record.sessionId}`, record, methods: parsed.draft.selectedMethods, details: parsed.draft.completed, completedAt: record.completedAt });
+        const contexts = Object.fromEntries(parsed.metadata.filter(row => row.phase === "lab").map(row => [row.methodId, { subject: row.context?.subject ?? null, topic: row.context?.topic ?? null }]));
+        history.push({ kind: "individual", key: `manual:${record.sessionId}`, record, methods: parsed.draft.selectedMethods, details: parsed.draft.completed, completedAt: record.completedAt, contexts });
       } catch { warnings.push("An individual practice record could not be validated; it was not treated as zero."); }
     }
     for (const record of unique(input.assessments ?? [], row => row.id)) {
@@ -83,7 +84,7 @@ export function buildSavedLearningProfileView(ownerUid: string | null, latest: L
         const followUp = methodMatch!.methods.find(row => row.method === lab.method);
         // Match.firstScore repeats Lab. Only verificationScore is another task.
         method(lab.method).individual.push({ key: `${item.key}:${lab.method}`, historyKey: item.key, source: "individual", methodId: lab.method,
-          completedAt: item.completedAt, recordedAt: null, subject: null, topic: null,
+          completedAt: item.completedAt, recordedAt: null, subject: item.contexts[lab.method]?.subject ?? null, topic: item.contexts[lab.method]?.topic ?? null,
           lab: { score: lab.score, correct: lab.correct, total: lab.total },
           verification: followUp ? { score: followUp.verificationScore, correct: null, total: null } : null });
         individualObservations += 1 + (followUp ? 1 : 0);

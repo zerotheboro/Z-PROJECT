@@ -1,6 +1,8 @@
 import {
   useEffect
 } from "react";
+import { AssessmentSectionProgress, useQuestionAdvance } from "../AssessmentQuestionUX";
+import { economicsIntroductionExample } from "../economics9708/introduction";
 
 import {
   useTrainingState as useState
@@ -26,6 +28,7 @@ type Props = {
   methods: TrainingMethodId[];
 
   mode?: "auto" | "manual";
+  economicsTopicId?: string;
 
   learningSituation?:
     LearningSituation;
@@ -51,6 +54,7 @@ type Stage =
 function MethodIntroduction({
   methods,
   mode = "auto",
+  economicsTopicId,
   learningSituation,
   baseline,
   onProgress,
@@ -97,6 +101,11 @@ function MethodIntroduction({
       methods,
       knowledgeMethod
     );
+  const navigation = useQuestionAdvance(`introduction:${knowledgeMethod}`, () => {
+    if (!methods.includes(answers[knowledgeMethod])) return false;
+    nextQuestion();
+    return true;
+  });
 
   useEffect(() => {
     const index = stage === "methods"
@@ -169,12 +178,13 @@ function MethodIntroduction({
   function selectAnswer(
     answer: TrainingMethodId
   ) {
-
+    if (navigation.blocked()) return;
     setAnswers(prev => ({
       ...prev,
       [knowledgeMethod]:
         answer
     }));
+    navigation.schedule();
   }
 
   function nextQuestion() {
@@ -313,8 +323,7 @@ function MethodIntroduction({
 
           <p>
             {
-              currentData
-                .example
+              economicsTopicId ? economicsIntroductionExample(currentMethod, economicsTopicId) : currentData.example
             }
           </p>
 
@@ -349,6 +358,8 @@ function MethodIntroduction({
           <p>
             QUICK UNDERSTANDING CHECK
           </p>
+          <AssessmentSectionProgress label="Section 3 — Understanding check" total={methods.length}
+            completed={methods.filter(method => methods.includes(answers[method])).length} />
 
           <p>
             Question{" "}
@@ -404,6 +415,9 @@ function MethodIntroduction({
 
           </div>
 
+          <button type="button" disabled={questionIndex === 0} onClick={() => {
+            navigation.cancel(); setQuestionIndex(index => Math.max(0, index - 1));
+          }}>Back</button>
           <button
             type="button"
             disabled={
@@ -411,9 +425,7 @@ function MethodIntroduction({
                 knowledgeMethod
               ]
             }
-            onClick={
-              nextQuestion
-            }
+            onClick={event => { if (event.detail < 2) navigation.completeNow(); }}
           >
             {
               questionIndex ===

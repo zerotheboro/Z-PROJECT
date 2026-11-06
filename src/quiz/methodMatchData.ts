@@ -26,9 +26,9 @@ export const activeRecallMatchData = {
 
       options: [
         "The production of light by an organism",
-        "The reflection of sunlight",
-        "A way animals produce oxygen",
-        "The movement of ocean currents"
+        "The reflection of light from an animal's surface",
+        "The storage of daylight for later reflection",
+        "The absorption of light without producing any"
       ],
 
       correct:
@@ -43,9 +43,9 @@ export const activeRecallMatchData = {
 
       options: [
         "To detect very small amounts of light",
-        "To reduce water pressure",
-        "To store more energy",
-        "To breathe underwater"
+        "To obtain energy directly from faint light",
+        "To keep internal pressure equal to water pressure",
+        "To replace their need for chemical senses"
       ],
 
       correct:
@@ -60,9 +60,9 @@ export const activeRecallMatchData = {
 
       options: [
         "Food can be scarce",
-        "The water contains too much oxygen",
-        "They receive too much sunlight",
-        "They constantly swim at high speed"
+        "Food is so abundant that feeding takes little effort",
+        "Their bodies must release energy as quickly as possible",
+        "Sunlight supplies most of their energy needs"
       ],
 
       correct:
@@ -77,9 +77,9 @@ export const activeRecallMatchData = {
 
       options: [
         "High water pressure",
-        "Low gravity",
-        "Extremely dry air",
-        "Constant wind"
+        "High daily air-temperature variation",
+        "Low salinity caused by constant freshwater input",
+        "Strong solar radiation through the water"
       ],
 
       correct:
@@ -123,8 +123,8 @@ About six months later, the situation is reversed.
       options: [
         "The tilt of Earth's axis",
         "Large changes in Earth's distance from the Sun",
-        "Changes in the Moon",
-        "Changes in Earth's rotation speed"
+        "Seasonal changes in the energy produced by the Sun",
+        "Seasonal changes in Earth's rotation speed"
       ],
 
       correct:
@@ -139,9 +139,9 @@ About six months later, the situation is reversed.
 
       options: [
         "It receives more direct sunlight and generally longer days",
-        "It moves significantly closer to the Sun",
-        "Its gravity becomes weaker",
-        "It stops rotating"
+        "It receives the same sunlight angle but shorter days",
+        "It receives less direct sunlight and longer days",
+        "Its day length stays fixed while the Sun becomes hotter"
       ],
 
       correct:
@@ -156,9 +156,9 @@ About six months later, the situation is reversed.
 
       options: [
         "When one tilts toward the Sun, the other tilts away",
-        "The hemispheres orbit the Sun separately",
-        "Only one hemisphere rotates",
-        "The Sun heats only one hemisphere each year"
+        "The hemispheres reach opposite sides of Earth's orbit at different times",
+        "The Sun becomes hotter above one hemisphere each season",
+        "Both hemispheres tilt toward the Sun but rotate at different speeds"
       ],
 
       correct:
@@ -200,9 +200,9 @@ volcanic material, forming a volcano.
         "Why can magma rise through Earth's crust?",
       options: [
         "It can be less dense than surrounding rock",
-        "It contains no mass",
-        "Gravity pushes it upward",
-        "The crust always moves downward"
+        "It is always denser than surrounding solid rock",
+        "It rises because its weight increases as it melts",
+        "It moves upward only after becoming solid rock"
       ],
       correct:
         "It can be less dense than surrounding rock"
@@ -214,9 +214,9 @@ volcanic material, forming a volcano.
         "What can happen as magma and gases accumulate underground?",
       options: [
         "Pressure can increase",
-        "Gravity disappears",
-        "The magma immediately becomes rock",
-        "The crust stops existing"
+        "Pressure must decrease",
+        "Magma must immediately solidify",
+        "Gas stops exerting pressure"
       ],
       correct:
         "Pressure can increase"
@@ -228,9 +228,9 @@ volcanic material, forming a volcano.
         "What is magma called after it reaches Earth's surface?",
       options: [
         "Lava",
-        "Sediment",
-        "Steam",
-        "Mantle"
+        "Magma",
+        "Basalt",
+        "Volcanic ash"
       ],
       correct: "Lava"
     },
@@ -241,9 +241,9 @@ volcanic material, forming a volcano.
         "How can repeated eruptions help form a volcano?",
       options: [
         "They build layers of volcanic material",
-        "They remove all rock from the area",
-        "They stop magma from rising",
-        "They eliminate pressure underground"
+        "They build layers only by eroding existing volcanic rock",
+        "They prevent new material from being deposited at the surface",
+        "They replace earlier deposits with empty space after every eruption"
       ],
       correct:
         "They build layers of volcanic material"
@@ -521,9 +521,9 @@ export const activeBlurtingMatchData = {
         "How can wetlands reduce the impact of heavy rain?",
       options: [
         "They absorb and temporarily store excess water",
-        "They prevent all rain from reaching the ground",
-        "They permanently remove rivers",
-        "They increase the speed of runoff"
+        "They immediately send excess water into faster runoff",
+        "They prevent rain from entering nearby soils",
+        "They permanently remove water from the local water cycle"
       ],
       correct: "They absorb and temporarily store excess water"
     },
@@ -533,9 +533,9 @@ export const activeBlurtingMatchData = {
         "What can wetland plants do to moving water?",
       options: [
         "Slow it and trap sediment",
-        "Turn it into salt water",
-        "Stop evaporation everywhere",
-        "Remove all organisms from it"
+        "Speed it up and keep more sediment suspended",
+        "Turn dissolved nutrients into additional sediment",
+        "Carry sediment away without reducing water flow"
       ],
       correct: "Slow it and trap sediment"
     },
@@ -545,9 +545,9 @@ export const activeBlurtingMatchData = {
         "How can wetlands improve water quality?",
       options: [
         "Plants and microorganisms remove some nutrients and pollutants",
-        "They replace water with dry soil",
-        "They prevent microorganisms from living",
-        "They add sediment to every water source"
+        "Plants remove pollutants only by making the water evaporate",
+        "Microorganisms prevent all nutrient cycling in wetland soils",
+        "Sediment trapping increases every pollutant downstream"
       ],
       correct: "Plants and microorganisms remove some nutrients and pollutants"
     },
@@ -557,9 +557,9 @@ export const activeBlurtingMatchData = {
         "What is one likely effect of draining wetlands?",
       options: [
         "Reduced flood protection and wildlife habitat",
-        "More habitat for wetland species",
-        "Complete prevention of runoff",
-        "Permanent improvement of water quality"
+        "Increased storage of floodwater and expanded wetland habitat",
+        "Unchanged flood storage but less water reaching rivers",
+        "Cleaner water because draining removes all pollutants"
       ],
       correct: "Reduced flood protection and wildlife habitat"
     }
@@ -590,8 +590,8 @@ raises average temperatures.
       options: [
         "Outgoing infrared radiation",
         "All incoming visible sunlight",
-        "Sound waves from Earth's surface",
-        "Energy from ocean tides only"
+        "Only incoming ultraviolet radiation",
+        "Only heat carried upward by moving air"
       ],
       correct: "Outgoing infrared radiation"
     },
@@ -601,9 +601,9 @@ raises average temperatures.
         "How do greenhouse gases affect heat loss to space?",
       options: [
         "They slow the rate at which heat escapes",
-        "They stop Earth from absorbing sunlight",
-        "They make the surface release no energy",
-        "They reflect all heat directly into space"
+        "They prevent the surface from emitting infrared energy",
+        "They reflect all incoming sunlight back to space",
+        "They increase the direct escape of infrared energy"
       ],
       correct: "They slow the rate at which heat escapes"
     },
@@ -613,9 +613,9 @@ raises average temperatures.
         "What happens when greenhouse-gas concentrations increase?",
       options: [
         "The greenhouse effect strengthens and average temperatures rise",
-        "The natural greenhouse effect disappears",
-        "Earth receives no sunlight",
-        "Infrared radiation changes into gravity"
+        "The atmosphere absorbs less outgoing infrared radiation",
+        "The greenhouse effect weakens as more heat escapes",
+        "The surface warms only because more sunlight is produced"
       ],
       correct: "The greenhouse effect strengthens and average temperatures rise"
     }
@@ -657,9 +657,9 @@ return nutrients to the soil.
         "Why is the canopy important to rainforest wildlife?",
       options: [
         "Its dense roof of leaves supports many animals",
-        "It is the darkest layer",
-        "It contains no plant life",
-        "It receives less light than the forest floor"
+        "Its open floor provides most of the forest's bare-ground habitat",
+        "It lies below the darkest understory vegetation",
+        "Its leaves receive less light than leaves on the forest floor"
       ],
       correct: "Its dense roof of leaves supports many animals"
     },
@@ -669,9 +669,9 @@ return nutrients to the soil.
         "What characterizes many understory plants?",
       options: [
         "They are adapted to limited sunlight",
-        "They grow above every emergent tree",
-        "They receive constant strong winds",
-        "They do not require water"
+        "They need more direct sunlight than emergent-tree leaves",
+        "They rely on stronger winds than plants above the canopy",
+        "They grow without using light for photosynthesis"
       ],
       correct: "They are adapted to limited sunlight"
     },
@@ -681,9 +681,9 @@ return nutrients to the soil.
         "What important process occurs on the forest floor?",
       options: [
         "Decomposers return nutrients to the soil",
-        "The tallest trees capture the strongest winds",
-        "Most sunlight is stored permanently",
-        "Leaves form the rainforest canopy"
+        "Leaf canopies form above all emergent trees",
+        "Roots obtain nutrients mainly from unbroken leaf litter",
+        "Dead material remains unchanged without decomposition"
       ],
       correct: "Decomposers return nutrients to the soil"
     }
@@ -701,15 +701,15 @@ export const leitnerSystemMatchData = {
     { id: "lsmc4", front: "Plasma", back: "Carries blood cells, nutrients, hormones, and wastes." }
   ],
   practice: [
-    { id: "lsmp1", question: "Which component transports oxygen?", options: ["Red blood cells", "Platelets", "Plasma", "White blood cells"], correct: "Red blood cells" },
-    { id: "lsmp2", question: "Which component helps fight infection?", options: ["White blood cells", "Plasma", "Platelets", "Red blood cells"], correct: "White blood cells" },
-    { id: "lsmp3", question: "Which component helps form clots?", options: ["Platelets", "Plasma", "Red blood cells", "White blood cells"], correct: "Platelets" },
+    { id: "lsmp1", question: "Which component transports oxygen?", options: ["Red blood cells", "Platelets", "Fibrin", "White blood cells"], correct: "Red blood cells" },
+    { id: "lsmp2", question: "Which component helps fight infection?", options: ["White blood cells", "Plasma water", "Hemoglobin", "Red blood cells"], correct: "White blood cells" },
+    { id: "lsmp3", question: "Which component helps form clots?", options: ["Platelets", "Albumin", "Red blood cells", "White blood cells"], correct: "Platelets" },
     { id: "lsmp4", question: "Which component carries nutrients and hormones?", options: ["Plasma", "Platelets", "White blood cells", "Red blood cells"], correct: "Plasma" }
   ],
   test: [
-    { id: "lsmt1", question: "A patient has difficulty forming blood clots; which component may be low?", options: ["Platelets", "Plasma", "Red blood cells", "White blood cells"], correct: "Platelets" },
-    { id: "lsmt2", question: "Which pairing is correct?", options: ["White blood cells — defense against infection", "Platelets — oxygen transport", "Plasma — blood clotting only", "Red blood cells — hormone production"], correct: "White blood cells — defense against infection" },
-    { id: "lsmt3", question: "What is a major function of plasma?", options: ["Transporting dissolved materials and blood cells", "Producing all antibodies", "Carrying oxygen with hemoglobin", "Sealing wounds by itself"], correct: "Transporting dissolved materials and blood cells" }
+    { id: "lsmt1", question: "A patient has difficulty forming blood clots; which component may be low?", options: ["Platelets", "Hemoglobin", "Red blood cells", "White blood cells"], correct: "Platelets" },
+    { id: "lsmt2", question: "Which pairing is correct?", options: ["White blood cells — defense against infection", "Platelets ? oxygen transport", "Plasma ? production of red blood cells", "Red blood cells ? hormone production"], correct: "White blood cells — defense against infection" },
+    { id: "lsmt3", question: "What is a major function of plasma?", options: ["Transporting dissolved materials and blood cells", "Producing antibodies inside red blood cells", "Carrying most oxygen bound to hemoglobin", "Producing platelets within the bloodstream"], correct: "Transporting dissolved materials and blood cells" }
   ]
 };
 
@@ -725,8 +725,8 @@ export const storyTellingMatchData = {
     "Outer layers drift away and the core remains as a white dwarf."
   ],
   questions: [
-    { id: "stm1", question: "What forms before a main-sequence star?", options: ["A protostar", "A white dwarf", "A red giant", "A planet"], correct: "A protostar" },
-    { id: "stm2", question: "What begins when a main-sequence star forms?", options: ["Nuclear fusion", "The loss of all gravity", "Planetary motion", "The immediate white-dwarf stage"], correct: "Nuclear fusion" },
+    { id: "stm1", question: "What forms before a main-sequence star?", options: ["A protostar", "A white dwarf", "A red giant", "A neutron star"], correct: "A protostar" },
+    { id: "stm2", question: "What begins when a main-sequence star forms?", options: ["Nuclear fusion", "Chemical combustion", "Gravitational cooling alone", "Expansion into a white dwarf"], correct: "Nuclear fusion" },
     { id: "stm3", question: "What stage follows declining hydrogen in the core?", options: ["Red giant", "Nebula", "Protostar", "Main-sequence star"], correct: "Red giant" },
     { id: "stm4", question: "Which sequence is correct?", options: ["Nebula, protostar, main sequence, red giant, white dwarf", "Protostar, white dwarf, nebula, red giant, main sequence", "White dwarf, nebula, red giant, protostar, main sequence", "Red giant, nebula, main sequence, white dwarf, protostar"], correct: "Nebula, protostar, main sequence, red giant, white dwarf" }
   ]
@@ -738,10 +738,10 @@ export const captureCreateMatchData = {
   topic: "Feedback loops",
   content: `A feedback loop occurs when the output of a system influences what happens next. Negative feedback counteracts change and helps stabilize a system, such as body-temperature regulation. Positive feedback reinforces change and pushes a process further in the same direction, such as contractions during childbirth. Recognizing the kind of loop helps explain how systems behave and how an intervention may affect them.`,
   questions: [
-    { id: "ccm1", question: "What defines a feedback loop?", options: ["A system's output influences its later behavior", "A system never responds to its output", "Every process stops after one step", "Only outside forces can affect a system"], correct: "A system's output influences its later behavior" },
-    { id: "ccm2", question: "Why does negative feedback matter?", options: ["It can stabilize a system by counteracting change", "It always accelerates change", "It removes every system input", "It prevents any response"], correct: "It can stabilize a system by counteracting change" },
+    { id: "ccm1", question: "What defines a feedback loop?", options: ["A system's output influences its later behavior", "An output changes without influencing the system again", "Every output is determined only by an external input", "A process repeats without responding to its results"], correct: "A system's output influences its later behavior" },
+    { id: "ccm2", question: "Why does negative feedback matter?", options: ["It can stabilize a system by counteracting change", "It reinforces each change and moves the system farther from its starting point", "It stabilizes a system by removing every response to change", "It makes a system's output independent of all inputs"], correct: "It can stabilize a system by counteracting change" },
     { id: "ccm3", question: "Which example is positive feedback?", options: ["Contractions that intensify further contractions", "Sweating that lowers body temperature", "A thermostat switching off heat", "Blood sugar returning toward normal"], correct: "Contractions that intensify further contractions" },
-    { id: "ccm4", question: "When is the concept especially useful?", options: ["When predicting how a system responds to change", "Only when a system has no outputs", "When comparing unrelated definitions", "Only after a system permanently stops"], correct: "When predicting how a system responds to change" }
+    { id: "ccm4", question: "When is the concept especially useful?", options: ["When predicting how a system responds to change", "When assuming outputs never affect later conditions", "When describing only the first input to a system", "When ignoring the direction of a system's response"], correct: "When predicting how a system responds to change" }
   ]
 };
 
@@ -760,7 +760,7 @@ export const abbreviationMatchData = {
     { id: "abbrm1", question: "Which lake is represented by the O in HOMES?", options: ["Ontario", "Erie", "Superior", "Michigan"], correct: "Ontario" },
     { id: "abbrm2", question: "Which lake is represented by the M in HOMES?", options: ["Michigan", "Huron", "Ontario", "Superior"], correct: "Michigan" },
     { id: "abbrm3", question: "Which option contains only Great Lakes?", options: ["Huron, Erie, Superior", "Huron, Tahoe, Erie", "Ontario, Victoria, Michigan", "Superior, Baikal, Erie"], correct: "Huron, Erie, Superior" },
-    { id: "abbrm4", question: "What does HOMES help reconstruct?", options: ["Huron, Ontario, Michigan, Erie, Superior", "Hudson, Ohio, Maine, Erie, Saskatchewan", "Huron, Ottawa, Manitoba, Erie, Superior", "Huron, Ontario, Michigan, Everest, Superior"], correct: "Huron, Ontario, Michigan, Erie, Superior" }
+    { id: "abbrm4", question: "What does HOMES help reconstruct?", options: ["Huron, Ontario, Michigan, Erie, Superior", "Huron, Ottawa, Michigan, Erie, Superior", "Huron, Ontario, Manitoba, Erie, Superior", "Huron, Ontario, Michigan, Erie, Saskatchewan"], correct: "Huron, Ontario, Michigan, Erie, Superior" }
   ]
 };
 
@@ -776,9 +776,9 @@ export const headerFirstMatchData = {
   ],
   questions: [
     { id: "hfm1", question: "Which stage can transform and package food?", options: ["Processing", "Production", "Distribution", "Consumption only"], correct: "Processing" },
-    { id: "hfm2", question: "Why might distribution control temperature?", options: ["To protect food quality and safety during transport", "To make farms produce faster", "To replace processing", "To eliminate retail stores"], correct: "To protect food quality and safety during transport" },
+    { id: "hfm2", question: "Why might distribution control temperature?", options: ["To protect food quality and safety during transport", "To replace food processing with refrigeration during transport", "To accelerate ripening in all foods throughout transport", "To avoid checking food condition when it reaches retailers"], correct: "To protect food quality and safety during transport" },
     { id: "hfm3", question: "Which heading would discuss warehouses and transport?", options: ["Distribution", "Production", "Processing", "Retail and consumption"], correct: "Distribution" },
-    { id: "hfm4", question: "What sequence do the headers reveal?", options: ["Production through processing and distribution to consumption", "Consumption before production", "Four unrelated farming methods", "Retail followed by crop growth"], correct: "Production through processing and distribution to consumption" }
+    { id: "hfm4", question: "What sequence do the headers reveal?", options: ["Production through processing and distribution to consumption", "Distribution, consumption, processing, production", "Production, consumption, distribution, processing", "Processing, retail, production, distribution"], correct: "Production through processing and distribution to consumption" }
   ]
 };
 
@@ -789,10 +789,10 @@ export const primeQuestionMatchData = {
   guidingQuestion: "How do urban trees reduce heat through both shade and water movement?",
   material: `Tree canopies block part of the Sun's radiation from heating roads and buildings. Trees also draw water from the soil and release water vapor through transpiration. Evaporation during this process uses heat energy and cools the surrounding air. Groups of healthy trees can therefore reduce surface temperatures and local air temperatures, especially where paved surfaces would otherwise store substantial heat.`,
   questions: [
-    { id: "pqm1", question: "How does a canopy directly reduce surface heating?", options: ["It blocks part of the Sun's radiation", "It produces cold pavement", "It removes every building", "It stops air movement"], correct: "It blocks part of the Sun's radiation" },
-    { id: "pqm2", question: "Why does transpiration cool nearby air?", options: ["Evaporation uses heat energy", "Water vapor creates sunlight", "Roots reflect all radiation", "Leaves stop using water"], correct: "Evaporation uses heat energy" },
-    { id: "pqm3", question: "Where can urban trees have especially strong value?", options: ["Areas with heat-storing paved surfaces", "Areas with no sunlight ever", "Only inside sealed buildings", "Places without soil or water"], correct: "Areas with heat-storing paved surfaces" },
-    { id: "pqm4", question: "What complete answer fits the guiding question?", options: ["Trees shade surfaces and cool air through transpiration", "Trees cool only by changing road color", "Trees eliminate solar energy", "Trees cool only after losing all leaves"], correct: "Trees shade surfaces and cool air through transpiration" }
+    { id: "pqm1", question: "How does a canopy directly reduce surface heating?", options: ["It blocks part of the Sun's radiation", "It cools pavement mainly by removing its stored mass", "It prevents the ground from giving off heat at night", "It cools surfaces mainly by increasing absorbed sunlight"], correct: "It blocks part of the Sun's radiation" },
+    { id: "pqm2", question: "Why does transpiration cool nearby air?", options: ["Evaporation uses heat energy", "Evaporation releases heat into the surrounding air", "The leaves turn sunlight directly into cooler air", "Water vapor prevents heat from entering the atmosphere"], correct: "Evaporation uses heat energy" },
+    { id: "pqm3", question: "Where can urban trees have especially strong value?", options: ["Areas with heat-storing paved surfaces", "Shaded areas that already remain cool throughout the day", "Locations selected only for the color of their pavement", "Only indoor spaces separated from outdoor air"], correct: "Areas with heat-storing paved surfaces" },
+    { id: "pqm4", question: "What complete answer fits the guiding question?", options: ["Trees shade surfaces and cool air through transpiration", "Trees cool paved surfaces only by changing their color", "Trees cool air mainly by preventing evaporation from leaves", "Trees cool surfaces by absorbing all heat into their roots"], correct: "Trees shade surfaces and cool air through transpiration" }
   ]
 };
 
@@ -811,7 +811,7 @@ export const doodleEffectMatchData = {
   questions: [
     { id: "dem1", question: "What process forms igneous rock from magma?", options: ["Cooling and solidification", "Weathering", "Compaction only", "Uplift"], correct: "Cooling and solidification" },
     { id: "dem2", question: "How does sediment become sedimentary rock?", options: ["Compaction and cementation", "Melting and cooling", "Heat and pressure only", "Evaporation and freezing"], correct: "Compaction and cementation" },
-    { id: "dem3", question: "Which relationship forms metamorphic rock?", options: ["Existing rock plus heat and pressure", "Magma plus weathering", "Sediment plus melting", "Igneous rock plus sunlight"], correct: "Existing rock plus heat and pressure" },
+    { id: "dem3", question: "Which relationship forms metamorphic rock?", options: ["Existing rock plus heat and pressure", "Magma plus weathering", "Sediment plus melting", "Existing rock plus compaction and cementation"], correct: "Existing rock plus heat and pressure" },
     { id: "dem4", question: "What returns rock material to magma?", options: ["Melting", "Cementation", "Erosion", "Uplift"], correct: "Melting" }
   ]
 };
@@ -836,10 +836,10 @@ export const eightyTwentyMatchData = {
     "Adequate sleep"
   ],
   questions: [
-    { id: "etm1", question: "What should guide the week's highest priorities?", options: ["The assessed learning objectives", "Matching stationery", "Page-border colors", "The number of available fonts"], correct: "The assessed learning objectives" },
-    { id: "etm2", question: "Which activity produces useful evidence about learning?", options: ["Retrieval practice followed by error checking", "Rewriting decorative headings", "Sorting pens by color", "Changing the timetable font"], correct: "Retrieval practice followed by error checking" },
-    { id: "etm3", question: "Which pair is most likely to drive performance?", options: ["Practising weak key skills and protecting sleep", "Color coding and matching stationery", "Fonts and borders", "Decorating and recopying schedules"], correct: "Practising weak key skills and protecting sleep" },
-    { id: "etm4", question: "How is the 80/20 rule being applied?", options: ["Time goes first to the few actions with greatest learning value", "Every task receives equal time", "Only easy details are studied", "Twenty separate schedules are created"], correct: "Time goes first to the few actions with greatest learning value" }
+    { id: "etm1", question: "What should guide the week's highest priorities?", options: ["The assessed learning objectives", "Chapter length alone", "Familiarity of topics alone", "Timetable formatting choices"], correct: "The assessed learning objectives" },
+    { id: "etm2", question: "Which activity produces useful evidence about learning?", options: ["Retrieval practice followed by error checking", "Rereading familiar notes without checking recall", "Copying worked answers without attempting the questions", "Highlighting every sentence before testing understanding"], correct: "Retrieval practice followed by error checking" },
+    { id: "etm3", question: "Which pair is most likely to drive performance?", options: ["Practising weak key skills and protecting sleep", "Recopying familiar notes and reorganizing the same schedule", "Studying every minor detail and cutting sleep to gain time", "Reading worked solutions and avoiding difficult practice"], correct: "Practising weak key skills and protecting sleep" },
+    { id: "etm4", question: "How is the 80/20 rule being applied?", options: ["Time goes first to the few actions with greatest learning value", "Every task receives equal time regardless of learning value", "Only the easiest details receive the available study time", "Exactly twenty percent of the content is chosen at random"], correct: "Time goes first to the few actions with greatest learning value" }
   ]
 };
 
@@ -856,9 +856,9 @@ export const divideStepsMatchData = {
     "Deliver it and record the final scan."
   ],
   questions: [
-    { id: "dsm1", question: "What happens before regional transport?", options: ["The package is scanned and sorted at origin", "The final delivery scan is recorded", "The recipient returns it", "The label is removed"], correct: "The package is scanned and sorted at origin" },
-    { id: "dsm2", question: "Why are scans used throughout the process?", options: ["They update location and support correct routing", "They make transport unnecessary", "They replace package labels", "They guarantee same-minute delivery"], correct: "They update location and support correct routing" },
-    { id: "dsm3", question: "Which step follows arrival in the destination region?", options: ["Sorting onto a local delivery route", "Creating the original label", "Returning to the origin automatically", "Removing all tracking data"], correct: "Sorting onto a local delivery route" },
+    { id: "dsm1", question: "What happens before regional transport?", options: ["The package is scanned and sorted at origin", "The package is placed on its final delivery route", "The destination depot records the final delivery scan", "The recipient confirms receipt before transport starts"], correct: "The package is scanned and sorted at origin" },
+    { id: "dsm2", question: "Why are scans used throughout the process?", options: ["They update location and support correct routing", "They replace the need to sort packages by destination", "They change the destination on every transport leg", "They guarantee delivery without any physical movement"], correct: "They update location and support correct routing" },
+    { id: "dsm3", question: "Which step follows arrival in the destination region?", options: ["Sorting onto a local delivery route", "Returning to origin before any local sorting", "Reprinting the sender's label before every route decision", "Recording delivery before the local route begins"], correct: "Sorting onto a local delivery route" },
     { id: "dsm4", question: "Which sequence is correct?", options: ["Collection, origin sorting, regional transport, local route, delivery", "Delivery, collection, transport, label, sorting", "Regional transport, delivery, collection, sorting, label", "Local route, origin sorting, collection, delivery, transport"], correct: "Collection, origin sorting, regional transport, local route, delivery" }
   ]
 };
@@ -876,30 +876,30 @@ export const deriveBasicsMatchData = {
     "Earth's rotation changes the Sun's apparent angle."
   ],
   questions: [
-    { id: "dbm1", question: "Why are shadows usually long when the Sun is low?", options: ["Light reaches the ground at a shallow angle", "Light stops moving in straight lines", "Objects become taller", "Earth stops rotating"], correct: "Light reaches the ground at a shallow angle" },
-    { id: "dbm2", question: "Why is a midday shadow often shorter?", options: ["Sunlight strikes the ground more steeply", "The object loses height", "Opaque objects become transparent", "The Sun produces less light"], correct: "Sunlight strikes the ground more steeply" },
-    { id: "dbm3", question: "What causes the Sun's apparent position to change?", options: ["Earth's rotation", "The object's color", "The shadow pulling the Sun", "Daily changes in gravity"], correct: "Earth's rotation" },
-    { id: "dbm4", question: "Which reasoning chain is valid?", options: ["Lower apparent Sun angle leads to a longer blocked region", "Higher Sun angle always makes shadows longer", "Straight-line light eliminates shadows", "Rotation makes objects change size"], correct: "Lower apparent Sun angle leads to a longer blocked region" }
+    { id: "dbm1", question: "Why are shadows usually long when the Sun is low?", options: ["Light reaches the ground at a shallow angle", "The object grows taller while its position stays fixed", "The same light spreads less as the Sun approaches the horizon", "Light bends around the object more strongly at low angles"], correct: "Light reaches the ground at a shallow angle" },
+    { id: "dbm2", question: "Why is a midday shadow often shorter?", options: ["Sunlight strikes the ground more steeply", "The object becomes shorter as the ground warms", "Light bends less because the object becomes transparent", "Less light reaches the ground so every shadow contracts"], correct: "Sunlight strikes the ground more steeply" },
+    { id: "dbm3", question: "What causes the Sun's apparent position to change?", options: ["Earth's rotation", "Earth's yearly orbit", "Changes in object height", "Changes in Earth?Sun distance"], correct: "Earth's rotation" },
+    { id: "dbm4", question: "Which reasoning chain is valid?", options: ["Lower apparent Sun angle leads to a longer blocked region", "Higher Sun angle always makes shadows longer", "A longer shadow means the object has gained height", "A lower Sun angle reduces the area blocked from direct light"], correct: "Lower apparent Sun angle leads to a longer blocked region" }
   ]
 };
 
 export const kidlinRuleMatchData={method:"kidlin-rule" as const,title:"KIDLIN'S RULE · ROUND 2",topic:"Clarifying an inconsistent study schedule",vagueProblem:"I never have enough time to study.",context:"On three weekdays, study starts after 10 p.m. because the two hours after dinner are spent switching between messages and short videos. No subject or start time is chosen in advance.",questions:[
-{id:"krm1",question:"Which rewrite is most actionable?",options:["Choose tomorrow's subject tonight and begin a 30-minute session after dinner","There is never any time","Phones ruin everything","Studying is generally hard"],correct:"Choose tomorrow's subject tonight and begin a 30-minute session after dinner"},
-{id:"krm2",question:"What is the most specific obstacle?",options:["Unplanned media switching during the available period","Time does not exist","Every subject is impossible","The week has too few days"],correct:"Unplanned media switching during the available period"},
-{id:"krm3",question:"Which detail provides a useful boundary?",options:["The two hours after dinner on three weekdays","Never","Everything","Enough"],correct:"The two hours after dinner on three weekdays"}]};
+{id:"krm1",question:"Which rewrite is most actionable?",options:["Choose tomorrow's subject tonight and begin a 30-minute session after dinner","Try to study more whenever spare time becomes available","Ban every leisure activity without choosing a study period","Make a longer subject list without deciding when to begin"],correct:"Choose tomorrow's subject tonight and begin a 30-minute session after dinner"},
+{id:"krm2",question:"What is the most specific obstacle?",options:["Unplanned media switching during the available period","The study period is fixed but every subject lacks materials","There is no time available after dinner on any weekday","The student must complete all subjects during every session"],correct:"Unplanned media switching during the available period"},
+{id:"krm3",question:"Which detail provides a useful boundary?",options:["The two hours after dinner on three weekdays","A goal to study whenever there is enough time","A plan to improve every subject at some point","A request to reduce distractions without naming a study period"],correct:"The two hours after dinner on three weekdays"}]};
 export const premackPrincipleMatchData={method:"premack-principle" as const,title:"PREMACK'S PRINCIPLE · ROUND 2",topic:"Practising difficult fraction problems",task:"Complete the fraction explanation before the preferred activity.",material:"To add fractions with different denominators, find a common denominator. Rewrite each fraction equivalently, add the numerators, and simplify.",preferredExamples:["A short social break","Drawing for a few minutes","A favorite snack"],questions:[
-{id:"ppm1",question:"What is the first step when denominators differ?",options:["Find a common denominator","Add the denominators","Delete one fraction","Multiply only numerators"],correct:"Find a common denominator"},
-{id:"ppm2",question:"What happens after rewriting equivalent fractions?",options:["Add the numerators","Add denominators again","Ignore the result","Change the task"],correct:"Add the numerators"},
-{id:"ppm3",question:"When should the preferred activity occur?",options:["After the agreed practice task","Before choosing the task","Instead of practice","During every problem"],correct:"After the agreed practice task"}]};
+{id:"ppm1",question:"What is the first step when denominators differ?",options:["Find a common denominator","Add the denominators","Keep the original denominators and add only the tops","Use one denominator without making equivalent fractions"],correct:"Find a common denominator"},
+{id:"ppm2",question:"What happens after rewriting equivalent fractions?",options:["Add the numerators","Add the denominators again","Multiply the numerators while keeping the denominator","Add the denominators but keep one original numerator"],correct:"Add the numerators"},
+{id:"ppm3",question:"When should the preferred activity occur?",options:["After the agreed practice task","Before choosing the practice task","Instead of completing the agreed practice","Regardless of whether the practice task is completed"],correct:"After the agreed practice task"}]};
 export const wallStareMatchData={method:"ten-minute-wall-stare" as const,title:"10 MIN WALL STARE · ROUND 2",topic:"How soil stores carbon",material:"Plants build carbon-rich tissues. Roots and fallen material enter soil, where organisms decompose them. Some carbon returns to the atmosphere, while some stabilizes in organic matter or binds to minerals for long periods.",questions:[
-{id:"wsm1",question:"How does plant carbon first enter soil?",options:["Through roots and fallen material","Through mineral evaporation","By removing decomposers","Through sunlight alone"],correct:"Through roots and fallen material"},
-{id:"wsm2",question:"What can keep carbon in soil for long periods?",options:["Stabilization in organic matter or binding to minerals","Eliminating plant growth","Constant soil removal","Preventing roots"],correct:"Stabilization in organic matter or binding to minerals"},
-{id:"wsm3",question:"What can decomposition do?",options:["Return some carbon to the atmosphere","Destroy every mineral","Stop all carbon movement","Create carbon from nothing"],correct:"Return some carbon to the atmosphere"}]};
+{id:"wsm1",question:"How does plant carbon first enter soil?",options:["Through roots and fallen material","Through mineral weathering without any plant input","Through rainfall supplying all the carbon in soil","Through sunlight entering soil directly as stored carbon"],correct:"Through roots and fallen material"},
+{id:"wsm2",question:"What can keep carbon in soil for long periods?",options:["Stabilization in organic matter or binding to minerals","Frequent erosion that removes carbon-rich topsoil","Rapid oxidation of all organic matter in the soil","Preventing any plant material from entering soil"],correct:"Stabilization in organic matter or binding to minerals"},
+{id:"wsm3",question:"What can decomposition do?",options:["Return some carbon to the atmosphere","Keep all organic carbon permanently unchanged","Return carbon to the soil only as unbreakable minerals","Create new carbon atoms independently of existing matter"],correct:"Return some carbon to the atmosphere"}]};
 export const strooperEffectMatchData={method:"strooper-effect" as const,title:"STROOPER EFFECT · ROUND 2",topic:"Task switching and response inhibition",material:"Task switching changes from one rule to another while suppressing the previous rule. Responses can slow immediately after a switch because the earlier task set still competes for control. Response inhibition helps prevent the old response.",colors:[{name:"purple",hsla:"hsl(280 100% 45%)"},{name:"pink",hsla:"hsl(330 100% 55%)"},{name:"gold",hsla:"hsl(48 100% 42%)"},{name:"cyan",hsla:"hsl(180 100% 38%)"}],questions:[
-{id:"sem1",question:"Why can performance slow after a task switch?",options:["The previous rule still competes for control","The new rule removes attention","Switching eliminates conflict","The old rule vanishes"],correct:"The previous rule still competes for control"},
-{id:"sem2",question:"What helps prevent the old response?",options:["Response inhibition","Repeating the old rule","Ignoring the new task","Removing every stimulus"],correct:"Response inhibition"},
-{id:"sem3",question:"What changes during task switching?",options:["The rule guiding the response","The profile shape","The hours in a day","Every word's meaning"],correct:"The rule guiding the response"}]};
+{id:"sem1",question:"Why can performance slow after a task switch?",options:["The previous rule still competes for control","The new task always uses exactly the same response rule","The previous response is fully erased before the switch","The switch removes any need to update the response goal"],correct:"The previous rule still competes for control"},
+{id:"sem2",question:"What helps prevent the old response?",options:["Response inhibition","Repeating the previous rule","Speeding up the old response","Following both rules simultaneously"],correct:"Response inhibition"},
+{id:"sem3",question:"What changes during task switching?",options:["The rule guiding the response","Only the appearance of the response buttons","Only the time allowed to make the same response","Only the wording of an unchanged response rule"],correct:"The rule guiding the response"}]};
 export const twoXVideoMatchData={method:"two-x-video-speed" as const,title:"2X VIDEO SPEED · ROUND 2",topic:"How light behaves as a wave",youtubeId:"IRBfpBPELmE",videoTitle:"Light Is Waves: Crash Course Physics #39",channel:"CrashCourse",focusPoints:["Track the evidence that light behaves as a wave.","Notice interference and diffraction patterns.","Connect wavelength and frequency to different kinds of light."],questions:[
-{id:"vxm1",question:"Which observation supports the wave model of light?",options:["Interference patterns","Light having no measurable effects","All colors moving at different speeds in a vacuum","Objects producing no shadows"],correct:"Interference patterns"},
-{id:"vxm2",question:"What happens when a wave spreads after passing an edge or opening?",options:["Diffraction","Combustion","Conduction","Compression only"],correct:"Diffraction"},
-{id:"vxm3",question:"What distinguishes different regions of the electromagnetic spectrum?",options:["Their wavelength and frequency","Whether they are made of different matter","Their need for air","Whether gravity turns off"],correct:"Their wavelength and frequency"}]};
+{id:"vxm1",question:"Which observation supports the wave model of light?",options:["Interference patterns","Photoelectric emission","Photon absorption events","Discrete atomic spectra"],correct:"Interference patterns"},
+{id:"vxm2",question:"What happens when a wave spreads after passing an edge or opening?",options:["Diffraction","Reflection","Refraction","Absorption"],correct:"Diffraction"},
+{id:"vxm3",question:"What distinguishes different regions of the electromagnetic spectrum?",options:["Their wavelength and frequency","Their speed through a vacuum","Their need for a material medium","Their electrical charge"],correct:"Their wavelength and frequency"}]};

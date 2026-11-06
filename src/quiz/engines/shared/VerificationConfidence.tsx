@@ -1,6 +1,7 @@
 import type {
   ReactNode
 } from "react";
+import { useQuestionAdvance } from "../../AssessmentQuestionUX";
 
 type Props = {
   prompt: ReactNode;
@@ -17,6 +18,11 @@ function VerificationConfidence({
   completeLabel,
   onComplete
 }: Props) {
+  const submission = useQuestionAdvance("verification-confidence", () => {
+    if (value === null) return false;
+    onComplete();
+    return true;
+  });
   return (
     <>
       <h2>{prompt}</h2>
@@ -29,8 +35,8 @@ function VerificationConfidence({
               key={rating}
               className={
                 value === rating
-                  ? "selected"
-                  : ""
+                  ? "rating-choice selected"
+                  : "rating-choice"
               }
               onClick={() =>
                 onChange(rating)
@@ -45,7 +51,7 @@ function VerificationConfidence({
       <button
         type="button"
         disabled={value === null}
-        onClick={onComplete}
+        onClick={event => { if (event.detail < 2) submission.completeNow(); }}
       >
         {completeLabel}
       </button>

@@ -72,10 +72,10 @@ const aiAccessMocks = vi.hoisted(() => ({
     error: null as string | null,
     user: null as { uid: string } | null,
     access: {
-      limit: 2,
+      limit: 1,
       used: 0,
       reserved: 0,
-      remaining: 2,
+      remaining: 1,
       plan: "guest" as "guest" | "free" | "premium",
       deep: {
         limit: 0,
@@ -183,10 +183,10 @@ beforeEach(() => {
   aiAccessMocks.state.loading = false;
   aiAccessMocks.state.error = null;
   aiAccessMocks.state.user = null;
-  aiAccessMocks.state.access.limit = 2;
+  aiAccessMocks.state.access.limit = 1;
   aiAccessMocks.state.access.used = 0;
   aiAccessMocks.state.access.reserved = 0;
-  aiAccessMocks.state.access.remaining = 2;
+  aiAccessMocks.state.access.remaining = 1;
   aiAccessMocks.state.access.plan = "guest";
   aiAccessMocks.state.access.deep.limit = 0;
   aiAccessMocks.state.access.deep.used = 0;
@@ -235,6 +235,14 @@ function renderTraining() {
 }
 
 describe("training entry choices", () => {
+  it("passes the selected Economics topic through the actual Test Me entry", async () => {
+    renderTraining();
+    fireEvent.change(screen.getByRole("combobox",{name:"Training subject"}),{target:{value:"9708"}});
+    fireEvent.change(screen.getByRole("combobox",{name:"Economics topic"}),{target:{value:"2.2"}});
+    fireEvent.click(screen.getByRole("button",{name:"Start assessment"}));
+    await screen.findByText("Assessment route");
+    expect(accessMocks.start).toHaveBeenCalledWith(expect.objectContaining({mode:"auto",methodIds:[],economicsTopicId:"2.2"}));
+  });
   it("shows both training modes", () => {
     renderTraining();
 
@@ -245,7 +253,7 @@ describe("training entry choices", () => {
     ).toBeTruthy();
     expect(
       screen.getByRole("heading", {
-        name: "Choose my methods"
+        name: "Individual methods"
       })
     ).toBeTruthy();
   });
@@ -293,9 +301,9 @@ describe("training entry choices", () => {
     accessMocks.state.testMeRemaining = 0;
     accessMocks.state.manualMethodsUsed = 2;
     accessMocks.state.manualMethodsRemaining = 1;
-    aiAccessMocks.state.access.limit = 4;
-    aiAccessMocks.state.access.used = 3;
-    aiAccessMocks.state.access.remaining = 1;
+    aiAccessMocks.state.access.limit = 3;
+    aiAccessMocks.state.access.used = 1;
+    aiAccessMocks.state.access.remaining = 2;
     aiAccessMocks.state.access.plan = "free";
 
     renderTraining();
@@ -305,7 +313,7 @@ describe("training entry choices", () => {
       .toBeTruthy();
     expect(screen.getByText("2 / 3 used today"))
       .toBeTruthy();
-    expect(screen.getByText("3 / 4 used today"))
+    expect(screen.getByText("1 / 3 used today"))
       .toBeTruthy();
     expect((screen.getByRole("button", {
       name: "Daily Test Me used"

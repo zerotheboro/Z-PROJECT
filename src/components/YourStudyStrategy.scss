@@ -1,0 +1,31 @@
+.cumulative-profile .study-strategy {
+  margin: var(--space-3) 0;
+  padding: var(--space-3);
+  border: 2px solid var(--darker-black);
+  border-radius: var(--radius);
+  background: var(--font-color);
+  box-shadow: var(--shadow);
+  min-width: 0;
+  h2 { text-align: left; font-family: var(--font-heading); font-size: clamp(1.9rem, 4vw, 3rem); }
+  h3 { margin: .65rem 0; font-size: 1.15rem; }
+  p, li { font-size: .95rem; line-height: 1.65; }
+  .study-strategy-heading { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: space-between; align-items: end; }
+  .study-strategy-heading > div { flex: 1 1 260px; }
+  label { flex: 1 1 240px; max-width: 100%; font-size: .9rem; font-weight: 700; }
+  select { display: block; width: 100%; min-height: 48px; padding: .6rem; margin-top: .35rem; font: inherit; color: var(--darker-black); border: 2px solid var(--complement-of-yellow); border-radius: var(--radius); background: var(--font-color); }
+  .study-strategy-source { margin-top: var(--space-2); color: var(--complement-of-yellow); }
+  .study-strategy-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--space-2); margin-top: var(--space-2); }
+  article, aside { min-width: 0; padding: var(--space-2); border-radius: var(--radius); background: color-mix(in srgb, var(--lightblue) 13%, var(--font-color)); }
+  aside { background: color-mix(in srgb, var(--passion-orange) 25%, var(--font-color)); }
+  .study-strategy-method { font-size: 1.05rem; }
+  .study-strategy-notice { padding: .65rem; border-left: 4px solid var(--tomato); }
+  .study-strategy-details { margin-top: var(--space-2); }
+  details ol, details ul { padding-left: 1.4rem; }
+  details li { margin: .5rem 0; }
+  summary { min-height: 44px; padding: .65rem 0; cursor: pointer; }
+  summary::before, summary::after { content: none !important; }
+  .study-strategy-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-top: var(--space-2); }
+  .study-strategy-actions p { flex: 1 1 280px; }
+  :is(select, summary, button, a):focus-visible { outline: 3px solid var(--complement-of-yellow); outline-offset: 4px; }
+  @media (max-width: 700px) { padding: var(--space-2); .study-strategy-grid { grid-template-columns: minmax(0, 1fr); } }
+}

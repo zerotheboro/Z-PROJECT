@@ -34,6 +34,21 @@ beforeEach(() => {
 });
 
 describe("new Training session startup", () => {
+  it("rejects incomplete Economics topics before reserving or saving anything", async () => {
+    await expect(startTrainingSession({ user:null, owner:{kind:"guest"}, mode:"auto", methodIds:[], sessionId:"economics-unready", economicsTopicId:"4.3" })).rejects.toThrow(/not ready/);
+    expect(mocks.reserve).not.toHaveBeenCalled(); expect(mocks.save).not.toHaveBeenCalled();
+  });
+  it.each(["auto", "manual"] as const)("keeps a %s Economics topic on the original reservation and saved draft", async mode => {
+    const methodIds = mode === "manual" ? ["active-recall" as const] : [];
+    const d = await startTrainingSession({ user:null,owner:{kind:"guest"},mode,methodIds,sessionId:"economics-start",economicsTopicId:"2.2" });
+    expect(mocks.reserve).toHaveBeenCalledExactlyOnceWith(null,{sessionId:"economics-start",mode,methodIds});
+    expect(d.internalState.curriculum.named.economics9708).toEqual({topicId:"2.2",version:"2026-v2-pilot-1",activityVersion:"mapped-1"});
+    expect(mocks.save).toHaveBeenCalledExactlyOnceWith(d,{allowCreate:true});
+  });
+  it("rejects unsupported new Economics methods before charging a reservation", async () => {
+    await expect(startTrainingSession({ user:null, owner:{kind:"guest"}, mode:"manual", methodIds:["doodle-effect"], economicsTopicId:"1.5" })).rejects.toThrow(/not supported/);
+    expect(mocks.reserve).not.toHaveBeenCalled(); expect(mocks.save).not.toHaveBeenCalled();
+  });
   it("reserves and saves the exact same session ID", async () => {
     const draft = await startTrainingSession({
       user: null,

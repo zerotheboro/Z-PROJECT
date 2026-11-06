@@ -120,22 +120,22 @@ function answerCurrentCorrectly(number: number) {
   }));
 }
 
-describe("adaptive multiple-choice integration", () => {
-  it("applies a committed window to the next challenge", async () => {
+describe("display-only difficulty integration", () => {
+  it("keeps four options and the same label after a previously adaptive performance window", async () => {
     render(<AdaptiveRunnerHarness />);
 
-    expect(optionCount()).toBe(3);
+    expect(optionCount()).toBe(4);
     answerCurrentCorrectly(1);
-    expect(optionCount()).toBe(3);
+    expect(optionCount()).toBe(4);
     answerCurrentCorrectly(2);
-    expect(optionCount()).toBe(3);
+    expect(optionCount()).toBe(4);
     answerCurrentCorrectly(3);
 
     await waitFor(() => {
       expect(
         screen.getByLabelText("difficulty")
           .textContent
-      ).toBe("hard");
+      ).toBe("medium");
     });
     expect(screen.getByRole("heading", {
       name: "Adaptive question 4"
@@ -148,7 +148,7 @@ describe("adaptive multiple-choice integration", () => {
     expect(screen.getByRole("heading", {
       name: "Adaptive question 3"
     })).toBeTruthy();
-    expect(optionCount()).toBe(3);
+    expect(optionCount()).toBe(4);
     expect(screen.getByRole("button", {
       name: "Correct 3"
     }).classList.contains("selected")).toBe(true);
@@ -159,11 +159,11 @@ describe("adaptive multiple-choice integration", () => {
     expect(
       screen.getByLabelText("processed events")
         .textContent
-    ).toBe("3");
+    ).toBe("0");
     expect(optionCount()).toBe(4);
   });
 
-  it("does not count a previously committed question again after Back", async () => {
+  it("does not change historical difficulty metadata on answers or Back", async () => {
     render(<AdaptiveRunnerHarness />);
 
     answerCurrentCorrectly(1);
@@ -171,7 +171,7 @@ describe("adaptive multiple-choice integration", () => {
       expect(
         screen.getByLabelText("processed events")
           .textContent
-      ).toBe("1");
+      ).toBe("0");
     });
 
     fireEvent.click(screen.getByRole("button", {
@@ -187,7 +187,7 @@ describe("adaptive multiple-choice integration", () => {
     expect(
       screen.getByLabelText("processed events")
         .textContent
-    ).toBe("1");
+    ).toBe("0");
     expect(
       screen.getByLabelText("difficulty")
         .textContent

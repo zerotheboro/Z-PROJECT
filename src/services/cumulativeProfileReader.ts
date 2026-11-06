@@ -3,11 +3,19 @@ import type { CumulativeProfileView, ProfileRow } from "../quiz/cumulativeProfil
 import { buildAcceptedProfilePreview } from "./acceptedProfilePreview";
 import type { AcceptedPreviewStatus } from "./acceptedProfilePreview";
 import type { SyntheticPublicationStatus } from "./syntheticPublishedProfile";
+import { completedEvidenceSourceKey } from "../quiz/completedEvidenceIdentity";
+import { assertCompletedSessionEvidence } from "../quiz/learningEvidence";
 
 export type PendingCompletionStatus = { sessionId: string; acknowledged: boolean; legacy: boolean };
+/** Read-model only: preserved after existing snapshot verification, never a
+ * new persistence/acceptance contract. Private completion details are omitted. */
+export type StrategyEvidenceSnapshot = { ownerUid: string; scope: "accepted-history" | "published-generation";
+  rows: ProfileRow[]; pendingAcceptedSessions: number; legacyReportsExcluded: boolean;
+  acceptanceHead?: { revision: number; lifecycleEpoch: number | null; basis: "visible-v2-receipts" | "server-journal-head" } };
 export type CumulativeProfileSnapshot = CumulativeProfileView & {
   pending: PendingCompletionStatus[]; browserStorageVerified: boolean; preview?: AcceptedPreviewStatus;
   publication?: SyntheticPublicationStatus;
+  strategyEvidence?: StrategyEvidenceSnapshot;
 };
 export type CumulativeReadRepository = {
   summary(uid: string): Promise<unknown | null>;
@@ -15,6 +23,35 @@ export type CumulativeReadRepository = {
   legacy(uid: string): Promise<ProfileRow[]>;
   pending(uid: string): Promise<PendingCompletionStatus[]>;
 };
+
+export function strategyEvidenceSnapshot(uid: string, view: CumulativeProfileView, rows: readonly ProfileRow[],
+  scope: StrategyEvidenceSnapshot["scope"], pendingAcceptedSessions = 0, serverAcceptanceRevision?: number): StrategyEvidenceSnapshot | undefined {
+  if (!view.coverageComplete) return undefined;
+  const active = new Set(view.history.filter(h => h.serverRecorded).map(h => completedEvidenceSourceKey(h.evidence)));
+  const selected: ProfileRow[] = [];
+  for (const row of rows) {
+    const data = row.data as Record<string, unknown>;
+    assertCompletedSessionEvidence(data.evidence);
+    if (!active.has(completedEvidenceSourceKey(data.evidence))) continue;
+    selected.push({ id: row.id, data: { schemaVersion: data.schemaVersion, evidence: data.evidence,
+      ...(data.evidence.provenance.kind === "native" ? { receipt: data.receipt, requestHash: data.requestHash } : {}),
+      ...(data.objectiveEvidence !== undefined ? { objectiveEvidence: data.objectiveEvidence } : {}),
+      ...(data.materialPresentations !== undefined ? { materialPresentations: data.materialPresentations } : {}) } });
+  }
+  const receipts = selected.flatMap(row => {
+    const data = row.data as Record<string, unknown>;
+    return data.receipt ? [data.receipt as { schemaVersion: number; acceptedRevision?: number; lifecycleEpoch?: number }] : [];
+  });
+  const v2 = receipts.length === selected.length && receipts.every(r => r.schemaVersion === 2 && Number.isSafeInteger(r.acceptedRevision) &&
+    r.acceptedRevision! > 0 && Number.isSafeInteger(r.lifecycleEpoch) && r.lifecycleEpoch! > 0);
+  const epochs = new Set(receipts.map(r => r.lifecycleEpoch));
+  const visibleRevision = Math.max(0, ...receipts.map(r => r.acceptedRevision ?? 0));
+  if (serverAcceptanceRevision !== undefined && (!Number.isSafeInteger(serverAcceptanceRevision) || serverAcceptanceRevision < visibleRevision)) throw new Error("Acceptance cutoff mismatch.");
+  const acceptanceHead = v2 && epochs.size <= 1 && (pendingAcceptedSessions === 0 || serverAcceptanceRevision !== undefined) ? {
+    revision: serverAcceptanceRevision ?? visibleRevision, lifecycleEpoch: receipts[0]?.lifecycleEpoch ?? null,
+    basis: serverAcceptanceRevision === undefined ? "visible-v2-receipts" as const : "server-journal-head" as const } : undefined;
+  return { ownerUid: uid, scope, rows: selected, pendingAcceptedSessions, legacyReportsExcluded: false, ...(acceptanceHead ? { acceptanceHead } : {}) };
+}
 
 /** Read-only, injectable repository. No profile aggregation, persistence or quota calls. */
 export function createCumulativeProfileReader(repository: CumulativeReadRepository, assertOwner: (uid: string) => void,
@@ -35,8 +72,12 @@ export function createCumulativeProfileReader(repository: CumulativeReadReposito
       let pending: PendingCompletionStatus[] = [], browserStorageVerified = true;
       try { pending = await repository.pending(uid); } catch { browserStorageVerified = false; }
       assertOwner(uid);
-      return { ...(options.acceptedPreview ? buildAcceptedProfilePreview(uid, evidence, legacy)
-        : buildCumulativeProfileView(uid, after, evidence, legacy)), pending, browserStorageVerified };
+      const view = options.acceptedPreview ? buildAcceptedProfilePreview(uid, evidence, legacy)
+        : buildCumulativeProfileView(uid, after, evidence, legacy);
+      const strategyEvidence = strategyEvidenceSnapshot(uid, view, evidence, "accepted-history") ??
+        (after === null && evidence.length === 0 ? { ownerUid: uid, scope: "accepted-history" as const, rows: [],
+          pendingAcceptedSessions: 0, legacyReportsExcluded: legacy.length > 0 } : undefined);
+      return { ...view, pending, browserStorageVerified, ...(strategyEvidence ? { strategyEvidence } : {}) };
     }
     throw new Error("Your recorded history changed while loading. Refresh to view a consistent snapshot.");
   };

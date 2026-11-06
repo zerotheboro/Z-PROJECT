@@ -6,7 +6,8 @@ import {
 import {
   AIRecommendationDeepAccessError,
   AIRecommendationDeepQuotaExceededError,
-  AIRecommendationQuotaExceededError
+  AIRecommendationQuotaExceededError,
+  GUEST_AI_DAILY_LIMIT
 } from "./aiRecommendationQuota.js";
 import {
   ALLOWED_MODELS,
@@ -20,13 +21,15 @@ import {
   SIGNED_IN_RATE_LIMIT,
   createRecommendationApp
 } from "./server.js";
+import { getReviewedHowTo } from "./recommendationHowTo.js";
+import { METHOD_POOL } from "./methodPool.js";
 
 const successfulResult = {
   user_problem: "Needs a more reliable study routine",
   recommended_methods: [
     {
       name: "Active Recall",
-      branch: "memory",
+      branch: "meta-learn",
       reason: "It practices retrieving learned material.",
       warning: "It works best after the material has been understood."
     }
@@ -58,7 +61,7 @@ const evaluationScenarios = [
       recommended_methods: [
         {
           name: "Feynman Technique",
-          branch: "understanding",
+          branch: "meta-learn",
           reason: "Explaining exposes gaps in understanding.",
           warning: "Check the explanation against a reliable source."
         }
@@ -77,8 +80,8 @@ const evaluationScenarios = [
       user_problem: "Needs a clearer note structure",
       recommended_methods: [
         {
-          name: "Cornell Notes",
-          branch: "organization",
+          name: "Cornell Method",
+          branch: "note-take",
           reason: "It separates cues, notes, and summaries.",
           warning: "Do not copy every sentence verbatim."
         }
@@ -143,10 +146,10 @@ function recommendationAccess(
   } = {}
 ) {
   const limit = plan === "guest"
-    ? 2
+    ? GUEST_AI_DAILY_LIMIT
     : plan === "premium"
       ? 10
-      : 4;
+      : FREE_AI_DAILY_LIMIT;
   const deepLimit = plan === "premium" ? 1 : 0;
   const remaining = Math.max(
     0,
@@ -190,19 +193,19 @@ function createAIRecommendationQuotaManager() {
       access: {
         ...guestAccess,
         reserved: 1,
-        remaining: 1
+        remaining: 0
       }
     }),
     finalize: vi.fn().mockResolvedValue({
       ...guestAccess,
       used: 1,
-      remaining: 1
+      remaining: 0
     }),
     release: vi.fn().mockResolvedValue(undefined),
     consume: vi.fn().mockResolvedValue({
-      limit: 4,
+      limit: FREE_AI_DAILY_LIMIT,
       used: 1,
-      remaining: 3,
+      remaining: FREE_AI_DAILY_LIMIT - 1,
       plan: "free",
       dayKey: "2026-09-25",
       timezone: "UTC"
@@ -278,11 +281,13 @@ function expectSchemaCompatibleRecommendation(result) {
   for (const method of result.recommended_methods) {
     expect(Object.keys(method).sort()).toEqual([
       "branch",
+      "how_to_use",
       "name",
       "reason",
       "warning"
     ]);
-    expect(Object.values(method).every((value) => typeof value === "string")).toBe(true);
+    expect(method.how_to_use).toEqual(getReviewedHowTo(method.name, method.branch));
+    expect([method.name, method.branch, method.reason, method.warning].every(value => typeof value === "string")).toBe(true);
   }
 }
 
@@ -644,8 +649,8 @@ describe("recommendation backend safety", () => {
     expect(await response.json()).toMatchObject({
       error: "Daily recommendation limit reached",
       code: "ai_daily_quota_exceeded",
-      limit: 4,
-      used: 4,
+      limit: 3,
+      used: 3,
       remaining: 0,
       plan: "free",
       dayKey: "2026-09-25",
@@ -660,8 +665,8 @@ describe("recommendation backend safety", () => {
       createAIRecommendationQuotaManager();
     aiRecommendationQuotaManager.reserve.mockRejectedValue(
       new AIRecommendationQuotaExceededError({
-        limit: 2,
-        used: 2,
+        limit: 1,
+        used: 1,
         reserved: 0,
         remaining: 0,
         plan: "guest",
@@ -693,8 +698,8 @@ describe("recommendation backend safety", () => {
     expect(await response.json()).toMatchObject({
       error: "Daily recommendation limit reached",
       code: "ai_daily_quota_exceeded",
-      limit: 2,
-      used: 2,
+      limit: 1,
+      used: 1,
       remaining: 0,
       plan: "guest",
       dayKey: "2026-09-25",
@@ -714,8 +719,8 @@ describe("recommendation backend safety", () => {
       createAIRecommendationQuotaManager();
     aiRecommendationQuotaManager.reserve.mockRejectedValue(
       new AIRecommendationQuotaExceededError({
-        limit: 2,
-        used: 2,
+        limit: 1,
+        used: 1,
         reserved: 0,
         remaining: 0,
         plan: "guest",
@@ -1205,9 +1210,9 @@ describe("AI recommendation access endpoint", () => {
       createAIRecommendationQuotaManager();
     aiRecommendationQuotaManager.getAccess
       .mockResolvedValue({
-        limit: 2,
+        limit: 1,
         used: 1,
-        remaining: 1,
+        remaining: 0,
         plan: "guest",
         dayKey: "2026-09-25",
         timezone: "UTC"
@@ -1228,9 +1233,9 @@ describe("AI recommendation access endpoint", () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      limit: 2,
+      limit: 1,
       used: 1,
-      remaining: 1,
+      remaining: 0,
       plan: "guest",
       dayKey: "2026-09-25",
       timezone: "UTC"
@@ -1402,6 +1407,55 @@ describe("Training entitlement endpoints", () => {
 });
 
 describe("offline recommendation model contract fixtures", () => {
+  it.each(["standard", "deep"])("attaches all three canonical HOW guides in %s without extra model calls or prompt tokens", async mode => {
+    const selection = { ...successfulResult, recommended_methods: [["Calm Start", "pre-learn"], ["Post-Learning Rest", "meta-learn"], ["Active Recall", "meta-learn"]].map(([name, branch]) => ({
+      name, branch, reason: `Mock personalized reason for ${name}`,
+      warning: "Mock warning", how_to_use: ["Untrusted model text"]
+    })) };
+    const model = mode === "deep" ? AI_RECOMMENDATION_DEEP_MODEL : AI_RECOMMENDATION_STANDARD_MODEL;
+    const { client, create } = createFakeOpenAI({ model, result: selection });
+    const quota = createAIRecommendationQuotaManager();
+    quota.reserve.mockResolvedValue({ id: "reviewed-how-reservation", dayKey: "2026-09-25", mode, access: recommendationAccess("premium") });
+    const baseUrl = await startTestServer({ openAIClient: client, verifyFirebaseToken: vi.fn().mockResolvedValue({ uid: "how-test-user" }),
+      aiRecommendationQuotaManager: quota, logger: createLogger() });
+    const response = await postRecommendation(baseUrl, { mode }, { Authorization: "Bearer mock-token" });
+    expect(response.status).toBe(200);
+    const result = await response.json();
+    expectSchemaCompatibleRecommendation(result);
+    expect(result.recommended_methods.map(method => method.name)).toEqual(selection.recommended_methods.map(method => method.name));
+    for (const method of result.recommended_methods) {
+      expect(method.reason).toBe(`Mock personalized reason for ${method.name}`);
+      expect(method.warning).toBe(method.name === "Post-Learning Rest"
+        ? METHOD_POOL.find(entry => entry.name === method.name).warning
+        : "Mock warning");
+    }
+    expect(create).toHaveBeenCalledOnce();
+    const request = create.mock.calls[0][0];
+    expect(request.model).toBe(model);
+    expect(request.input).not.toContain("how_to_use");
+    expect(request.input).toContain('"n":"Calm Start","b":"pre-learn"');
+    expect(request.input).toContain('"n":"Post-Learning Rest","b":"meta-learn"');
+    expect(request.input).not.toContain('"n":"Sleep After Studying"');
+    expect(request.input).not.toContain("Optional: Relaxation routine if you want to nap");
+    expect(request.input).not.toContain(getReviewedHowTo("Active Recall")[0]);
+    expect(request.text.format.schema.properties.recommended_methods.items.properties).not.toHaveProperty("how_to_use");
+    expect(quota.reserve).toHaveBeenCalledOnce(); expect(quota.finalize).toHaveBeenCalledOnce(); expect(quota.release).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [{ name: "Unrecognized method", branch: "meta-learn" }],
+    [{ name: "Active Recall", branch: "memory" }],
+    [{ name: "Active Recall", branch: "meta-learn" }, { name: " active recall ", branch: "meta-learn" }]
+  ].map(methods => ({ methods })))("rejects invalid catalog selections before quota finalization", async ({ methods }) => {
+    const { client, create } = createFakeOpenAI({ result: { ...successfulResult, recommended_methods: methods.map(method => ({ ...method, reason: "Mock", warning: "Mock" })) } });
+    const quota = createAIRecommendationQuotaManager();
+    const baseUrl = await startTestServer({ openAIClient: client, aiRecommendationQuotaManager: quota, logger: createLogger() });
+    const response = await postRecommendation(baseUrl, {});
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ error: "Failed to get recommendation" });
+    expect(create).toHaveBeenCalledOnce(); expect(quota.finalize).not.toHaveBeenCalled(); expect(quota.release).toHaveBeenCalledOnce();
+  });
+
   it.each(evaluationScenarios)(
     "keeps anonymous and signed-in requests schema-compatible for $name",
     async ({ input, result }) => {

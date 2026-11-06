@@ -3,6 +3,7 @@
 import React from "react";
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -135,6 +136,14 @@ function methodCheckbox(name: string) {
 }
 
 describe("manual method picker", () => {
+  it("passes the selected Economics topic through the actual individual-method entry", async () => {
+    renderPicker();
+    fireEvent.change(screen.getByRole("combobox",{name:"Training subject"}),{target:{value:"9708"}});
+    fireEvent.change(screen.getByRole("combobox",{name:"Economics topic"}),{target:{value:"2.5"}});
+    fireEvent.click(methodCheckbox("Active Recall"));
+    await act(async () => { fireEvent.click(screen.getByRole("button",{name:"Start training"})); });
+    expect(accessMocks.start).toHaveBeenCalledWith(expect.objectContaining({mode:"manual",methodIds:["active-recall"],economicsTopicId:"2.5"}));
+  });
   it("renders every registry method and starts disabled", () => {
     renderPicker();
 

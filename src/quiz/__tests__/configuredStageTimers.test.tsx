@@ -143,7 +143,7 @@ describe("configured method-stage timers", () => {
   it("auto-advances Feynman study at its configured deadline", () => {
     vi.useFakeTimers();
 
-    render(
+    const { rerender } = render(
       <FeynmanExperiment
         method="feynman"
         category="understanding"
@@ -159,10 +159,21 @@ describe("configured method-stage timers", () => {
       })
     );
     expect(screen.getByRole("timer").textContent)
-      .toContain("35s");
+      .toContain("01:00");
 
     act(() => {
       vi.advanceTimersByTime(35000);
+    });
+    expect(screen.getByRole("timer").textContent).toContain("00:25");
+    rerender(<FeynmanExperiment method="feynman" category="understanding" name="Feynman Technique"
+      data={{ ...feynmanExperiment }} onComplete={vi.fn()} />);
+    expect(screen.getByRole("timer").textContent).toContain("00:25");
+    act(() => {
+      vi.advanceTimersByTime(24999);
+    });
+    expect(screen.getByRole("timer").textContent).toContain("00:01");
+    act(() => {
+      vi.advanceTimersByTime(1);
     });
 
     expect(

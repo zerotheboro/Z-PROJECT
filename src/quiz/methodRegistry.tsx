@@ -78,13 +78,17 @@ import StrooperEffectMatch from "./matches/StrooperEffectMatch";
 import TwoXVideoSpeedMatch from "./matches/TwoXVideoSpeedMatch";
 
 import {
-  methodLabContentSets,
-  methodMatchContentSets
-} from "./methodContentSets";
+  trainingLabContentSets as methodLabContentSets,
+  trainingMatchContentSets as methodMatchContentSets
+} from "./trainingContent";
+import { economicsContentId, isEconomicsContentId } from "./economics9708/selection";
+import { requireEconomicsPack } from "./economics9708/packs";
 import {
-  getMethodContentSet,
   selectMethodContentSet
 } from "./methodContentSelector";
+import { getTrainingContentSet as getMethodContentSet } from "./economics9708/adapter";
+import type { EconomicsTemplate } from "./economics9708/adapter";
+import MappedActivity from "./economics9708/MappedActivity";
 import {
   methodIntroductionData
 } from "./methodIntroductionData";
@@ -153,11 +157,13 @@ type MethodDefinition = {
   selectionSignals: readonly SelectionSignal[];
   labContentSetIds: readonly string[];
   matchContentSetIds: readonly string[];
+  hasLabContentSetId: (id: string) => boolean;
+  hasMatchContentSetId: (id: string) => boolean;
   selectLabContentSetId: (
-    random?: () => number
+    random?: () => number, economicsTopicId?: string
   ) => string;
   selectMatchContentSetId: (
-    random?: () => number
+    random?: () => number, economicsTopicId?: string
   ) => string;
   renderLab: (
     contentSetId: string,
@@ -174,7 +180,7 @@ type MethodDefinition = {
   ) => ReactNode;
 };
 
-function defineMethod<LabData, MatchData>(
+function defineMethod<LabData extends EconomicsTemplate, MatchData extends EconomicsTemplate>(
   definition: Omit<
     MethodDefinition,
     | "labContentSetIds"
@@ -183,6 +189,8 @@ function defineMethod<LabData, MatchData>(
     | "selectMatchContentSetId"
     | "renderLab"
     | "renderMatch"
+    | "hasLabContentSetId"
+    | "hasMatchContentSetId"
   > & {
     labEngine: ComponentType<
       LabEngineProps<LabData>
@@ -214,16 +222,14 @@ function defineMethod<LabData, MatchData>(
       labContentSets.map(({ id }) => id),
     matchContentSetIds:
       matchContentSets.map(({ id }) => id),
-    selectLabContentSetId: (random) =>
-      selectMethodContentSet(
-        labContentSets,
-        random
-      ).id,
-    selectMatchContentSetId: (random) =>
-      selectMethodContentSet(
-        matchContentSets,
-        random
-      ).id,
+    hasLabContentSetId: id => { try { getMethodContentSet(labContentSets, id); return true; } catch { return false; } },
+    hasMatchContentSetId: id => { try { getMethodContentSet(matchContentSets, id); return true; } catch { return false; } },
+    selectLabContentSetId: (random, topicId) => topicId
+      ? getMethodContentSet(labContentSets, economicsContentId(requireEconomicsPack(topicId).topicId, `lab-${method.id}`)).id
+      : selectMethodContentSet(labContentSets.filter(set => !isEconomicsContentId(set.id)), random).id,
+    selectMatchContentSetId: (random, topicId) => topicId
+      ? getMethodContentSet(matchContentSets, economicsContentId(requireEconomicsPack(topicId).topicId, `match-${method.id}`)).id
+      : selectMethodContentSet(matchContentSets.filter(set => !isEconomicsContentId(set.id)), random).id,
     renderLab: (
       contentSetId,
       onComplete
@@ -245,13 +251,13 @@ function defineMethod<LabData, MatchData>(
             <TrainingStateScope
               name={`lab:${method.id}:${contentSetId}`}
             >
-              <LabEngine
+              <MappedActivity runtime={data.runtime}><LabEngine
                 method={method.id}
                 category={method.category}
                 name={method.name}
                 data={data}
                 onComplete={onComplete}
-              />
+              /></MappedActivity>
             </TrainingStateScope>
           </AdaptiveDifficultyScope>
         </WritingJudgeScope>
@@ -279,14 +285,14 @@ function defineMethod<LabData, MatchData>(
             <TrainingStateScope
               name={`match:${method.id}:${contentSetId}`}
             >
-              <MatchEngine
+              <MappedActivity runtime={data.runtime}><MatchEngine
                 method={method.id}
                 name={method.name}
                 shortName={method.shortName}
                 data={data}
                 originalScore={originalScore}
                 onComplete={onComplete}
-              />
+              /></MappedActivity>
             </TrainingStateScope>
           </AdaptiveDifficultyScope>
         </WritingJudgeScope>

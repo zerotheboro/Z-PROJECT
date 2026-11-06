@@ -15,6 +15,9 @@ import {
 import {
   useAdaptiveChallenge
 } from "./AdaptiveDifficultyProvider";
+import { AssessmentSectionProgress, useQuestionAdvance } from "../../AssessmentQuestionUX";
+import { isCompatibleQuestionAnswer, legacyQuestionOptions } from "../../legacyQuestionOptions";
+import EconomicsDiagram from "../../economics9708/EconomicsDiagram";
 
 type Props = {
   question: MultipleChoiceQuestion;
@@ -25,6 +28,12 @@ type Props = {
   onNext: () => void;
   nextLabel: string;
   random?: RandomSource;
+  progress?: {
+    questions: readonly MultipleChoiceQuestion[];
+    answers: Readonly<Record<string, string>>;
+    id: string;
+    label?: string;
+  };
 };
 
 function MultipleChoiceRunner({
@@ -35,28 +44,46 @@ function MultipleChoiceRunner({
   backDisabled,
   onNext,
   nextLabel,
-  random
+  random,
+  progress
 }: Props) {
+  const {
+    difficulty,
+    legacyOptionDifficulty,
+    commit
+  } = useAdaptiveChallenge(question.id);
+  // An existing cached order wins inside useShuffledOptions. For older drafts
+  // without that cache, a saved answer/assignment selects the previous bank.
+  const previousOptions = legacyQuestionOptions(question);
+  const offeredOptions = previousOptions && (legacyOptionDifficulty !== null ||
+    selectedAnswer !== undefined && previousOptions.includes(selectedAnswer))
+    ? previousOptions : question.options;
   const shuffledOptions =
     useShuffledOptions(
-      question.options,
+      offeredOptions,
       question.id,
       random
     );
-  const {
-    difficulty,
-    commit
-  } = useAdaptiveChallenge(question.id);
   const displayedOptions =
     optionsForDifficulty(
       shuffledOptions,
       question.correct,
-      difficulty
+      legacyOptionDifficulty
     );
+  const navigation = useQuestionAdvance(`${progress?.id ?? "quiz"}:${question.id}`, () => {
+    if (!selectedAnswer || !shuffledOptions.includes(selectedAnswer)) return false;
+    commit({ correct: selectedAnswer === question.correct ? 1 : 0, total: 1 });
+    onNext();
+    return true;
+  });
 
   return (
     <>
-      <h2>{question.question}</h2>
+      {progress && <AssessmentSectionProgress label={progress.label ?? "Current quiz"} total={progress.questions.length}
+        completed={progress.questions.filter(item => isCompatibleQuestionAnswer(item, progress.answers[item.id])).length} />}
+      <h2 aria-live="polite">{question.question}</h2>
+      {question.diagram && <EconomicsDiagram diagram={question.diagram} />}
+      {difficulty && <p aria-label="Difficulty">Difficulty: {difficulty[0].toUpperCase() + difficulty.slice(1)}</p>}
 
       <div className="option-grid">
         {displayedOptions.map((option) => (
@@ -68,7 +95,11 @@ function MultipleChoiceRunner({
                 ? "assessment-option selected"
                 : "assessment-option"
             }
-            onClick={() => onSelect(option)}
+            onClick={() => {
+              if (navigation.blocked()) return;
+              onSelect(option);
+              navigation.schedule();
+            }}
           >
             {option}
           </button>
@@ -78,7 +109,7 @@ function MultipleChoiceRunner({
       <button
         type="button"
         disabled={backDisabled}
-        onClick={onBack}
+        onClick={() => { navigation.cancel(); onBack(); }}
       >
         Back
       </button>
@@ -86,21 +117,7 @@ function MultipleChoiceRunner({
       <button
         type="button"
         disabled={!selectedAnswer}
-        onClick={() => {
-          if (!selectedAnswer) {
-            return;
-          }
-
-          commit({
-            correct:
-              selectedAnswer ===
-                question.correct
-                ? 1
-                : 0,
-            total: 1
-          });
-          onNext();
-        }}
+        onClick={event => { if (event.detail < 2) navigation.completeNow(); }}
       >
         {nextLabel}
       </button>

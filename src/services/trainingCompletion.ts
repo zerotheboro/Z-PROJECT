@@ -6,6 +6,9 @@ import type { CompletionEntry, CompletionOutbox } from "./trainingCompletionOutb
 import { canonicalCompletionJSON, CompletionOutboxError } from "./trainingCompletionOutbox";
 import { isTrainingMethodId } from "../quiz/type";
 import { normalizeEvidenceTimestamp } from "../quiz/learningEvidence";
+import { economicsObservationMetadata } from "../quiz/economics9708/evidenceMetadata";
+import { collectMaterialPresentations } from "../quiz/economics9708/presentationRecords";
+import { collectEconomicsResponses } from "../quiz/economics9708/collectAssessmentResponses";
 
 export type CompletionTransport = (uid: string, payloadJSON: string) => Promise<ClientCompletionReceipt>;
 export type CompletionDependencies = {
@@ -31,19 +34,24 @@ export function completionFromDraft(draft: TrainingDraft, completedAt: string | 
   }
   // Only a newly observed Reflection completion supplies completedAt. A resumed
   // historical final-save draft has unknown timing; never use recovery time.
+  const materialPresentations = collectMaterialPresentations(draft);
+  const economicsResponses = collectEconomicsResponses(draft);
   return {
+    ...(economicsResponses ? { economicsResponses } : {}),
+    ...(materialPresentations ? { materialPresentations } : {}),
     schemaVersion: 1, sessionId: draft.sessionId, mode: draft.mode,
     selectedMethods: [...draft.selectedMethods], methodIntroduction, methodLab, methodMatch, reflection,
     ...(draft.mode === "auto" ? { learningSituation: learningSituation!, baseline: baseline! } : {}),
     completedAt: normalizeEvidenceTimestamp(completedAt),
     selectionContext: { kind: draft.mode === "manual" ? "manual" : draft.selectedMethods.length === 3 ? "ai-confirmed" : "traditional", nominatedMethodIds: [] },
     metadata: [
-      ...draft.selectedMethods.map((methodId, index) => ({ methodId, phase: "lab" as const,
+      ...draft.selectedMethods.map((methodId, index) => economicsObservationMetadata(draft, methodId, "lab", draft.labContentSetIds[index]) ?? ({ methodId, phase: "lab" as const,
         context: { contentSetId: draft.labContentSetIds[index] ?? null } })),
       ...methodMatch.methods.map(item => {
         if (!isTrainingMethodId(item.method)) throw new CompletionOutboxError("invalid_method", "Unknown verification method; the draft was kept.");
-        return { methodId: item.method, phase: "match" as const,
-          context: { contentSetId: draft.matchContentSetIds[draft.verificationMethodOrder.findIndex(method => method === item.method)] ?? null } };
+        const id = draft.matchContentSetIds[draft.verificationMethodOrder.findIndex(method => method === item.method)];
+        return economicsObservationMetadata(draft, item.method, "match", id) ?? { methodId: item.method, phase: "match" as const,
+          context: { contentSetId: id ?? null } };
       })
     ]
   };

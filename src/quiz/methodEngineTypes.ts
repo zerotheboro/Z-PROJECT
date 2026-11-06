@@ -10,6 +10,7 @@ export type MultipleChoiceQuestion = {
   question: string;
   options: readonly string[];
   correct: string;
+  diagram?: import("./economics9708/types").EconomicsDiagramData;
 };
 
 export type RecallEngineData = {
@@ -54,6 +55,7 @@ export type SpatialMemoryEngineData = {
   pairings: readonly {
     location: string;
     item: string;
+    meaning?: string;
   }[];
   questions: readonly MultipleChoiceQuestion[];
 };
@@ -153,6 +155,7 @@ export type TwoXVideoEngineData = {
   videoTitle: string;
   channel: string;
   focusPoints: readonly string[];
+  reading?: readonly string[];
   questions: readonly MultipleChoiceQuestion[];
 };
 

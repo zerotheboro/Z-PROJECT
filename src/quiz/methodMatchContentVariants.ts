@@ -40,10 +40,10 @@ export const methodMatchContentVariants = {
         "Bats use hearing to interpret returning echoes."
       ],
       questions: [
-        question("arm2q1", "What returns to a bat after sound reflects from an object?", "An echo", "Sunlight", "A magnetic field", "A scent trail"),
-        question("arm2q2", "What can echo delay indicate?", "Distance", "Object color", "Air composition only", "The bat's age"),
+        question("arm2q1", "What returns to a bat after sound reflects from an object?", "An echo", "An outgoing call", "A transmitted sound", "A contact vibration"),
+        question("arm2q2", "What can echo delay indicate?", "Distance", "Surface color", "Object temperature", "The object's mass"),
         question("arm2q3", "Which sense interprets returning echoes?", "Hearing", "Taste", "Touch alone", "Smell"),
-        question("arm2q4", "What can echo changes reveal besides distance?", "Movement and shape", "Object ownership", "The Moon's phase", "Plant age")
+        question("arm2q4", "What can echo changes reveal besides distance?", "Movement and shape", "Surface color and brightness", "Chemical composition of food", "Time since the last meal")
       ]
     },
     {
@@ -58,10 +58,10 @@ export const methodMatchContentVariants = {
         "Many animals migrate or develop insulation to cope with seasonal cold."
       ],
       questions: [
-        question("arm3q1", "What is permafrost?", "Ground frozen for at least two consecutive years", "Daily frost on leaves", "Only sea ice", "A summer rain layer"),
-        question("arm3q2", "Why are low plants common in tundra?", "Cold and wind limit tall growth", "There is no sunlight", "All soil is liquid", "Animals remove every tree"),
-        question("arm3q3", "What can thaw above permafrost in warmer months?", "The active layer", "Earth's core", "All bedrock", "The entire Arctic Ocean"),
-        question("arm3q4", "How do some tundra animals cope with cold?", "They migrate or develop insulation", "They stop needing energy", "They become plants", "They remove permafrost")
+        question("arm3q1", "What is permafrost?", "Ground frozen for at least two consecutive years", "Soil that freezes at night but thaws each day", "Sea ice that forms during one winter", "Ground covered by snow without the soil freezing"),
+        question("arm3q2", "Why are low plants common in tundra?", "Cold and wind limit tall growth", "Year-round warm soil prevents tall growth", "Strong winds increase the height of all trees", "Permafrost supplies unlimited deep rooting space"),
+        question("arm3q3", "What can thaw above permafrost in warmer months?", "The active layer", "The entire permafrost layer", "The solid bedrock layer", "The deep mantle layer"),
+        question("arm3q4", "How do some tundra animals cope with cold?", "They migrate or develop insulation", "They maintain warmth without needing any food", "They lose insulating coverings during the coldest period", "They stay active by allowing all body heat to escape")
       ]
     }
   ],
@@ -72,9 +72,9 @@ export const methodMatchContentVariants = {
       topic: "Why does the Moon show phases?",
       explanation: "The Sun always illuminates half of the Moon. As the Moon orbits Earth, the angle among the Sun, Moon, and Earth changes. We therefore see different fractions of the illuminated half. Earth's shadow causes a lunar eclipse, not the ordinary monthly phases.",
       questions: [
-        question("fym2q1", "What fraction of the Moon is illuminated by the Sun at a time?", "Half", "None", "One quarter always", "All sides equally"),
-        question("fym2q2", "Why does the visible illuminated fraction change?", "The Moon's orbital position changes", "The Moon changes shape", "Earth turns off sunlight", "Clouds orbit the Moon"),
-        question("fym2q3", "What does Earth's shadow cause?", "A lunar eclipse", "Every crescent phase", "A new orbit", "Sunrise")
+        question("fym2q1", "What fraction of the Moon is illuminated by the Sun at a time?", "Half", "One quarter", "Three quarters", "The entire surface"),
+        question("fym2q2", "Why does the visible illuminated fraction change?", "The Moon's orbital position changes", "The Moon changes its physical shape during each orbit", "Earth's shadow produces every normal monthly phase", "The Sun illuminates a different total fraction each month"),
+        question("fym2q3", "What does Earth's shadow cause?", "A lunar eclipse", "Every ordinary crescent phase", "Every full Moon", "The ordinary monthly phase cycle")
       ]
     },
     {
@@ -83,9 +83,9 @@ export const methodMatchContentVariants = {
       topic: "Why does ice float in liquid water?",
       explanation: "When water freezes, hydrogen bonds arrange molecules into a more open structure. The same mass then occupies more volume, so ice has a lower density than liquid water. An object less dense than the surrounding liquid can float because it displaces enough liquid for buoyant force to balance its weight.",
       questions: [
-        question("fym3q1", "Why is ice less dense than liquid water?", "Its molecules form a more open structure", "It loses all mass", "Gravity stops", "It becomes a gas"),
-        question("fym3q2", "What happens to volume when the same water mass freezes?", "It increases", "It becomes zero", "It always halves", "It becomes unrelated to density"),
-        question("fym3q3", "What balances the weight of floating ice?", "Buoyant force", "Magnetism", "Sound", "Friction with air only")
+        question("fym3q1", "Why is ice less dense than liquid water?", "Its molecules form a more open structure", "The mass of each water molecule decreases", "The molecules become more closely packed", "The molecules themselves expand without changing their spacing"),
+        question("fym3q2", "What happens to volume when the same water mass freezes?", "It increases", "It decreases", "It remains exactly the same", "It changes only because water molecules lose mass"),
+        question("fym3q3", "What balances the weight of floating ice?", "Buoyant force", "Weight alone", "Air resistance", "Magnetic attraction")
       ]
     }
   ],
@@ -96,10 +96,10 @@ export const methodMatchContentVariants = {
       topic: "How a tropical cyclone develops",
       content: "Warm ocean water supplies heat and moisture to rising air. As water vapor condenses, released energy can strengthen rising motion and lower surface pressure. Air flows toward the low pressure and is deflected by Earth's rotation, helping create circulation. Strong vertical wind shear can disrupt the storm's organization.",
       questions: [
-        question("com2q1", "What supplies heat and moisture to a tropical cyclone?", "Warm ocean water", "Mountain snow", "Dry desert air", "Sea-floor rock"),
-        question("com2q2", "What happens when water vapor condenses?", "Energy is released", "Gravity ends", "The ocean freezes", "Pressure always rises immediately"),
+        question("com2q1", "What supplies heat and moisture to a tropical cyclone?", "Warm ocean water", "Dry air descending over a desert", "Cold air trapped over high mountains", "Heat transferred directly from deep sea-floor rocks"),
+        question("com2q2", "What happens when water vapor condenses?", "Energy is released", "Energy is absorbed", "Temperature must fall", "Water must freeze"),
         question("com2q3", "What can disrupt storm organization?", "Strong vertical wind shear", "Warm water", "Condensation", "Low pressure"),
-        question("com2q4", "What helps create storm circulation?", "Inflow toward low pressure plus Earth's rotation", "Dry air alone", "Ocean-floor friction only", "Mountain snow")
+        question("com2q4", "What helps create storm circulation?", "Inflow toward low pressure plus Earth's rotation", "Ocean-floor friction without any air movement", "Dry descending air without a pressure difference", "Condensation without any inflow or rotational effect")
       ]
     },
     {
@@ -108,10 +108,10 @@ export const methodMatchContentVariants = {
       topic: "How the immune system responds to a pathogen",
       content: "Physical barriers help prevent pathogens from entering. Innate immune responses act quickly and broadly. Antigen-presenting cells can activate specific lymphocytes. B cells can produce antibodies, while some T cells destroy infected cells or coordinate responses. Memory cells can support a faster response after later exposure.",
       questions: [
-        question("com3q1", "Which defense acts quickly and broadly?", "Innate immunity", "Memory only", "Bone growth", "Digestion"),
+        question("com3q1", "Which defense acts quickly and broadly?", "Innate immunity", "Adaptive immune memory alone", "Antibody production after specific exposure alone", "Only the later antigen-specific response"),
         question("com3q2", "Which cells can produce antibodies?", "B cells", "Red blood cells", "Platelets", "Muscle cells"),
-        question("com3q3", "What supports a faster later response?", "Memory cells", "Stomach acid alone", "Hair cells", "Bone minerals"),
-        question("com3q4", "What can some T cells do?", "Destroy infected cells or coordinate responses", "Carry most oxygen", "Form blood clots", "Digest all pathogens in the stomach")
+        question("com3q3", "What supports a faster later response?", "Memory cells", "Red blood cells", "Platelet fragments", "Hemoglobin molecules"),
+        question("com3q4", "What can some T cells do?", "Destroy infected cells or coordinate responses", "Produce all circulating antibodies instead of B cells", "Carry oxygen bound to hemoglobin", "Form the main physical plug in a damaged blood vessel")
       ]
     }
   ],
@@ -149,11 +149,11 @@ export const methodMatchContentVariants = {
         question("imm3p1", "What is the volume of a 2 by 3 by 5 prism?", "30", "10", "15", "25"),
         question("imm3p2", "Which ratio equals 3:4?", "6:8", "4:5", "9:10", "12:20"),
         question("imm3p3", "What is the median of 2, 7, 9?", "7", "6", "9", "18"),
-        question("imm3p4", "Which ratio equals 4:7?", "8:14", "12:18", "6:9", "16:21")
+        question("imm3p4", "Which ratio equals 4:7?", "8:14", "12:18", "4:14", "16:21")
       ],
       test: [
         question("imm3t1", "What is the volume of a 4 by 2 by 6 prism?", "48", "12", "24", "36"),
-        question("imm3t2", "Which ratio equals 5:2?", "15:6", "10:5", "20:10", "7:4"),
+        question("imm3t2", "Which ratio equals 5:2?", "15:6", "10:5", "5:4", "7:4"),
         question("imm3t3", "What is the median of 4, 8, 11, 15, 20?", "11", "8", "15", "58"),
         question("imm3t4", "What is the volume of a 3 by 5 by 2 prism?", "30", "10", "15", "25")
       ]
@@ -216,10 +216,10 @@ export const methodMatchContentVariants = {
         "Deposited glacial material is called till."
       ],
       questions: [
-        question("abm2q1", "What drives glacier movement?", "The ice's own weight", "Only ocean tides", "Plant roots", "Earth's magnetic field"),
-        question("abm2q2", "What valley shape is commonly carved by glaciers?", "A U shape", "A perfect circle", "A flat disk", "A spiral"),
-        question("abm2q3", "What is deposited glacial material called?", "Till", "Magma", "Pollen", "Plasma"),
-        question("abm2q4", "How can rock fragments in ice change the ground?", "They abrade it", "They make sunlight", "They stop ice motion", "They form clouds")
+        question("abm2q1", "What drives glacier movement?", "The ice's own weight", "Wind pushing only the glacier surface", "Daily ocean tides acting on inland glaciers", "Magnetic attraction between ice and bedrock"),
+        question("abm2q2", "What valley shape is commonly carved by glaciers?", "A U shape", "A V shape", "A narrow straight-sided slot", "An overhanging shelf with no valley floor"),
+        question("abm2q3", "What is deposited glacial material called?", "Till", "Lava", "Loess", "Bedrock"),
+        question("abm2q4", "How can rock fragments in ice change the ground?", "They abrade it", "They protect it from erosion", "They polish only the ice", "They cement it into place")
       ]
     },
     {
@@ -234,10 +234,10 @@ export const methodMatchContentVariants = {
         "Receptors on the next cell respond to particular neurotransmitters."
       ],
       questions: [
-        question("abm3q1", "Where does an action potential travel?", "Along the axon", "Through bone", "Only through blood", "Across a tendon"),
-        question("abm3q2", "What can myelin do?", "Speed signal conduction", "Digest food", "Make red blood cells", "Stop every signal"),
-        question("abm3q3", "What crosses a chemical synapse?", "Neurotransmitters", "Whole neurons", "Bones", "Air bubbles"),
-        question("abm3q4", "What receives particular neurotransmitters on the next cell?", "Receptors", "Red blood cells", "Bone marrow", "Tendons")
+        question("abm3q1", "Where does an action potential travel?", "Along the axon", "Through the bloodstream", "Along a tendon", "Between muscle fibers"),
+        question("abm3q2", "What can myelin do?", "Speed signal conduction", "Slow signal conduction", "Prevent all signaling", "Replace the neuron's membrane"),
+        question("abm3q3", "What crosses a chemical synapse?", "Neurotransmitters", "Whole neurons", "Red blood cells", "Myelin fragments"),
+        question("abm3q4", "What receives particular neurotransmitters on the next cell?", "Receptors", "Enzymes", "Myelin", "Ribosomes")
       ]
     }
   ],
@@ -248,9 +248,9 @@ export const methodMatchContentVariants = {
       topic: "How natural selection changes populations",
       explanation: "Individuals vary in inherited traits. If a trait helps its carriers survive or reproduce in a particular environment, those carriers may leave more offspring. Across generations, the helpful trait can become more common in the population; individuals do not evolve because they need to.",
       questions: [
-        question("osm2q1", "What must exist for natural selection to act?", "Inherited variation", "Identical traits only", "No reproduction", "A planned goal"),
-        question("osm2q2", "Why can a helpful trait become more common?", "Its carriers leave more offspring", "Individuals choose new genes", "The environment writes genes", "Every organism changes at once"),
-        question("osm2q3", "What changes over generations?", "The population", "A single individual because it needs to", "Only the weather", "The definition of inheritance")
+        question("osm2q1", "What must exist for natural selection to act?", "Inherited variation", "Acquired differences alone", "Identical inherited traits", "A planned species-wide goal"),
+        question("osm2q2", "Why can a helpful trait become more common?", "Its carriers leave more offspring", "Individuals deliberately select which genes to acquire", "The environment directly rewrites every individual's genes", "Every organism develops the trait simultaneously because it is needed"),
+        question("osm2q3", "What changes over generations?", "The population", "Only a single organism", "Only environmental conditions", "Every organism identically")
       ]
     },
     {
@@ -259,9 +259,9 @@ export const methodMatchContentVariants = {
       topic: "How a lever creates mechanical advantage",
       explanation: "A lever rotates around a fulcrum. Applying an effort farther from the fulcrum creates more turning effect for the same force, so a smaller force can balance a larger load closer to the fulcrum, though the effort moves through a greater distance.",
       questions: [
-        question("osm3q1", "What does a lever rotate around?", "A fulcrum", "A battery", "A magnet only", "A spring only"),
-        question("osm3q2", "How can a smaller effort balance a larger load?", "Apply it farther from the fulcrum", "Move it closer than the load", "Remove the fulcrum", "Stop rotation"),
-        question("osm3q3", "What tradeoff accompanies the smaller force?", "The effort moves farther", "Energy is created", "The load loses mass", "Gravity disappears")
+        question("osm3q1", "What does a lever rotate around?", "A fulcrum", "The effort point", "The load point", "The lever arm"),
+        question("osm3q2", "How can a smaller effort balance a larger load?", "Apply it farther from the fulcrum", "Apply it closer to the fulcrum than the larger load", "Apply it at the same distance as the larger load", "Use the load's mass alone without considering arm length"),
+        question("osm3q3", "What tradeoff accompanies the smaller force?", "The effort moves farther", "The effort moves a shorter distance as well", "The lever creates extra energy to lift the load", "The load's weight decreases because the lever is longer")
       ]
     }
   ],
@@ -272,10 +272,10 @@ export const methodMatchContentVariants = {
       topic: "Four functions of the human skeleton",
       content: "The skeleton supports the body's shape, protects organs, enables movement with muscles and joints, and performs internal functions. Bone marrow forms blood cells, while bone tissue stores minerals such as calcium and phosphorus. These roles connect structure, protection, movement, and regulation.",
       questions: [
-        question("n4m2q1", "Which skeletal role shields organs?", "Protection", "Digestion", "Gas exchange", "Filtration"),
-        question("n4m2q2", "What does bone marrow form?", "Blood cells", "Air", "Bile", "Urine"),
-        question("n4m2q3", "What does bone tissue store?", "Minerals", "Sunlight", "Sound", "Carbon dioxide only"),
-        question("n4m2q4", "How does the skeleton contribute to movement?", "It works with muscles and joints", "It produces all energy", "It replaces nerves", "It circulates blood alone")
+        question("n4m2q1", "Which skeletal role shields organs?", "Protection", "Structural support", "Mineral storage", "Blood-cell formation"),
+        question("n4m2q2", "What does bone marrow form?", "Blood cells", "Bile", "Urine", "Digestive enzymes"),
+        question("n4m2q3", "What does bone tissue store?", "Minerals", "Oxygen", "Glucose", "Water vapor"),
+        question("n4m2q4", "How does the skeleton contribute to movement?", "It works with muscles and joints", "It moves without forces from muscles", "It supplies all movement by circulating blood", "It replaces joints with continuous solid bone")
       ]
     },
     {
@@ -284,10 +284,10 @@ export const methodMatchContentVariants = {
       topic: "Four drivers of weather",
       content: "Solar heating varies across Earth's surface. Temperature differences help create pressure differences and wind. Water changes state, moving moisture and latent energy through the atmosphere. Earth's rotation and landforms redirect moving air. Together, energy, pressure, water, and motion produce changing weather.",
       questions: [
-        question("n4m3q1", "What is the main energy source for weather?", "Solar heating", "Moonlight only", "Earth's core only", "Sound"),
-        question("n4m3q2", "What can pressure differences create?", "Wind", "Rocks", "DNA", "Tides only"),
-        question("n4m3q3", "What moves moisture through the atmosphere?", "Water changing state and moving in air", "Mountain roots", "Magnetism", "Soil alone"),
-        question("n4m3q4", "What can redirect moving air?", "Earth's rotation and landforms", "Only plant color", "The skeleton", "Ocean salt alone")
+        question("n4m3q1", "What is the main energy source for weather?", "Solar heating", "Heating from Earth's interior", "Gravitational energy from lunar tides", "Heat released by local human activity"),
+        question("n4m3q2", "What can pressure differences create?", "Wind", "Uniform pressure everywhere", "Still air despite a gradient", "A permanent loss of moisture"),
+        question("n4m3q3", "What moves moisture through the atmosphere?", "Water changing state and moving in air", "Movement of dissolved minerals through bedrock", "Only the transfer of heat through dry soil", "Only the rotation of Earth without any water movement"),
+        question("n4m3q4", "What can redirect moving air?", "Earth's rotation and landforms", "The Sun's rotation and lunar orbital motion alone", "Migration of magnetic poles acting directly on every air parcel", "Movement of tectonic plates without any atmospheric forces")
       ]
     }
   ],
@@ -304,14 +304,14 @@ export const methodMatchContentVariants = {
       ],
       practice: [
         question("lsm2p1", "Which component transports most oxygen?", "Red blood cells", "Platelets", "Plasma alone", "White blood cells"),
-        question("lsm2p2", "Which component helps clotting?", "Platelets", "Red blood cells", "Plasma only", "Neurons"),
-        question("lsm2p3", "Which liquid carries blood cells?", "Plasma", "Lymph nodes", "Bone", "Cartilage"),
-        question("lsm2p4", "Which component contributes to immune defense?", "White blood cells", "Red blood cells", "Platelets only", "Bone minerals")
+        question("lsm2p2", "Which component helps clotting?", "Platelets", "Red blood cells", "Albumin", "Hemoglobin"),
+        question("lsm2p3", "Which liquid carries blood cells?", "Plasma", "Lymph", "Cytoplasm", "Interstitial fluid"),
+        question("lsm2p4", "Which component contributes to immune defense?", "White blood cells", "Hemoglobin", "Red blood cells", "Bone minerals")
       ],
       test: [
-        question("lsm2t1", "Low platelets most directly affect what?", "Clot formation", "Oxygen binding", "Nerve impulses", "Digestion"),
-        question("lsm2t2", "Which component contributes directly to immune defense?", "White blood cells", "Red blood cells only", "Platelets", "Minerals"),
-        question("lsm2t3", "Which fluid carries dissolved substances?", "Plasma", "Cartilage", "Bone", "Skin")
+        question("lsm2t1", "Low platelets most directly affect what?", "Clot formation", "Oxygen binding to hemoglobin", "Transmission of a nerve impulse", "Breakdown of food by digestive enzymes"),
+        question("lsm2t2", "Which component contributes directly to immune defense?", "White blood cells", "Red blood cells", "Hemoglobin", "Bone minerals"),
+        question("lsm2t3", "Which fluid carries dissolved substances?", "Plasma", "Cartilage matrix", "Bone mineral", "Keratin")
       ]
     },
     {
@@ -327,12 +327,12 @@ export const methodMatchContentVariants = {
       practice: [
         question("lsm3p1", "Which cloud is high and thin?", "Cirrus", "Stratus", "Cumulonimbus", "Cumulus"),
         question("lsm3p2", "Which cloud forms a low layer?", "Stratus", "Cirrus", "Cumulus", "Cumulonimbus"),
-        question("lsm3p3", "Which cloud is associated with thunderstorms?", "Cumulonimbus", "Cirrus", "Stratus", "Fog only"),
-        question("lsm3p4", "Which cloud is commonly puffy?", "Cumulus", "Stratus", "Cirrus", "Cumulonimbus only")
+        question("lsm3p3", "Which cloud is associated with thunderstorms?", "Cumulonimbus", "Cirrus", "Stratus", "Cirrostratus"),
+        question("lsm3p4", "Which cloud is commonly puffy?", "Cumulus", "Stratus", "Cirrus", "Altostratus")
       ],
       test: [
-        question("lsm3t1", "A deep cloud producing thunder is what type?", "Cumulonimbus", "Cirrus", "Stratus", "Cumulus only"),
-        question("lsm3t2", "A puffy fair-weather cloud is commonly what type?", "Cumulus", "Stratus", "Cirrus only", "Cumulonimbus always"),
+        question("lsm3t1", "A deep cloud producing thunder is what type?", "Cumulonimbus", "Cirrus", "Stratus", "Altostratus"),
+        question("lsm3t2", "A puffy fair-weather cloud is commonly what type?", "Cumulus", "Stratus", "Cirrus", "Altostratus"),
         question("lsm3t3", "A widespread low cloud layer is what type?", "Stratus", "Cirrus", "Cumulus", "Cumulonimbus")
       ]
     }
@@ -344,10 +344,10 @@ export const methodMatchContentVariants = {
       topic: "The sequence of a volcanic eruption",
       orderedItems: ["Magma forms or collects below the surface.", "Gas and magma pressure build.", "Magma rises through cracks or a conduit.", "Lava, ash, or gas reaches the surface.", "Erupted material cools and alters the landscape."],
       questions: [
-        question("stm2q1", "What can build below a volcano before eruption?", "Gas and magma pressure", "Ocean salinity only", "Plant roots", "Ice sheets only"),
-        question("stm2q2", "How can magma move upward?", "Through cracks or a conduit", "Through sunlight", "Inside clouds", "Only through rivers"),
-        question("stm2q3", "What happens to erupted material afterward?", "It cools and alters the landscape", "It becomes invisible", "It stops having mass", "It returns instantly to the core"),
-        question("stm2q4", "What reaches the surface during an eruption?", "Lava, ash, or gas", "Only groundwater", "Plant roots", "Glacial ice")
+        question("stm2q1", "What can build below a volcano before eruption?", "Gas and magma pressure", "Only a decrease in pressure within the magma", "Only a loss of dissolved gas without any pressure", "Only the pressure of rainfall on the outer slopes"),
+        question("stm2q2", "How can magma move upward?", "Through cracks or a conduit", "Only through surface rivers flowing into the mountain", "Only after cooling into solid rock underground", "Only by diffusion through unbroken solid crystals"),
+        question("stm2q3", "What happens to erupted material afterward?", "It cools and alters the landscape", "It keeps the same high temperature indefinitely", "It immediately returns to Earth's core without cooling", "It always dissolves into the surrounding air"),
+        question("stm2q4", "What reaches the surface during an eruption?", "Lava, ash, or gas", "Only liquid water and dissolved salts", "Only soil washed down the volcano's slopes", "Only fragments of ice from a summit glacier")
       ]
     },
     {
@@ -356,10 +356,10 @@ export const methodMatchContentVariants = {
       topic: "The sequence of a nerve reflex",
       orderedItems: ["A receptor detects a stimulus.", "A sensory neuron carries an impulse.", "The spinal cord processes the signal.", "A motor neuron carries an output.", "A muscle produces a response."],
       questions: [
-        question("stm3q1", "What detects the stimulus first?", "A receptor", "A muscle", "A motor neuron", "A bone"),
-        question("stm3q2", "Which neuron carries information toward the spinal cord?", "A sensory neuron", "A motor neuron", "A red blood cell", "A tendon"),
-        question("stm3q3", "What produces the final movement?", "A muscle", "A receptor", "The skin alone", "A sensory neuron alone"),
-        question("stm3q4", "Which neuron carries the output from the spinal cord?", "A motor neuron", "A sensory neuron", "A receptor", "A blood cell")
+        question("stm3q1", "What detects the stimulus first?", "A receptor", "A motor neuron", "The responding muscle", "A tendon"),
+        question("stm3q2", "Which neuron carries information toward the spinal cord?", "A sensory neuron", "A motor neuron", "A muscle fiber", "A tendon"),
+        question("stm3q3", "What produces the final movement?", "A muscle", "A sensory receptor alone", "A sensory neuron alone", "The spinal cord without an effector"),
+        question("stm3q4", "Which neuron carries the output from the spinal cord?", "A motor neuron", "A sensory neuron", "A receptor cell", "A tendon")
       ]
     }
   ],
@@ -370,10 +370,10 @@ export const methodMatchContentVariants = {
       topic: "Plate tectonics and earthquakes",
       content: "Tectonic plates move slowly, but friction can lock rocks along a fault. Continued motion builds elastic stress. When stress overcomes friction, rocks slip and release energy as seismic waves. The underground starting point is the focus, and the surface point above it is the epicenter.",
       questions: [
-        question("ccm2q1", "Why can stress build on a fault?", "Friction locks rocks while plates keep moving", "Plates stop forever", "Seismic waves prevent motion", "The epicenter pulls rocks"),
-        question("ccm2q2", "What happens when stress overcomes friction?", "Rocks slip", "The fault disappears", "Gravity ends", "The atmosphere freezes"),
-        question("ccm2q3", "What is the epicenter?", "The surface point above the focus", "The underground starting point", "Every plate boundary", "The largest wave"),
-        question("ccm2q4", "How does released earthquake energy travel?", "As seismic waves", "As sunlight", "As ocean salt", "As plant roots")
+        question("ccm2q1", "Why can stress build on a fault?", "Friction locks rocks while plates keep moving", "Both plates permanently stop as soon as friction acts", "The rocks move freely so no energy can build", "The epicenter continuously pulls both plates together"),
+        question("ccm2q2", "What happens when stress overcomes friction?", "Rocks slip", "Rocks remain locked", "The fault heals", "Stress keeps accumulating"),
+        question("ccm2q3", "What is the epicenter?", "The surface point above the focus", "The underground starting point", "The deepest point on the fault", "The boundary of the entire tectonic plate"),
+        question("ccm2q4", "How does released earthquake energy travel?", "As seismic waves", "As steady light emitted by moving plates", "As surface water carrying dissolved rock", "As permanent movement of the atmosphere alone")
       ]
     },
     {
@@ -382,10 +382,10 @@ export const methodMatchContentVariants = {
       topic: "How inflation changes purchasing power",
       content: "Inflation is a broad rise in prices over time. If income does not rise as quickly, the same amount of money buys fewer goods and services, so purchasing power falls. Inflation rates summarize average price changes, although individual products can change by different amounts.",
       questions: [
-        question("ccm3q1", "What is inflation?", "A broad rise in prices over time", "A fall in every price", "A change in one product only", "An increase in physical money size"),
-        question("ccm3q2", "What happens if income rises more slowly than prices?", "Purchasing power falls", "Money buys more automatically", "Every price becomes equal", "Income becomes irrelevant"),
-        question("ccm3q3", "Do all product prices change by the same amount?", "No, individual changes can differ", "Yes, always exactly", "Only free products change", "Prices never change"),
-        question("ccm3q4", "What does lower purchasing power mean?", "The same money buys fewer goods and services", "Money becomes physically smaller", "Every wage falls to zero", "Prices stop changing")
+        question("ccm3q1", "What is inflation?", "A broad rise in prices over time", "A sustained fall in the general price level", "A price increase affecting just one product", "A rise in the purchasing power of each unit of money"),
+        question("ccm3q2", "What happens if income rises more slowly than prices?", "Purchasing power falls", "Purchasing power rises", "Purchasing power stays fixed", "Prices fall in response"),
+        question("ccm3q3", "Do all product prices change by the same amount?", "No, individual changes can differ", "Yes, the same percentage increase applies to every product", "Yes, only the quantity sold can differ between products", "No, but individual prices must all fall during inflation"),
+        question("ccm3q4", "What does lower purchasing power mean?", "The same money buys fewer goods and services", "The same money buys more goods and services", "The same money buys the same amount despite higher prices", "The quantity bought depends only on the physical size of banknotes")
       ]
     }
   ],
@@ -409,7 +409,7 @@ export const methodMatchContentVariants = {
       items: ["Organism", "Population", "Community", "Ecosystem", "Biosphere"],
       questions: [
         question("abm3xq1", "What follows organism?", "Population", "Biosphere", "Ecosystem", "Community"),
-        question("abm3xq2", "Which level includes interacting populations?", "Community", "Organism", "Biosphere only", "Cell"),
+        question("abm3xq2", "Which level includes interacting populations?", "Community", "Organism", "Ecosystem", "Population"),
         question("abm3xq3", "Which is broadest in this sequence?", "Biosphere", "Population", "Organism", "Community"),
         question("abm3xq4", "What follows community?", "Ecosystem", "Organism", "Population", "Cell")
       ]
@@ -427,10 +427,10 @@ export const methodMatchContentVariants = {
         { heading: "Ongoing monitoring", content: "Safety and performance continue to be tracked after use begins." }
       ],
       questions: [
-        question("hfm2q1", "What occurs before human trials?", "Preclinical research", "Ongoing monitoring only", "Mass distribution", "Advertising"),
-        question("hfm2q2", "What do clinical trials evaluate?", "Safety, immune responses, and effectiveness", "Only package color", "Hospital architecture", "Weather"),
-        question("hfm2q3", "When does safety monitoring end?", "It continues after use begins", "Before clinical trials", "At the first laboratory idea", "It is never started"),
-        question("hfm2q4", "What is reviewed before authorization or approval?", "Evidence and manufacturing quality", "Only package color", "Weather forecasts", "School schedules")
+        question("hfm2q1", "What occurs before human trials?", "Preclinical research", "Phase 1 clinical trials", "Post-authorization monitoring", "Phase 3 clinical trials"),
+        question("hfm2q2", "What do clinical trials evaluate?", "Safety, immune responses, and effectiveness", "Only how quickly a vaccine can be manufactured", "Only whether the packaging stays intact during transport", "Only how widely the vaccine has already been distributed"),
+        question("hfm2q3", "When does safety monitoring end?", "It continues after use begins", "After the first preclinical experiment", "At the start of the first human trial", "Immediately when authorization is granted"),
+        question("hfm2q4", "What is reviewed before authorization or approval?", "Evidence and manufacturing quality", "Manufacturing speed without evidence from trials", "Distribution plans without evidence about product quality", "Advertising claims instead of research and quality data")
       ]
     },
     {
@@ -444,10 +444,10 @@ export const methodMatchContentVariants = {
         { heading: "Changing channel", content: "Repeated erosion and deposition shift banks, bars, and bends." }
       ],
       questions: [
-        question("hfm3q1", "What happens during erosion?", "Water removes sediment", "Sediment always settles", "The river freezes", "Water stops"),
-        question("hfm3q2", "When is sediment deposited?", "When flow loses enough energy", "Only when flow speeds up", "Before any erosion", "When gravity ends"),
-        question("hfm3q3", "What can repeated erosion and deposition change?", "Banks, bars, and bends", "Earth's orbit", "The Moon's phases", "Atomic mass"),
-        question("hfm3q4", "What happens during transport?", "Current carries material downstream", "All sediment settles", "The river stops", "Rock becomes sunlight")
+        question("hfm3q1", "What happens during erosion?", "Water removes sediment", "Water deposits sediment", "Sediment stays in place", "Sediment becomes solid bedrock"),
+        question("hfm3q2", "When is sediment deposited?", "When flow loses enough energy", "When the current gains enough speed to carry more sediment", "Before any material has been transported", "Whenever current speed rises, regardless of particle size"),
+        question("hfm3q3", "What can repeated erosion and deposition change?", "Banks, bars, and bends", "Only the water's chemical formula", "Only the river's source without changing its channel", "Only the height of nearby clouds"),
+        question("hfm3q4", "What happens during transport?", "Current carries material downstream", "All sediment settles immediately", "Material remains at the erosion site", "Transport begins only after flow stops")
       ]
     }
   ],
@@ -459,10 +459,10 @@ export const methodMatchContentVariants = {
       guidingQuestion: "How can a plant and a mycorrhizal fungus both benefit from their association?",
       material: "Mycorrhizal fungi grow around or within plant roots. Their fine filaments explore a large soil volume and can deliver water and mineral nutrients, especially phosphorus. The plant supplies the fungus with sugars made by photosynthesis. The exchange can benefit both partners, although outcomes depend on conditions.",
       questions: [
-        question("pqm2q1", "What can fungal filaments deliver to a plant?", "Water and mineral nutrients", "Sunlight", "Animal tissue", "Atmospheric oxygen only"),
-        question("pqm2q2", "What does the plant supply?", "Sugars", "Rocks", "Soil particles", "Moonlight"),
-        question("pqm2q3", "Why can both partners benefit?", "They exchange different resources", "They become one organism", "Neither gives anything", "The fungus makes sunlight"),
-        question("pqm2q4", "Which nutrient is especially noted in the passage?", "Phosphorus", "Helium", "Gold", "Sodium chloride only")
+        question("pqm2q1", "What can fungal filaments deliver to a plant?", "Water and mineral nutrients", "Sugars made inside the plant's leaves", "Sunlight absorbed directly from the air", "Organic food produced by fungal photosynthesis"),
+        question("pqm2q2", "What does the plant supply?", "Sugars", "Mineral salts", "Soil particles", "Water vapor"),
+        question("pqm2q3", "Why can both partners benefit?", "They exchange different resources", "Each takes the same resource without supplying anything", "The fungus performs all photosynthesis for the plant", "The plant receives resources while the fungus receives no carbon"),
+        question("pqm2q4", "Which nutrient is especially noted in the passage?", "Phosphorus", "Nitrogen", "Potassium", "Calcium")
       ]
     },
     {
@@ -472,10 +472,10 @@ export const methodMatchContentVariants = {
       guidingQuestion: "How can a wetland change the movement of storm water?",
       material: "Wetland soils, plants, and shallow basins can store and slow incoming water. Slower release reduces peak flow downstream. Vegetation adds resistance, and stored water may infiltrate soil or evaporate. A wetland cannot prevent every flood, but it can reduce flood intensity under suitable conditions.",
       questions: [
-        question("pqm3q1", "How do wetlands affect incoming water?", "They store and slow it", "They always remove all water", "They create storms", "They stop gravity"),
-        question("pqm3q2", "What can slower release reduce?", "Peak flow downstream", "Soil volume", "All evaporation", "Plant growth"),
-        question("pqm3q3", "Do wetlands prevent every flood?", "No", "Yes, without exception", "Only at night", "Only without plants"),
-        question("pqm3q4", "What adds resistance to flowing water?", "Wetland vegetation", "A lack of plants", "Sunlight alone", "Dry air")
+        question("pqm3q1", "How do wetlands affect incoming water?", "They store and slow it", "They speed all incoming water directly downstream", "They prevent any incoming water from being stored", "They make inflow and outflow equally fast in every storm"),
+        question("pqm3q2", "What can slower release reduce?", "Peak flow downstream", "Rainfall during the storm", "The wetland's storage capacity", "The time until stored water drains"),
+        question("pqm3q3", "Do wetlands prevent every flood?", "No", "Yes, whenever vegetation is present", "Yes, whenever water enters slowly", "Yes, whenever the wetland has deep soil"),
+        question("pqm3q4", "What adds resistance to flowing water?", "Wetland vegetation", "A smooth unobstructed channel", "Sunlight on open water", "Dry air above water")
       ]
     }
   ],
@@ -488,7 +488,7 @@ export const methodMatchContentVariants = {
       relationships: ["Atmospheric carbon dioxide -> photosynthesis -> plants", "Plants -> feeding -> animals", "Organisms -> respiration/decomposition -> carbon dioxide", "Fuels or biomass -> combustion -> carbon dioxide"],
       questions: [
         question("dem2q1", "Which process moves carbon into plants?", "Photosynthesis", "Combustion", "Respiration", "Erosion"),
-        question("dem2q2", "How does carbon move through a food web?", "Feeding", "Freezing", "Reflection", "Sedimentation only"),
+        question("dem2q2", "How does carbon move through a food web?", "Feeding", "Evaporation", "Reflected sunlight", "Water freezing"),
         question("dem2q3", "Which process rapidly releases fuel carbon?", "Combustion", "Photosynthesis", "Burial", "Plant uptake"),
         question("dem2q4", "What can return carbon dioxide from organisms?", "Respiration and decomposition", "Photosynthesis only", "Burial only", "Mineral uptake")
       ]
@@ -500,9 +500,9 @@ export const methodMatchContentVariants = {
       material: "A rider pushes the pedals, the drivetrain turns the rear wheel, and friction with the road provides forward force. Air resistance and rolling resistance oppose motion. When forward and opposing forces balance, speed stays constant; an unbalanced net force changes velocity.",
       relationships: ["Pedals -> drivetrain -> rear wheel", "Tire-road friction -> forward force", "Air + rolling resistance -> opposing forces", "Balanced forces -> constant velocity"],
       questions: [
-        question("dem3q1", "What transfers pedal motion to the rear wheel?", "The drivetrain", "Air resistance", "Gravity alone", "The handlebar"),
-        question("dem3q2", "Which forces oppose motion?", "Air and rolling resistance", "Forward tire friction only", "Pedaling force", "No forces"),
-        question("dem3q3", "What happens when forces balance?", "Velocity stays constant", "Speed must increase", "Mass becomes zero", "Gravity stops"),
+        question("dem3q1", "What transfers pedal motion to the rear wheel?", "The drivetrain", "The steering assembly", "The braking assembly", "The tire's air pressure alone"),
+        question("dem3q2", "Which forces oppose motion?", "Air and rolling resistance", "The rider's forward driving force alone", "The downward weight on a level road", "The support force perpendicular to the road"),
+        question("dem3q3", "What happens when forces balance?", "Velocity stays constant", "Speed must continue increasing", "The bicycle must stop immediately", "The direction of motion must reverse"),
         question("dem3q4", "What provides the bicycle's forward external force?", "Friction between tire and road", "Air resistance", "Rolling resistance", "Gravity alone")
       ]
     }
@@ -515,10 +515,10 @@ export const methodMatchContentVariants = {
       details: ["Improve major heating or cooling losses.", "Use efficient high-use appliances and lighting.", "Turn off equipment that runs unnecessarily.", "Track the largest energy loads.", "Polish switch plates.", "Label every cable by color.", "Rearrange low-use decorations."],
       coreConcepts: ["Heating and cooling", "High-use equipment", "Unnecessary runtime", "Largest loads"],
       questions: [
-        question("e8m2q1", "Which area is often a major energy load?", "Heating or cooling", "Switch-plate polish", "Cable colors", "Decorations"),
-        question("e8m2q2", "What should be measured first?", "The largest energy loads", "Every label font", "Decoration positions", "Cable color count"),
+        question("e8m2q1", "Which area is often a major energy load?", "Heating or cooling", "A rarely used low-power indicator light", "An unplugged spare appliance kept in storage", "A manual switch with no connected electrical load"),
+        question("e8m2q2", "What should be measured first?", "The largest energy loads", "Only the smallest loads because there are more of them", "Only the newest appliances regardless of energy use", "Only devices whose cables are easiest to label"),
         question("e8m2q3", "Which action is low priority?", "Polishing switch plates", "Reducing unnecessary runtime", "Improving major heat loss", "Efficient high-use lighting"),
-        question("e8m2q4", "Which action targets wasted runtime?", "Turn off equipment running unnecessarily", "Relabel every cable", "Move decorations", "Polish switches")
+        question("e8m2q4", "Which action targets wasted runtime?", "Turn off equipment running unnecessarily", "Replace labels on idle equipment without changing runtime", "Move unused appliances without changing their power state", "Measure cable length instead of checking how long equipment runs")
       ]
     },
     {
@@ -528,10 +528,10 @@ export const methodMatchContentVariants = {
       details: ["Define the main message.", "Support it with a few strong pieces of evidence.", "Rehearse the opening, transitions, and conclusion.", "Check that visuals are readable.", "Try ten decorative fonts.", "Animate every word.", "Match every icon color exactly."],
       coreConcepts: ["Main message", "Strong evidence", "Rehearsal", "Readable visuals"],
       questions: [
-        question("e8m3q1", "What should guide the whole presentation?", "The main message", "The number of fonts", "Word animations", "Icon colors"),
-        question("e8m3q2", "Which preparation improves delivery?", "Rehearsing transitions", "Animating every word", "Changing every font", "Adding unrelated icons"),
+        question("e8m3q1", "What should guide the whole presentation?", "The main message", "The visual-effects catalogue", "The decorative transition order", "The maximum slide word count"),
+        question("e8m3q2", "Which preparation improves delivery?", "Rehearsing transitions", "Animating every word", "Repeatedly changing fonts", "Adding unrelated illustrations"),
         question("e8m3q3", "Which is a lower-value detail?", "Matching every icon color", "Readable visuals", "Strong evidence", "A clear conclusion"),
-        question("e8m3q4", "What should support the main message?", "A few strong pieces of evidence", "Unrelated animations", "Ten fonts", "Decorative icons only")
+        question("e8m3q4", "What should support the main message?", "A few strong pieces of evidence", "A larger number of unrelated examples", "A full transcript on every slide regardless of relevance", "A collection of decorative icons without supporting information")
       ]
     }
   ],
@@ -543,10 +543,10 @@ export const methodMatchContentVariants = {
       overview: "A browser resolves a domain name, establishes a network connection, sends an HTTP request, receives an HTTP response, and renders or processes the returned resources.",
       referenceSteps: ["Resolve the domain with DNS.", "Establish a connection.", "Send an HTTP request.", "Receive the server response.", "Render or process returned resources."],
       questions: [
-        question("dsm2q1", "What maps a domain name to an address?", "DNS", "HTML", "CSS", "A battery"),
-        question("dsm2q2", "What does the browser send after connecting?", "An HTTP request", "A paper letter", "Only an image", "A power signal"),
-        question("dsm2q3", "What follows receiving a response?", "Rendering or processing resources", "Deleting the connection before reading", "Changing DNS records", "Building hardware"),
-        question("dsm2q4", "What happens before the HTTP request is sent?", "A connection is established", "The page is fully rendered", "The server response is deleted", "Hardware is rebuilt")
+        question("dsm2q1", "What maps a domain name to an address?", "DNS", "HTTP", "HTML", "CSS"),
+        question("dsm2q2", "What does the browser send after connecting?", "An HTTP request", "An HTTP response", "A DNS response", "A CSS instruction"),
+        question("dsm2q3", "What follows receiving a response?", "Rendering or processing resources", "Sending another request before processing any received data", "Changing the domain's DNS record to match the page content", "Treating the response as complete without reading its resources"),
+        question("dsm2q4", "What happens before the HTTP request is sent?", "A connection is established", "The full page renders", "The response body is processed", "Page styles are applied")
       ]
     },
     {
@@ -556,10 +556,10 @@ export const methodMatchContentVariants = {
       overview: "Collected paper is sorted, mixed with water to form pulp, cleaned of contaminants, spread and pressed into a sheet, then dried and finished for reuse.",
       referenceSteps: ["Collect and sort paper.", "Mix it with water into pulp.", "Remove inks and contaminants.", "Form and press a sheet.", "Dry and finish the paper."],
       questions: [
-        question("dsm3q1", "What is made by mixing paper with water?", "Pulp", "Glass", "Metal", "Fuel"),
-        question("dsm3q2", "What happens before a sheet is formed?", "Contaminants are removed", "The final paper is printed", "Trees are planted", "The sheet is burned"),
-        question("dsm3q3", "What is the final major step?", "Drying and finishing", "Collecting unsorted waste", "Adding metal", "Freezing pulp"),
-        question("dsm3q4", "What happens after cleaning the pulp?", "A sheet is formed and pressed", "Paper is collected", "The sheet is discarded", "Water is never removed")
+        question("dsm3q1", "What is made by mixing paper with water?", "Pulp", "Finished paper", "Printing ink", "Adhesive"),
+        question("dsm3q2", "What happens before a sheet is formed?", "Contaminants are removed", "Finished paper is printed", "Dry sheets are cut", "Unsorted paper is packaged"),
+        question("dsm3q3", "What is the final major step?", "Drying and finishing", "Collecting waste paper", "Cleaning the pulp", "Mixing paper with water"),
+        question("dsm3q4", "What happens after cleaning the pulp?", "A sheet is formed and pressed", "The original waste paper is collected again before forming a sheet", "The cleaned pulp is printed before a sheet exists", "The pulp is packaged without forming or pressing a sheet")
       ]
     }
   ],
@@ -572,10 +572,10 @@ export const methodMatchContentVariants = {
       source: "Particles in the submerged part of the spoon gain energy from the hot soup. In metal, energetic electrons and vibrating particles transfer energy through the material. Energy moves from hotter regions toward cooler regions, so the handle warms even without touching the soup directly.",
       basicPrinciples: ["Thermal energy moves from hotter to cooler regions.", "Metals conduct thermal energy well.", "Particles transfer energy through interactions.", "The handle is connected to the heated end."],
       questions: [
-        question("dbm2q1", "In which direction does thermal energy move?", "From hotter to cooler regions", "Only from cooler to hotter", "Toward greater mass only", "It never moves"),
-        question("dbm2q2", "Why does the handle warm?", "The metal conducts energy along the spoon", "The handle creates fire", "Gravity heats it", "Soup teleports"),
-        question("dbm2q3", "What property of metal matters?", "High thermal conductivity", "Transparency", "Color", "Solubility"),
-        question("dbm2q4", "What first heats the submerged end?", "Energy from the hot soup", "The cool handle", "Sound", "Gravity alone")
+        question("dbm2q1", "In which direction does thermal energy move?", "From hotter to cooler regions", "Only from cooler to hotter regions", "Toward the object with greater mass regardless of temperature", "Only from a solid into a liquid regardless of temperature"),
+        question("dbm2q2", "Why does the handle warm?", "The metal conducts energy along the spoon", "Heat moves only by convection through the solid handle", "The cool handle generates its own thermal energy", "The metal increases temperature without receiving energy"),
+        question("dbm2q3", "What property of metal matters?", "High thermal conductivity", "High electrical resistance alone", "Low thermal conductivity", "Low optical transparency alone"),
+        question("dbm2q4", "What first heats the submerged end?", "Energy from the hot soup", "Energy generated by the cool handle alone", "Energy moving from the spoon into the hotter soup", "Energy supplied only by the spoon's downward weight")
       ]
     },
     {
@@ -586,10 +586,10 @@ export const methodMatchContentVariants = {
       source: "A sound source transfers energy into waves. As waves spread outward, their energy is distributed across a larger area. Air and surrounding materials also absorb and scatter some energy. Less wave energy therefore reaches a small detector farther away.",
       basicPrinciples: ["Sound waves carry energy.", "Waves spread from a source.", "A larger area shares the energy.", "Materials absorb and scatter some sound."],
       questions: [
-        question("dbm3q1", "What happens as sound spreads outward?", "Its energy is distributed across a larger area", "Its energy becomes concentrated", "It stops being a wave", "It gains unlimited energy"),
-        question("dbm3q2", "What else reduces arriving sound energy?", "Absorption and scattering", "Only gravity", "Photosynthesis", "Freezing"),
-        question("dbm3q3", "Why does a distant detector receive less energy?", "The wave energy has spread and partly dissipated", "The source becomes larger", "Air creates silence instantly", "Distance removes frequency"),
-        question("dbm3q4", "What do sound waves carry?", "Energy", "Matter permanently from source to listener", "Light only", "Gravity")
+        question("dbm3q1", "What happens as sound spreads outward?", "Its energy is distributed across a larger area", "The same energy stays concentrated in the original small area", "The wave gains energy simply because it travels farther", "The total energy increases in proportion to distance"),
+        question("dbm3q2", "What else reduces arriving sound energy?", "Absorption and scattering", "Wave amplification", "Increased source power", "Focusing toward the detector"),
+        question("dbm3q3", "Why does a distant detector receive less energy?", "The wave energy has spread and partly dissipated", "Distance forces the source to become physically larger", "The wave gains energy as its area increases", "The wave keeps the same intensity at every distance"),
+        question("dbm3q4", "What do sound waves carry?", "Energy", "Matter", "Electric charge", "Light")
       ]
     }
   ],
@@ -601,9 +601,9 @@ export const methodMatchContentVariants = {
       vagueProblem: "Our meetings take forever.",
       context: "The last four planning meetings exceeded 45 minutes because no agenda was shared and decisions were revisited after new topics were introduced near the end.",
       questions: [
-        question("krm2q1", "Which rewrite is actionable?", "Share an agenda and park new topics after 40 minutes", "Meetings are endless", "People talk too much", "Time is impossible"),
-        question("krm2q2", "What observable pattern caused overruns?", "No agenda and late new topics", "The room was too large", "All decisions were final", "Meetings ended early"),
-        question("krm2q3", "Which boundary is specific?", "The last four planning meetings", "All meetings forever", "Everything", "Never")
+        question("krm2q1", "Which rewrite is actionable?", "Share an agenda and park new topics after 40 minutes", "Ask participants to talk less without defining a meeting plan", "Schedule a longer meeting without setting topic limits", "Keep the meeting open until every new topic is discussed"),
+        question("krm2q2", "What observable pattern caused overruns?", "No agenda and late new topics", "An agenda that was followed without adding topics", "A fixed ending enforced before new topics were introduced", "A room-size problem despite every topic finishing on time"),
+        question("krm2q3", "Which boundary is specific?", "The last four planning meetings", "Meetings across an unspecified period", "Every discussion in any team project", "All future meetings that might run late")
       ]
     },
     {
@@ -613,9 +613,9 @@ export const methodMatchContentVariants = {
       vagueProblem: "I am bad with money.",
       context: "For each of the last two months, unplanned food-delivery purchases used the amount reserved for transport during the final week.",
       questions: [
-        question("krm3q1", "Which statement is most precise?", "Food-delivery spending used the final week's transport budget", "Money is always bad", "Budgets never work", "Everything costs too much"),
-        question("krm3q2", "What is the recurring behavior?", "Unplanned food-delivery purchases", "Transport becoming free", "Income disappearing", "Every purchase increasing"),
-        question("krm3q3", "Which period defines the sample?", "The last two months", "All time", "Never", "The distant future")
+        question("krm3q1", "Which statement is most precise?", "Food-delivery spending used the final week's transport budget", "Transport prices rose even though discretionary spending stayed within plan", "Income was too low without identifying any purchase pattern", "All spending categories exceeded their budgets by the same amount"),
+        question("krm3q2", "What is the recurring behavior?", "Unplanned food-delivery purchases", "Planned transport spending", "A halt to discretionary purchases", "Equal overspending across all categories"),
+        question("krm3q3", "Which period defines the sample?", "The last two months", "An unspecified period covering all past spending", "Only future purchases that have not yet occurred", "A general impression without any observed time window")
       ]
     }
   ],
@@ -629,8 +629,8 @@ export const methodMatchContentVariants = {
       preferredExamples: ["A short video break", "A favorite drink", "Five minutes of music"],
       questions: [
         question("ppm2q1", "If 1 cm represents 5 km, what does 3 cm represent?", "15 km", "8 km", "2 km", "25 km"),
-        question("ppm2q2", "What does a map scale connect?", "Map distance and real distance", "Temperature and time", "Color and height", "Mass and speed"),
-        question("ppm2q3", "When is the preferred activity available?", "After completing practice", "Before the task exists", "Instead of practice", "During each calculation")
+        question("ppm2q2", "What does a map scale connect?", "Map distance and real distance", "Map distance and real travel time regardless of speed", "Map distance and compass direction alone", "Map area and the number of place names"),
+        question("ppm2q3", "When is the preferred activity available?", "After completing practice", "Before agreeing which practice to complete", "Instead of completing the practice", "Regardless of whether practice is completed")
       ]
     },
     {
@@ -642,8 +642,8 @@ export const methodMatchContentVariants = {
       preferredExamples: ["Check messages briefly", "Sketch for five minutes", "Have a favorite snack"],
       questions: [
         question("ppm3q1", "Which is a physical change?", "Melting ice", "Rusting iron", "Burning wood", "Digesting food"),
-        question("ppm3q2", "What defines a chemical change?", "New substances form", "Only shape changes", "No atoms rearrange", "Temperature never changes"),
-        question("ppm3q3", "What is paired with the preferred activity?", "Finishing the review first", "Skipping the review", "Starting with the reward", "Avoiding a clear task")
+        question("ppm3q2", "What defines a chemical change?", "New substances form", "Only shape changes", "Only physical state changes", "Only particle spacing changes"),
+        question("ppm3q3", "What is paired with the preferred activity?", "Finishing the review first", "Skipping the review whenever the preferred activity is available", "Starting with the preferred activity before reviewing", "Receiving the preferred activity regardless of review completion")
       ]
     }
   ],
@@ -654,9 +654,9 @@ export const methodMatchContentVariants = {
       topic: "How dunes move",
       material: "Wind lifts or rolls loose sand grains. When wind slows or encounters an obstacle, grains settle. More sand tends to accumulate on the windward side and move over the crest, so a dune can migrate downwind over time.",
       questions: [
-        question("wsm2q1", "What moves loose sand grains?", "Wind", "Moonlight", "Plant roots only", "Groundwater only"),
-        question("wsm2q2", "When do grains settle?", "When wind slows or meets an obstacle", "When wind always speeds up", "When gravity ends", "Only underwater"),
-        question("wsm2q3", "In which direction can a dune migrate?", "Downwind", "Toward Earth's core", "Only north", "Opposite every wind")
+        question("wsm2q1", "What moves loose sand grains?", "Wind", "Condensation", "Mineral crystallization", "Chemical weathering"),
+        question("wsm2q2", "When do grains settle?", "When wind slows or meets an obstacle", "When wind accelerates enough to carry larger grains", "When gravity becomes weaker than it is elsewhere", "Only when the grains become submerged in water"),
+        question("wsm2q3", "In which direction can a dune migrate?", "Downwind", "Upwind", "Only north", "Only vertically")
       ]
     },
     {
@@ -665,9 +665,9 @@ export const methodMatchContentVariants = {
       topic: "How leaves exchange gases",
       material: "Small pores called stomata connect internal leaf spaces with the air. Carbon dioxide diffuses inward for photosynthesis, while oxygen and water vapor can diffuse outward. Guard cells adjust pore opening and help balance gas exchange with water loss.",
       questions: [
-        question("wsm3q1", "What are leaf pores called?", "Stomata", "Nephrons", "Alveoli", "Axons"),
-        question("wsm3q2", "Which gas enters for photosynthesis?", "Carbon dioxide", "Helium", "Nitrogen only", "Hydrogen"),
-        question("wsm3q3", "What adjusts pore opening?", "Guard cells", "Red blood cells", "Root hairs only", "Petals")
+        question("wsm3q1", "What are leaf pores called?", "Stomata", "Lenticels", "Root hairs", "Xylem vessels"),
+        question("wsm3q2", "Which gas enters for photosynthesis?", "Carbon dioxide", "Oxygen", "Nitrogen", "Water vapor alone"),
+        question("wsm3q3", "What adjusts pore opening?", "Guard cells", "Root-hair cells", "Mesophyll cells", "Xylem vessel cells")
       ]
     }
   ],
@@ -679,9 +679,9 @@ export const methodMatchContentVariants = {
       material: "Selective attention enhances information relevant to a current goal while reducing processing of competing input. A person's name or another meaningful cue can still capture attention. Performance worsens when competing signals are similar to the target or require the same response system.",
       colors: [{ name: "indigo", hsla: "hsl(245 70% 45%)" }, { name: "mint", hsla: "hsl(150 55% 42%)" }, { name: "rust", hsla: "hsl(15 75% 42%)" }, { name: "yellow", hsla: "hsl(52 95% 43%)" }],
       questions: [
-        question("sem2q1", "What does selective attention prioritize?", "Goal-relevant information", "Every signal equally", "Only memories", "Unrelated movement"),
-        question("sem2q2", "What may capture attention despite another focus?", "A meaningful cue such as one's name", "No cue ever", "Only silence", "Gravity"),
-        question("sem2q3", "When is interference often stronger?", "When competing signals resemble the target", "When no competitors exist", "During perfect silence", "When the task is absent")
+        question("sem2q1", "What does selective attention prioritize?", "Goal-relevant information", "Every incoming signal equally", "Only familiar information", "Only irrelevant changes"),
+        question("sem2q2", "What may capture attention despite another focus?", "A meaningful cue such as one's name", "Only cues that have no personal meaning", "Only cues already being deliberately attended to", "Only the complete absence of sensory information"),
+        question("sem2q3", "When is interference often stronger?", "When competing signals resemble the target", "When competing signals are absent", "When competitors have no features related to the target", "When no response has to be selected")
       ]
     },
     {
@@ -691,8 +691,8 @@ export const methodMatchContentVariants = {
       material: "Response inhibition pauses or stops a dominant action when it conflicts with the current rule. The process depends on detecting conflict, maintaining the rule, and selecting a different response. Fatigue or distraction can make consistent inhibition harder.",
       colors: [{ name: "magenta", hsla: "hsl(315 80% 45%)" }, { name: "sky", hsla: "hsl(198 85% 45%)" }, { name: "brown", hsla: "hsl(25 60% 35%)" }, { name: "emerald", hsla: "hsl(145 70% 35%)" }],
       questions: [
-        question("sem3q1", "What does response inhibition stop?", "A dominant action that conflicts with the rule", "Every planned action", "All perception", "Memory formation"),
-        question("sem3q2", "What must be maintained?", "The current rule", "An unrelated habit", "No goal", "Only a color name"),
+        question("sem3q1", "What does response inhibition stop?", "A dominant action that conflicts with the rule", "Every intentional action, including the required one", "All incoming sensory information before it is perceived", "Only unfamiliar responses that already fit the rule"),
+        question("sem3q2", "What must be maintained?", "The current rule", "The previous rule", "An unrelated goal", "The last answer's position"),
         question("sem3q3", "What can make inhibition harder?", "Fatigue or distraction", "Clear rules", "Adequate focus", "Removing conflict")
       ]
     }
@@ -711,9 +711,9 @@ export const methodMatchContentVariants = {
         "Notice the costs as well as the benefits of farming."
       ],
       questions: [
-        question("vxm3q1", "What became more common with agriculture?", "Permanent settlements", "A complete end to work", "Universal nomadism", "The disappearance of trade"),
-        question("vxm3q2", "What did surplus food make easier?", "Supporting specialized roles", "Preventing population growth", "Eliminating social organization", "Ending all storage"),
-        question("vxm3q3", "Why is agriculture presented as a tradeoff?", "It brought benefits alongside health and social costs", "It changed nothing about society", "It guaranteed equal outcomes", "It removed every source of disease")
+        question("vxm3q1", "What became more common with agriculture?", "Permanent settlements", "More frequent seasonal migration", "Less food storage", "Fewer permanent dwellings"),
+        question("vxm3q2", "What did surplus food make easier?", "Supporting specialized roles", "Eliminating the need to store any food", "Keeping every person in the same food-gathering role", "Preventing communities from supporting non-farming work"),
+        question("vxm3q3", "Why is agriculture presented as a tradeoff?", "It brought benefits alongside health and social costs", "It improved health and social conditions without any costs", "It changed food production but left social organization identical", "It removed the need to manage food storage and disease")
       ]
     }
   ]

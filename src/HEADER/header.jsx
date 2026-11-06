@@ -171,6 +171,21 @@ function NAV() {
           </NavLink>
 
           <NavLink
+            to="/library"
+            className={({ isActive }) =>
+              isActive
+                ? "nav-item active"
+                : "nav-item"
+            }
+          >
+            <img
+              src={wayofgroups}
+              alt=""
+            />
+            <span>Library</span>
+          </NavLink>
+
+          <NavLink
             to="/training"
             className={({ isActive }) =>
               isActive
@@ -186,21 +201,6 @@ function NAV() {
             <span>
               Training
             </span>
-          </NavLink>
-
-          <NavLink
-            to="/library"
-            className={({ isActive }) =>
-              isActive
-                ? "nav-item active"
-                : "nav-item"
-            }
-          >
-            <img
-              src={wayofgroups}
-              alt=""
-            />
-            <span>Library</span>
           </NavLink>
 
           <NavLink

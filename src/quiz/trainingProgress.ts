@@ -3,9 +3,12 @@ import {
   isTrainingMethodId
 } from "./type";
 import {
-  baselineConceptContentSets,
-  baselineMemoryContentSets
-} from "./assessmentData";
+  trainingUnderstandingContentSets as baselineConceptContentSets,
+  trainingMemoryContentSets as baselineMemoryContentSets
+} from "./trainingContent";
+import { economicsContentId, economicsSelection } from "./economics9708/selection";
+import { requireEconomicsMethods } from "./economics9708/runtime";
+import type { EconomicsActivityVersion } from "./economics9708/runtime";
 import {
   getMethodDefinition
 } from "./methodRegistry";
@@ -147,14 +150,19 @@ export function createTrainingDraft({
   owner,
   mode,
   selectedMethods = [],
-  sessionId = createSessionId()
+  sessionId = createSessionId(),
+  economicsTopicId,
+  economicsActivityVersion
 }: {
   owner: TrainingDraftOwner;
   mode: TrainingMode;
   selectedMethods?: TrainingMethodId[];
   sessionId?: string;
+  economicsTopicId?: string;
+  economicsActivityVersion?: EconomicsActivityVersion;
 }): TrainingDraft {
   const now = new Date().toISOString();
+  if (economicsTopicId && economicsActivityVersion) requireEconomicsMethods(selectedMethods);
 
   return {
     schemaVersion: TRAINING_DRAFT_SCHEMA_VERSION,
@@ -170,8 +178,8 @@ export function createTrainingDraft({
     currentMethodIndex:
       selectedMethods.length > 0 ? 0 : null,
     baselineContentSetIds: {
-      memory: null,
-      understanding: null
+      memory: mode === "auto" && economicsTopicId ? economicsContentId(economicsTopicId, "memory") : null,
+      understanding: mode === "auto" && economicsTopicId ? economicsContentId(economicsTopicId, "understanding") : null
     },
     labContentSetIds: [],
     matchContentSetIds: [],
@@ -189,7 +197,7 @@ export function createTrainingDraft({
       reflection: null,
       learningProfile: null
     },
-    internalState: {},
+    internalState: economicsTopicId ? { curriculum: economicsSelection(economicsTopicId, economicsActivityVersion) } : {},
     createdAt: now,
     updatedAt: now,
     revision: 0
@@ -441,7 +449,7 @@ export function validateTrainingDraft(
       labIds.some((id, index) =>
         !getMethodDefinition(
           selectedMethods[index]
-        ).labContentSetIds.includes(id)
+        ).hasLabContentSetId(id)
       ))
   ) {
     return {
@@ -460,7 +468,7 @@ export function validateTrainingDraft(
       matchIds.some((id, index) =>
         !getMethodDefinition(
           verificationMethods[index]
-        ).matchContentSetIds.includes(id)
+        ).hasMatchContentSetId(id)
       ))
   ) {
     return {

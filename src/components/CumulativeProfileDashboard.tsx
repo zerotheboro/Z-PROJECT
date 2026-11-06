@@ -1,4 +1,5 @@
 import { memo, useCallback, useId, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { getMethodName } from "../quiz/methodRegistry";
 import { observationConditions } from "../quiz/cumulativeProfileView";
@@ -115,7 +116,7 @@ function MethodComparison({ progress }: { progress: ProgressSeries[] }) {
   </article>;
 }
 
-export default function CumulativeProfileDashboard({ data, refresh }: { data: CumulativeProfileSnapshot; refresh: () => void }) {
+export default function CumulativeProfileDashboard({ data, refresh, strategy }: { data: CumulativeProfileSnapshot; refresh: () => void; strategy?: ReactNode }) {
   const [historyLimit, setHistoryLimit] = useState(10);
   const [methodOpen, setMethodOpen] = useState<string | null>(null);
   const [subject, setSubject] = useState("");
@@ -159,6 +160,7 @@ export default function CumulativeProfileDashboard({ data, refresh }: { data: Cu
       <Link to="/training/profile?view=latest">View latest assessment snapshot</Link><Link to="/training">Back to Training</Link></div></div>
     </header>
 
+    {strategy}
     <section id="learning-overview" aria-labelledby="overview-title">
       <ProfileSectionTitle number="01" title="Learning Overview" id="overview-title" description="Every experiment adds a little more perspective." />
       {data.publication && <aside className="cumulative-notice" aria-label="Synthetic publication status">

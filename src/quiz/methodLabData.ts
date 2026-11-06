@@ -7,9 +7,9 @@ export const activeRecallExperiment = {
 
   topic: "Honeybee Communication",
 
-  studyTime: 30,
+  studyTime: 60,
 
-  retrievalTime: 30,
+  retrievalTime: 60,
 
   facts: [
     "Honeybees can communicate the location of food through movement.",
@@ -29,9 +29,9 @@ export const activeRecallExperiment = {
 
       options: [
         "A waggle dance",
-        "Changing wing color",
-        "Building a second hive",
-        "Sleeping near the food"
+        "Repeated wing buzzing",
+        "A fixed scent mark",
+        "A circular flight outside the hive"
       ],
 
       correct: "A waggle dance"
@@ -45,9 +45,9 @@ export const activeRecallExperiment = {
 
       options: [
         "The direction of the food",
-        "The age of the bee",
-        "The size of the hive",
-        "The temperature outside"
+        "The distance to the food",
+        "The sugar concentration of the food",
+        "The amount of food available"
       ],
 
       correct:
@@ -62,9 +62,9 @@ export const activeRecallExperiment = {
 
       options: [
         "Distance to the food",
-        "Number of bees in the hive",
-        "Age of the queen",
-        "Amount of honey already stored"
+        "The direction toward the food",
+        "The scent of the food source",
+        "The sugar concentration of the food"
       ],
 
       correct:
@@ -79,15 +79,17 @@ export const activeRecallExperiment = {
 
       options: [
         "Scent",
-        "Written symbols",
-        "Color changes in their wings",
-        "Changes in hive shape"
+        "Body temperature",
+        "Abdominal stripe pattern",
+        "Wingbeat frequency"
       ],
 
       correct: "Scent"
     }
   ]
 };
+
+export const FEYNMAN_STUDY_SECONDS = 60;
 
 export const feynmanExperiment = {
   method: "feynman" as const,
@@ -98,7 +100,7 @@ export const feynmanExperiment = {
 
   topic: "Why do metal objects feel colder than wood?",
 
-  studyTime: 35,
+  studyTime: FEYNMAN_STUDY_SECONDS,
 
   explanation: `
 Metal and wood in the same room are usually at roughly
@@ -126,8 +128,8 @@ Your skin senses this faster loss of heat as feeling colder.
       options: [
         "Metal removes heat from your hand faster",
         "Metal always has a lower temperature",
-        "Wood produces heat",
-        "Metal contains cold energy"
+        "Metal stores more cold energy at the same temperature",
+        "Wood removes heat from your hand faster"
       ],
 
       correct:
@@ -142,9 +144,9 @@ Your skin senses this faster loss of heat as feeling colder.
 
       options: [
         "Thermal conductivity",
-        "Mass",
-        "Color",
-        "Shape"
+        "Heat capacity alone",
+        "Surface temperature alone",
+        "Material density alone"
       ],
 
       correct:
@@ -159,9 +161,9 @@ Your skin senses this faster loss of heat as feeling colder.
 
       options: [
         "Even colder to the touch",
-        "Warmer than your hand",
-        "Exactly like wood",
-        "Temperature would become irrelevant"
+        "Warmer because faster heat transfer heats your skin",
+        "Equally cold because equal temperatures always feel identical",
+        "Less cold because faster transfer prevents your hand losing heat"
       ],
 
       correct:
@@ -177,8 +179,8 @@ Your skin senses this faster loss of heat as feeling colder.
       options: [
         "Heat leaves your hand more slowly",
         "Wood is always warmer than the room",
-        "Wood creates heat when touched",
-        "Wood stops heat from existing"
+        "Heat flows from the wood into your warmer hand",
+        "Wood removes heat faster but your skin detects it less"
       ],
 
       correct:
@@ -222,9 +224,9 @@ on Earth's surface directly above it is called the epicenter.
         "Why can stress build along a fault?",
       options: [
         "The plates continue moving while rocks are temporarily stuck",
-        "Tectonic plates completely stop moving",
-        "Seismic waves prevent the rocks from moving",
-        "The epicenter pulls the plates together"
+        "The plates stop and the rocks continue moving",
+        "Friction releases stress as fast as plates move",
+        "Rocks on both sides move freely without resistance"
       ],
       correct:
         "The plates continue moving while rocks are temporarily stuck"
@@ -236,9 +238,9 @@ on Earth's surface directly above it is called the epicenter.
         "What happens when accumulated stress overcomes friction?",
       options: [
         "The rocks suddenly move along the fault",
-        "The tectonic plates disappear",
-        "The epicenter moves underground",
-        "The rocks permanently stop storing energy"
+        "The rocks move without releasing stored energy",
+        "The friction increases enough to prevent any movement",
+        "The earthquake focus moves up to the surface"
       ],
       correct:
         "The rocks suddenly move along the fault"
@@ -250,9 +252,9 @@ on Earth's surface directly above it is called the epicenter.
         "How does released earthquake energy travel through Earth?",
       options: [
         "As seismic waves",
-        "As tectonic plates",
-        "As atmospheric pressure",
-        "As ocean currents"
+        "As slow plate motion",
+        "As pressure in the air",
+        "As flowing molten rock"
       ],
       correct:
         "As seismic waves"
@@ -265,8 +267,8 @@ on Earth's surface directly above it is called the epicenter.
       options: [
         "The surface point directly above the earthquake focus",
         "The underground point where movement begins",
-        "The boundary of every tectonic plate",
-        "The strongest seismic wave"
+        "The point on the fault with the greatest depth",
+        "The surface area where all seismic waves end"
       ],
       correct:
         "The surface point directly above the earthquake focus"
@@ -526,9 +528,9 @@ export const activeBlurtingExperiment = {
         "How do coral reefs help many young marine animals?",
       options: [
         "They provide shelter and nursery areas",
-        "They remove all predators from the ocean",
-        "They make seawater warmer",
-        "They prevent animals from moving"
+        "They supply young animals with fresh water",
+        "They keep young animals in open water without cover",
+        "They produce all the oxygen needed by ocean animals"
       ],
       correct: "They provide shelter and nursery areas"
     },
@@ -538,9 +540,9 @@ export const activeBlurtingExperiment = {
         "What do the algae living with reef-building corals provide?",
       options: [
         "Energy produced through photosynthesis",
-        "Sand for the ocean floor",
-        "Protection from every disease",
-        "Fresh water for the coral"
+        "Minerals collected directly from ocean sediment",
+        "Energy released by digesting coral tissue",
+        "Fresh water absorbed from the surrounding sea"
       ],
       correct: "Energy produced through photosynthesis"
     },
@@ -550,9 +552,9 @@ export const activeBlurtingExperiment = {
         "How can reefs help protect coastlines?",
       options: [
         "They reduce wave energy",
-        "They stop the tides completely",
-        "They increase coastal wind speed",
-        "They remove all coastal sediment"
+        "They prevent changes in sea level during tides",
+        "They strengthen waves before the waves reach shore",
+        "They replace sediment with deeper coastal water"
       ],
       correct: "They reduce wave energy"
     },
@@ -562,9 +564,9 @@ export const activeBlurtingExperiment = {
         "What happens during coral bleaching?",
       options: [
         "Corals expel the algae living with them",
-        "Corals turn into sand immediately",
-        "Corals begin producing their own sunlight",
-        "Corals move into deeper water"
+        "Corals lose their calcium-carbonate skeletons",
+        "Corals release reproductive cells that remove their color",
+        "Corals gain extra algae that block their natural pigment"
       ],
       correct: "Corals expel the algae living with them"
     }
@@ -596,9 +598,9 @@ respond faster and more effectively.
         "Why can the immune system respond faster after vaccination?",
       options: [
         "Memory cells recognize the pathogen",
-        "The pathogen can no longer enter the body",
-        "Vaccines permanently raise body temperature",
-        "Antibodies replace every immune cell"
+        "Vaccination leaves a permanent supply of every antibody",
+        "Vaccination prevents pathogens from ever entering the body",
+        "All immune cells become identical after vaccination"
       ],
       correct: "Memory cells recognize the pathogen"
     },
@@ -608,9 +610,9 @@ respond faster and more effectively.
         "What does a vaccine safely present to the immune system?",
       options: [
         "A recognizable form or part of a pathogen",
-        "A completely unrelated nutrient",
-        "Only healthy human cells",
-        "A permanent supply of antibodies"
+        "A permanent dose of ready-made antibodies",
+        "Only nutrients that make pathogens grow faster",
+        "A substance that destroys every pathogen directly"
       ],
       correct: "A recognizable form or part of a pathogen"
     },
@@ -620,9 +622,9 @@ respond faster and more effectively.
         "Which statement best transfers the idea of immune memory?",
       options: [
         "Prior safe exposure prepares a faster later response",
-        "Every immune response starts from the beginning",
-        "Memory cells prevent all future infections",
-        "The body responds only while a vaccine is present"
+        "Prior exposure makes later recognition unnecessary",
+        "Prior exposure prevents every later infection",
+        "Prior exposure helps only while the original vaccine remains"
       ],
       correct: "Prior safe exposure prepares a faster later response"
     }
@@ -666,9 +668,9 @@ bodies of water, where the cycle continues.
         "What occurs when rising water vapor cools?",
       options: [
         "It condenses into droplets that can form clouds",
-        "It immediately becomes groundwater",
-        "It stops participating in the water cycle",
-        "It turns directly into runoff"
+        "It evaporates faster as the rising air cools",
+        "It immediately falls as liquid rain without condensation",
+        "It soaks into the atmosphere as groundwater"
       ],
       correct: "It condenses into droplets that can form clouds"
     },
@@ -678,9 +680,9 @@ bodies of water, where the cycle continues.
         "When does precipitation occur?",
       options: [
         "When water droplets or ice crystals become heavy enough to fall",
-        "Whenever liquid water absorbs energy",
-        "Only when groundwater reaches the ocean",
-        "When plants absorb water through their roots"
+        "Whenever liquid water absorbs enough heat to evaporate",
+        "Whenever water vapor rises without forming droplets",
+        "When clouds absorb water directly from plant roots"
       ],
       correct: "When water droplets or ice crystals become heavy enough to fall"
     },
@@ -690,9 +692,9 @@ bodies of water, where the cycle continues.
         "Which sequence correctly connects four major parts of the water cycle?",
       options: [
         "Evaporation, condensation, precipitation, collection",
-        "Collection, precipitation, evaporation, condensation only once",
-        "Condensation, collection, erosion, combustion",
-        "Precipitation, photosynthesis, condensation, respiration"
+        "Evaporation, collection, condensation, precipitation",
+        "Condensation, evaporation, collection, precipitation",
+        "Precipitation, condensation, collection, evaporation"
       ],
       correct: "Evaporation, condensation, precipitation, collection"
     }
@@ -711,7 +713,7 @@ export const leitnerSystemExperiment = {
     { id: "lsc4", front: "Cell membrane", back: "Controls what enters and leaves the cell." }
   ],
   practice: [
-    { id: "lsp1", question: "Which structure stores DNA?", options: ["Nucleus", "Ribosome", "Cell membrane", "Mitochondrion"], correct: "Nucleus" },
+    { id: "lsp1", question: "Which structure stores DNA?", options: ["Nucleus", "Ribosome", "Cell membrane", "Golgi apparatus"], correct: "Nucleus" },
     { id: "lsp2", question: "Which structure builds proteins?", options: ["Ribosome", "Nucleus", "Mitochondrion", "Cell membrane"], correct: "Ribosome" },
     { id: "lsp3", question: "Which structure controls entry and exit?", options: ["Cell membrane", "Nucleus", "Ribosome", "Mitochondrion"], correct: "Cell membrane" },
     { id: "lsp4", question: "Which structure releases usable energy?", options: ["Mitochondrion", "Cell membrane", "Nucleus", "Ribosome"], correct: "Mitochondrion" }
@@ -719,7 +721,7 @@ export const leitnerSystemExperiment = {
   test: [
     { id: "lst1", question: "A cell cannot assemble proteins correctly; which structure is most directly affected?", options: ["Ribosome", "Nucleus", "Cell membrane", "Mitochondrion"], correct: "Ribosome" },
     { id: "lst2", question: "Which structure regulates movement of substances into a cell?", options: ["Cell membrane", "Mitochondrion", "Ribosome", "Nucleus"], correct: "Cell membrane" },
-    { id: "lst3", question: "Which pairing is correct?", options: ["Nucleus — stores DNA", "Ribosome — controls entry", "Cell membrane — builds proteins", "Mitochondrion — stores DNA"], correct: "Nucleus — stores DNA" }
+    { id: "lst3", question: "Which pairing is correct?", options: ["Nucleus — stores DNA", "Ribosome ? regulates entry and exit", "Cell membrane ? builds proteins", "Mitochondrion ? packages proteins for secretion"], correct: "Nucleus — stores DNA" }
   ]
 };
 
@@ -736,9 +738,9 @@ export const storyTellingExperiment = {
     "Grasses, shrubs, and eventually trees become established."
   ],
   questions: [
-    { id: "st1", question: "What begins primary succession?", options: ["Bare rock with little or no soil", "A mature forest", "Deep fertile soil", "Large grazing animals"], correct: "Bare rock with little or no soil" },
-    { id: "st2", question: "How do lichens help the sequence continue?", options: ["They help break down rock", "They remove all soil", "They prevent plant growth", "They create mature trees immediately"], correct: "They help break down rock" },
-    { id: "st3", question: "What normally becomes established after soil and small plants develop?", options: ["Grasses, shrubs, and eventually trees", "Only bare rock", "Ocean currents", "Glaciers"], correct: "Grasses, shrubs, and eventually trees" },
+    { id: "st1", question: "What begins primary succession?", options: ["Bare rock with little or no soil", "A disturbance that leaves existing soil intact", "A site already covered with fertile topsoil", "A habitat where mature plants remain established"], correct: "Bare rock with little or no soil" },
+    { id: "st2", question: "How do lichens help the sequence continue?", options: ["They help break down rock", "They prevent weathering and keep the rock intact", "They consume all the organic material needed for soil", "They replace soil-forming microbes with mature plants"], correct: "They help break down rock" },
+    { id: "st3", question: "What normally becomes established after soil and small plants develop?", options: ["Grasses, shrubs, and eventually trees", "Only bare rock remains as the soil disappears", "Mature trees establish before any pioneer species", "Lichens immediately replace all established shrubs"], correct: "Grasses, shrubs, and eventually trees" },
     { id: "st4", question: "Which order is most accurate?", options: ["Bare rock, lichens, soil, small plants, larger plants", "Soil, trees, bare rock, lichens, moss", "Trees, shrubs, lichens, bare rock, soil", "Moss, bare rock, trees, soil, lichens"], correct: "Bare rock, lichens, soil, small plants, larger plants" }
   ]
 };
@@ -750,10 +752,10 @@ export const captureCreateExperiment = {
   topic: "Opportunity cost",
   content: `Opportunity cost is the value of the best alternative given up when a choice is made. Because time, money, and other resources are limited, choosing one option usually means giving up another. Opportunity cost is not every possible alternative; it is the most valuable alternative that was not chosen. The idea helps people compare choices in personal decisions, business, and public policy.`,
   questions: [
-    { id: "cc1", question: "What is opportunity cost?", options: ["The value of the best alternative given up", "The price of every available option", "A reward received after any decision", "The total number of alternatives"], correct: "The value of the best alternative given up" },
-    { id: "cc2", question: "Why does opportunity cost exist?", options: ["Resources are limited and choices exclude alternatives", "Every resource is unlimited", "All choices have identical results", "Alternatives can always be selected together"], correct: "Resources are limited and choices exclude alternatives" },
-    { id: "cc3", question: "A student studies instead of working a paid shift; what is the clearest opportunity cost?", options: ["The wages from the shift", "The knowledge gained", "Every future job", "The cost of the textbook only"], correct: "The wages from the shift" },
-    { id: "cc4", question: "When is this idea most useful?", options: ["When comparing choices that use limited resources", "When no alternatives exist", "When every option can be chosen", "Only after a choice has no consequences"], correct: "When comparing choices that use limited resources" }
+    { id: "cc1", question: "What is opportunity cost?", options: ["The value of the best alternative given up", "The combined value of all alternatives given up", "The money paid for the chosen option alone", "The benefit received from the option selected"], correct: "The value of the best alternative given up" },
+    { id: "cc2", question: "Why does opportunity cost exist?", options: ["Resources are limited and choices exclude alternatives", "The chosen option always costs money", "All alternatives provide identical benefits", "Every alternative can be selected at the same time"], correct: "Resources are limited and choices exclude alternatives" },
+    { id: "cc3", question: "A student studies instead of working a paid shift; what is the clearest opportunity cost?", options: ["The wages from the shift", "The knowledge gained during the study session", "All wages the student could earn in any future job", "The textbook cost already paid before making the choice"], correct: "The wages from the shift" },
+    { id: "cc4", question: "When is this idea most useful?", options: ["When comparing choices that use limited resources", "When evaluating only costs already incurred", "When adding every possible alternative together", "When ignoring the next-best use of time or money"], correct: "When comparing choices that use limited resources" }
   ]
 };
 
@@ -789,10 +791,10 @@ export const headerFirstExperiment = {
     { heading: "Managing wastewater", content: "Used water travels through sewers to treatment facilities before it is safely released or reused." }
   ],
   questions: [
-    { id: "hf1", question: "What normally happens before water enters the public supply?", options: ["It is treated to remove contaminants", "It is sent directly to sewers", "It is mixed with wastewater", "It is stored only in homes"], correct: "It is treated to remove contaminants" },
-    { id: "hf2", question: "What maintains the movement and pressure of treated water?", options: ["Pumps, pipes, and storage tanks", "Only natural rainfall", "Wastewater facilities alone", "Household drains"], correct: "Pumps, pipes, and storage tanks" },
+    { id: "hf1", question: "What normally happens before water enters the public supply?", options: ["It is treated to remove contaminants", "It is distributed before any contaminants are removed", "It is mixed with untreated wastewater for storage", "It is sent through household drains for purification"], correct: "It is treated to remove contaminants" },
+    { id: "hf2", question: "What maintains the movement and pressure of treated water?", options: ["Pumps, pipes, and storage tanks", "Rainfall alone after water has entered household pipes", "Drainage pipes carrying used water away from homes", "Household taps without pumps or storage pressure"], correct: "Pumps, pipes, and storage tanks" },
     { id: "hf3", question: "Which heading would contain information about used water?", options: ["Managing wastewater", "Collecting water", "Treating water", "Distributing water"], correct: "Managing wastewater" },
-    { id: "hf4", question: "What overall structure do the headings reveal?", options: ["A sequence from sourcing water to handling used water", "A list of unrelated weather events", "A comparison of four cities", "A history of household plumbing"], correct: "A sequence from sourcing water to handling used water" }
+    { id: "hf4", question: "What overall structure do the headings reveal?", options: ["A sequence from sourcing water to handling used water", "A comparison of treatment methods without a distribution stage", "A sequence that ends before treated water reaches users", "A cycle that sends wastewater directly into drinking-water pipes"], correct: "A sequence from sourcing water to handling used water" }
   ]
 };
 
@@ -804,10 +806,10 @@ export const primeQuestionExperiment = {
   guidingQuestion: "How do mangrove roots reduce coastal damage while supporting an ecosystem?",
   material: `Mangroves grow dense networks of roots in shallow coastal water. The roots slow waves and currents, reducing the energy that reaches the shore. Slower water also drops suspended sediment, which can help build and stabilize the coastline. The root network traps organic matter and creates sheltered nursery habitat for young fish and other animals. By combining physical protection with habitat support, mangroves strengthen both coastlines and coastal ecosystems.`,
   questions: [
-    { id: "pq1", question: "How do mangrove roots directly reduce wave damage?", options: ["They slow waves and currents", "They increase tidal height", "They remove all seawater", "They harden the ocean floor"], correct: "They slow waves and currents" },
-    { id: "pq2", question: "Why does sediment collect near mangrove roots?", options: ["Slower water drops suspended material", "Roots manufacture sand", "Fish carry every particle", "The water becomes warmer"], correct: "Slower water drops suspended material" },
-    { id: "pq3", question: "How do mangroves support young marine animals?", options: ["Their roots create sheltered nursery habitat", "They eliminate all predators", "They stop animals from moving", "They turn salt water fresh"], correct: "Their roots create sheltered nursery habitat" },
-    { id: "pq4", question: "What central idea connects the material?", options: ["Root structure provides physical protection and ecological habitat", "Mangroves protect shores only by absorbing rain", "Coastal protection requires removing wildlife", "Sediment prevents roots from growing"], correct: "Root structure provides physical protection and ecological habitat" }
+    { id: "pq1", question: "How do mangrove roots directly reduce wave damage?", options: ["They slow waves and currents", "They prevent waves by stopping the ocean tides", "They weaken waves mainly by warming coastal water", "They absorb the full volume of every incoming wave"], correct: "They slow waves and currents" },
+    { id: "pq2", question: "Why does sediment collect near mangrove roots?", options: ["Slower water drops suspended material", "Roots filter salt out of water to produce the sediment", "Faster flow holds more particles against the roots", "The roots dissolve existing sediment into the water"], correct: "Slower water drops suspended material" },
+    { id: "pq3", question: "How do mangroves support young marine animals?", options: ["Their roots create sheltered nursery habitat", "Their roots provide fresh water for all marine young", "Their roots remove every predator from coastal water", "Their roots keep young animals away from available food"], correct: "Their roots create sheltered nursery habitat" },
+    { id: "pq4", question: "What central idea connects the material?", options: ["Root structure provides physical protection and ecological habitat", "Roots protect coasts only by taking up rainfall", "Root systems improve habitat by increasing wave speed", "Root systems protect shores by removing all sediment"], correct: "Root structure provides physical protection and ecological habitat" }
   ]
 };
 
@@ -824,10 +826,10 @@ export const doodleEffectExperiment = {
     "Dead organisms → decomposers → soil nutrients → grass"
   ],
   questions: [
-    { id: "de1", question: "Which organism receives energy directly from grasshoppers?", options: ["Frogs", "Grass", "Rabbits", "Decomposers only"], correct: "Frogs" },
-    { id: "de2", question: "What do arrows represent in this food web?", options: ["The direction of energy transfer", "The size of each organism", "Where each organism sleeps", "The amount of rainfall"], correct: "The direction of energy transfer" },
-    { id: "de3", question: "How do decomposers support new plant growth?", options: ["They return nutrients to the soil", "They create sunlight", "They remove every consumer", "They stop energy transfer"], correct: "They return nutrients to the soil" },
-    { id: "de4", question: "Which path correctly shows energy movement?", options: ["Grass → rabbit → hawk", "Hawk → rabbit → grass", "Frog → grasshopper → grass", "Soil → fox → sunlight"], correct: "Grass → rabbit → hawk" }
+    { id: "de1", question: "Which organism receives energy directly from grasshoppers?", options: ["Frogs", "Grass", "Rabbits", "Hawks"], correct: "Frogs" },
+    { id: "de2", question: "What do arrows represent in this food web?", options: ["The direction of energy transfer", "The direction in which predators move toward prey", "The relative number of organisms in each population", "The direction in which nutrients leave the ecosystem"], correct: "The direction of energy transfer" },
+    { id: "de3", question: "How do decomposers support new plant growth?", options: ["They return nutrients to the soil", "They return energy directly to the Sun", "They turn dead matter into new sunlight", "They prevent nutrients from re-entering the soil"], correct: "They return nutrients to the soil" },
+    { id: "de4", question: "Which path correctly shows energy movement?", options: ["Grass → rabbit → hawk", "Hawk ? rabbit ? grass", "Frog ? grasshopper ? grass", "Grass ? hawk ? rabbit"], correct: "Grass → rabbit → hawk" }
   ]
 };
 
@@ -852,10 +854,10 @@ export const eightyTwentyExperiment = {
     "Reliable collection"
   ],
   questions: [
-    { id: "et1", question: "Which action has the greatest effect on preventing unusable recycling?", options: ["Teach residents how to avoid contamination", "Change the slogan monthly", "Choose a decorative font", "Print matching shirts"], correct: "Teach residents how to avoid contamination" },
-    { id: "et2", question: "Why should accepted materials be identified first?", options: ["It determines what the program can successfully process", "It selects the poster font", "It removes the need for collection", "It guarantees every item is recyclable"], correct: "It determines what the program can successfully process" },
-    { id: "et3", question: "Which pair represents high-value priorities?", options: ["Convenient bins and reliable collection", "T-shirts and changing slogans", "Fonts and T-shirts", "Monthly slogans and poster colors"], correct: "Convenient bins and reliable collection" },
-    { id: "et4", question: "What does applying 80/20 accomplish here?", options: ["It focuses effort on actions that drive most program success", "It requires memorizing every minor detail equally", "It removes the need to prioritize", "It guarantees exactly eighty participants"], correct: "It focuses effort on actions that drive most program success" }
+    { id: "et1", question: "Which action has the greatest effect on preventing unusable recycling?", options: ["Teach residents how to avoid contamination", "Empty bins more often without checking what goes into them", "Add more collection points without explaining accepted materials", "Promote the recycling rate without addressing rejected loads"], correct: "Teach residents how to avoid contamination" },
+    { id: "et2", question: "Why should accepted materials be identified first?", options: ["It determines what the program can successfully process", "It determines the visual style used on recycling posters", "It allows every material to be placed in the same bin", "It makes contamination checks unnecessary after collection"], correct: "It determines what the program can successfully process" },
+    { id: "et3", question: "Which pair represents high-value priorities?", options: ["Convenient bins and reliable collection", "Poster design and frequent slogan changes", "Volunteer uniforms and launch-day decorations", "Logo selection and repeated publicity events"], correct: "Convenient bins and reliable collection" },
+    { id: "et4", question: "What does applying 80/20 accomplish here?", options: ["It focuses effort on actions that drive most program success", "It gives every minor task the same amount of effort", "It fixes the useful actions at exactly twenty percent", "It prioritizes the easiest visible tasks regardless of impact"], correct: "It focuses effort on actions that drive most program success" }
   ]
 };
 
@@ -873,10 +875,10 @@ export const divideStepsExperiment = {
     "The final bill receives executive approval or another constitutional response."
   ],
   questions: [
-    { id: "ds1", question: "What normally happens after a bill is introduced?", options: ["A committee studies it", "It immediately becomes law", "The courts rewrite it", "Voters must approve every clause"], correct: "A committee studies it" },
-    { id: "ds2", question: "Why might approved versions need reconciliation?", options: ["The chambers may approve different wording", "A committee cannot read a bill", "The bill has already become law", "Executive approval happens first"], correct: "The chambers may approve different wording" },
-    { id: "ds3", question: "Which action occurs before executive consideration?", options: ["The legislature approves a final version", "The law is enforced for a year", "A new bill replaces it automatically", "All committees are dissolved"], correct: "The legislature approves a final version" },
-    { id: "ds4", question: "Why is dividing the process into steps useful?", options: ["It reveals the sequence and role of each decision", "It makes the order irrelevant", "It removes intermediate decisions", "It turns every stage into the same action"], correct: "It reveals the sequence and role of each decision" }
+    { id: "ds1", question: "What normally happens after a bill is introduced?", options: ["A committee studies it", "It becomes law before any legislative review", "It goes directly to enforcement without a vote", "It receives executive approval before committee review"], correct: "A committee studies it" },
+    { id: "ds2", question: "Why might approved versions need reconciliation?", options: ["The chambers may approve different wording", "The committee must reconcile executive vetoes before any vote", "The chambers always approve identical wording independently", "The law must be enforced before its wording is compared"], correct: "The chambers may approve different wording" },
+    { id: "ds3", question: "Which action occurs before executive consideration?", options: ["The legislature approves a final version", "The final version is enforced before a legislative vote", "The executive rewrites the bill before any chamber votes", "The committee alone replaces the final legislative vote"], correct: "The legislature approves a final version" },
+    { id: "ds4", question: "Why is dividing the process into steps useful?", options: ["It reveals the sequence and role of each decision", "It lets intermediate approvals be skipped without consequence", "It makes the sequence of decisions interchangeable", "It replaces each decision with the final outcome alone"], correct: "It reveals the sequence and role of each decision" }
   ]
 };
 
@@ -894,30 +896,30 @@ export const deriveBasicsExperiment = {
     "Shape can increase displaced volume and lower average density."
   ],
   questions: [
-    { id: "db1", question: "What determines the buoyant force on an object?", options: ["The weight of displaced water", "The object's color", "The water's surface shape only", "The time of day"], correct: "The weight of displaced water" },
-    { id: "db2", question: "Why can a hollow steel ship float?", options: ["Its shape lowers average density and displaces enough water", "Steel stops having mass", "Water loses density near ships", "Gravity does not act on hollow objects"], correct: "Its shape lowers average density and displaces enough water" },
-    { id: "db3", question: "What happens when an object's weight exceeds the available buoyant force?", options: ["It sinks", "It becomes massless", "It always evaporates", "Its density becomes zero"], correct: "It sinks" },
-    { id: "db4", question: "Which reasoning chain is valid?", options: ["Greater displaced volume can increase buoyant force and support floating", "Greater mass always creates lower density", "Smaller volume always increases buoyant force", "Density has no relationship to floating"], correct: "Greater displaced volume can increase buoyant force and support floating" }
+    { id: "db1", question: "What determines the buoyant force on an object?", options: ["The weight of displaced water", "The mass of the object regardless of displacement", "The volume of the object above the waterline", "The density of the object without considering the water"], correct: "The weight of displaced water" },
+    { id: "db2", question: "Why can a hollow steel ship float?", options: ["Its shape lowers average density and displaces enough water", "Its hollow shape removes the mass of the steel", "Its weight becomes smaller than its mass in air", "Its hull prevents any downward gravitational force"], correct: "Its shape lowers average density and displaces enough water" },
+    { id: "db3", question: "What happens when an object's weight exceeds the available buoyant force?", options: ["It sinks", "It floats higher", "It stays suspended", "Its displaced volume decreases"], correct: "It sinks" },
+    { id: "db4", question: "Which reasoning chain is valid?", options: ["Greater displaced volume can increase buoyant force and support floating", "Greater mass always creates lower average density", "Smaller displaced volume always increases buoyant force", "The volume above the waterline alone determines buoyancy"], correct: "Greater displaced volume can increase buoyant force and support floating" }
   ]
 };
 
 export const kidlinRuleExperiment={method:"kidlin-rule" as const,category:"problem-solving" as const,title:"Kidlin's rule",topic:"Clarifying a delayed group project",vagueProblem:"Our group project is going badly.",context:"The research summary was due Tuesday. Two members are waiting because the source list has not been shared, and no one has been assigned to send it.",questions:[
-{id:"kr1",question:"Which rewrite is most actionable?",options:["Assign one member to share the source list today so the waiting summaries can begin","The project is always a disaster","Everyone should try harder sometime","Group work is difficult"],correct:"Assign one member to share the source list today so the waiting summaries can begin"},
-{id:"kr2",question:"What is the clearest obstacle?",options:["The source list has not been shared or assigned","The whole project is bad","Every member lacks motivation","The deadline should not exist"],correct:"The source list has not been shared or assigned"},
+{id:"kr1",question:"Which rewrite is most actionable?",options:["Assign one member to share the source list today so the waiting summaries can begin","Ask everyone to work harder without assigning the missing source list","Postpone every task until the final deadline becomes clearer","Replace the source list task with a general reminder to collaborate"],correct:"Assign one member to share the source list today so the waiting summaries can begin"},
+{id:"kr2",question:"What is the clearest obstacle?",options:["The source list has not been shared or assigned","The summaries are late even though every needed input is available","Every member has too little ability to write summaries","The deadline alone explains why no source list was shared"],correct:"The source list has not been shared or assigned"},
 {id:"kr3",question:"Which wording should be removed as ambiguous?",options:["Going badly","Due Tuesday","Two members","Source list"],correct:"Going badly"}]};
 export const premackPrincipleExperiment={method:"premack-principle" as const,category:"focus" as const,title:"Premack's principle",topic:"Reviewing cell-division vocabulary",task:"Study the short explanation before taking your preferred activity.",material:"Interphase prepares the cell for division. During mitosis, duplicated chromosomes separate into two nuclei. Cytokinesis then divides the cytoplasm, producing two daughter cells.",preferredExamples:["A short favorite video","A game break","Listening to a preferred song"],questions:[
-{id:"pp1",question:"What happens during mitosis?",options:["Duplicated chromosomes separate into two nuclei","The cytoplasm divides first","The cell stops preparing","Two cells fuse"],correct:"Duplicated chromosomes separate into two nuclei"},
-{id:"pp2",question:"What does cytokinesis divide?",options:["The cytoplasm","Only the chromosomes","The cell's DNA before replication","The preferred activity"],correct:"The cytoplasm"},
-{id:"pp3",question:"Which pairing follows Premack's principle?",options:["Finish the review, then watch a preferred short video","Watch the video instead of reviewing","Take the reward first","Avoid both activities"],correct:"Finish the review, then watch a preferred short video"}]};
+{id:"pp1",question:"What happens during mitosis?",options:["Duplicated chromosomes separate into two nuclei","The cytoplasm separates before chromosomes are copied","Chromosomes are copied into four genetically different nuclei","Two nuclei fuse to create a cell with twice as many chromosomes"],correct:"Duplicated chromosomes separate into two nuclei"},
+{id:"pp2",question:"What does cytokinesis divide?",options:["The cytoplasm","Only the chromosomes","The cell's DNA before replication","The nuclear membrane before chromosomes separate"],correct:"The cytoplasm"},
+{id:"pp3",question:"Which pairing follows Premack's principle?",options:["Finish the review, then watch a preferred short video","Watch the preferred video before starting the review","Review while watching the preferred video throughout","Give the video reward whether or not the review is finished"],correct:"Finish the review, then watch a preferred short video"}]};
 export const wallStareExperiment={method:"ten-minute-wall-stare" as const,category:"focus" as const,title:"10 min wall stare",topic:"How sleep cycles support memory",material:"Sleep cycles alternate through non-REM and REM stages. Deep non-REM sleep supports stabilization of newly learned facts, while REM sleep is associated with integrating memories and emotional information. Repeated cycles give the brain multiple opportunities to process learning.",questions:[
-{id:"ws1",question:"Which stage especially supports stabilizing newly learned facts?",options:["Deep non-REM sleep","Only waking","The first minute of sleep","No sleep stage"],correct:"Deep non-REM sleep"},
-{id:"ws2",question:"What is REM sleep associated with here?",options:["Integrating memories and emotional information","Preventing memory formation","Replacing non-REM sleep","Stopping sleep cycles"],correct:"Integrating memories and emotional information"},
-{id:"ws3",question:"Why can repeated cycles matter?",options:["They provide repeated opportunities to process learning","They keep the brain in one stage","They remove memories","They make study unnecessary"],correct:"They provide repeated opportunities to process learning"}]};
+{id:"ws1",question:"Which stage especially supports stabilizing newly learned facts?",options:["Deep non-REM sleep","Only brief awakenings between cycles","Only the transition from wakefulness into sleep","Only the waking period before the first sleep cycle"],correct:"Deep non-REM sleep"},
+{id:"ws2",question:"What is REM sleep associated with here?",options:["Integrating memories and emotional information","Storing memories only by preventing emotional processing","Taking over every function normally performed during non-REM sleep","Keeping the brain in the same stage for the whole night"],correct:"Integrating memories and emotional information"},
+{id:"ws3",question:"Why can repeated cycles matter?",options:["They provide repeated opportunities to process learning","They keep all memory processing within the first sleep stage","They remove the need to revisit material while awake","They prevent later sleep stages from contributing to learning"],correct:"They provide repeated opportunities to process learning"}]};
 export const strooperEffectExperiment={method:"strooper-effect" as const,category:"focus" as const,title:"Strooper effect",topic:"Selective attention and interference",material:"Selective attention prioritizes task-relevant information while competing information is suppressed. In a Stroop-style task, the automatic tendency to read a word conflicts with naming its ink color. Resolving that conflict engages inhibitory control.",colors:[{name:"red",hsla:"hsl(0 100% 45%)"},{name:"blue",hsla:"hsl(240 100% 50%)"},{name:"green",hsla:"hsl(120 100% 35%)"},{name:"orange",hsla:"hsl(30 100% 45%)"}],questions:[
-{id:"se1",question:"What creates interference in a Stroop-style task?",options:["The word meaning conflicts with the ink color","The word and ink always match","The screen has no text","The learner closes their eyes"],correct:"The word meaning conflicts with the ink color"},
-{id:"se2",question:"What should the learner focus on?",options:["The ink color","The written word","The button shape","The number of letters"],correct:"The ink color"},
-{id:"se3",question:"Which control process helps resolve the conflict?",options:["Inhibitory control","Random guessing","Reward tracking","Visual avoidance"],correct:"Inhibitory control"}]};
+{id:"se1",question:"What creates interference in a Stroop-style task?",options:["The word meaning conflicts with the ink color","The learner names the word while ignoring its meaning","The ink color matches an unrelated shape on the screen","The task requires reading black text without naming its color"],correct:"The word meaning conflicts with the ink color"},
+{id:"se2",question:"What should the learner focus on?",options:["The ink color","The written color word","The position of the word on the screen","The first letter of the displayed word"],correct:"The ink color"},
+{id:"se3",question:"Which control process helps resolve the conflict?",options:["Inhibitory control","Automatic reading","Response repetition","Reward tracking"],correct:"Inhibitory control"}]};
 export const twoXVideoExperiment={method:"two-x-video-speed" as const,category:"understanding" as const,title:"2X video speed",topic:"A tour of prokaryotic and eukaryotic cells",youtubeId:"jsDxw63QqK0",videoTitle:"A Tour of the Cell: Crash Course Biology #23",channel:"CrashCourse",focusPoints:["Distinguish prokaryotic cells from eukaryotic cells.","Notice how organelles perform specialized jobs.","Connect small cell size with surface-area-to-volume ratio."],questions:[
-{id:"vx1",question:"Which cells contain a membrane-bound nucleus?",options:["Eukaryotic cells","All prokaryotic cells","Viruses","Every protein"],correct:"Eukaryotic cells"},
-{id:"vx2",question:"What are organelles?",options:["Specialized structures that perform cell functions","Organisms living outside every cell","Only the DNA inside bacteria","The spaces between tissues"],correct:"Specialized structures that perform cell functions"},
-{id:"vx3",question:"Why does remaining small help many cells?",options:["It maintains a favorable surface-area-to-volume ratio","It removes the need for energy","It prevents all material exchange","It makes organelles unnecessary"],correct:"It maintains a favorable surface-area-to-volume ratio"}]};
+{id:"vx1",question:"Which cells contain a membrane-bound nucleus?",options:["Eukaryotic cells","Bacterial cells","Archaeal cells","Mature mammalian red blood cells"],correct:"Eukaryotic cells"},
+{id:"vx2",question:"What are organelles?",options:["Specialized structures that perform cell functions","Entire cells specialized for different tissues","Only the genetic instructions inside a nucleus","Spaces outside cells that connect neighboring tissues"],correct:"Specialized structures that perform cell functions"},
+{id:"vx3",question:"Why does remaining small help many cells?",options:["It maintains a favorable surface-area-to-volume ratio","It reduces the amount of membrane relative to cell volume","It makes the cell's volume increase faster than its surface area","It eliminates the need to exchange nutrients and wastes"],correct:"It maintains a favorable surface-area-to-volume ratio"}]};

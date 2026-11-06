@@ -47,10 +47,10 @@ function deferred<T>() {
 
 function access(plan: "guest" | "free" | "premium") {
   const limit = plan === "guest"
-    ? 2
+    ? 1
     : plan === "premium"
       ? 10
-      : 4;
+      : 3;
 
   return {
     plan,
@@ -95,7 +95,7 @@ describe("useAIRecommendationAccess identity isolation", () => {
     second.resolve(access("free"));
 
     await waitFor(() => {
-      expect(screen.getByText("user-b:free:4"))
+      expect(screen.getByText("user-b:free:3"))
         .toBeTruthy();
     });
     expect(screen.queryByText("user-a:premium:10"))
@@ -112,7 +112,7 @@ describe("useAIRecommendationAccess identity isolation", () => {
     await screen.findByText("user-a:premium:10");
     mocks.authCallback?.(null);
 
-    expect(await screen.findByText("guest:guest:2"))
+    expect(await screen.findByText("guest:guest:1"))
       .toBeTruthy();
   });
 });

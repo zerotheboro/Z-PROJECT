@@ -1,11 +1,9 @@
 import type { User } from "firebase/auth";
+import { resolveRecommendationApiBase } from "./recommendationApi";
 
-export const GUEST_AI_RECOMMENDATION_LIMIT = 2;
-export const FREE_AI_RECOMMENDATION_LIMIT = 4;
+export const GUEST_AI_RECOMMENDATION_LIMIT = 1;
+export const FREE_AI_RECOMMENDATION_LIMIT = 3;
 export const PREMIUM_AI_RECOMMENDATION_LIMIT = 10;
-
-const DEFAULT_API_BASE =
-  "https://z-project-ba3t.onrender.com";
 
 export type AIRecommendationPlan =
   | "guest"
@@ -53,14 +51,6 @@ export class AIRecommendationAccessError extends Error {
     this.status = status;
     this.code = code;
   }
-}
-
-function apiBase(context: AccessContext): string {
-  return (
-    context.apiBase
-    ?? import.meta.env.VITE_API_BASE_URL
-    ?? DEFAULT_API_BASE
-  ).replace(/\/$/, "");
 }
 
 function isNonNegativeInteger(value: unknown): value is number {
@@ -181,7 +171,7 @@ export async function loadAIRecommendationAccess(
     : null;
   const fetcher = context.fetcher ?? fetch;
   const response = await fetcher(
-    `${apiBase(context)}/api/recommend/access`,
+    `${resolveRecommendationApiBase(context.apiBase)}/api/recommend/access`,
     {
       method: "GET",
       headers: token

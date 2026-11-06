@@ -8,11 +8,14 @@ import { localCumulativeProfileConfig } from "../services/localCumulativeProfile
 import { useManualTrainingHistory } from "../hooks/useManualTrainingHistory";
 
 const LocalCumulativeProfilePage = lazy(() => import("./CumulativeLearningProfilePage"));
+const DevelopmentStudyStrategy = import.meta.env.DEV ? lazy(() => import("../components/YourStudyStrategy")) : null;
 
 function LatestLearningProfilePage() {
   const navigate = useNavigate();
   const { user, learningProfile, loading } = useUserProfile();
   const manual = useManualTrainingHistory(user?.uid ?? null);
+  const strategy = user && DevelopmentStudyStrategy ? <Suspense fallback={<p role="status">Loading study strategy…</p>}>
+    <DevelopmentStudyStrategy key={user.uid} ownerUid={user.uid} /></Suspense> : null;
   return <><div className="profile-workspace"><NAV />
     {loading ? <main className="cumulative-profile profile-state" id="cumulative-profile-main" tabIndex={-1} aria-busy="true">
       <span className="profile-state-icon"><ProfileIcon name="book" /></span><p className="cumulative-eyebrow">YOUR LEARNING SPACE</p>
@@ -27,7 +30,8 @@ function LatestLearningProfilePage() {
       <p>Older individual Training recorded activity only. Cumulative profile publication is not enabled for genuine accounts.</p>
       <button type="button" onClick={() => navigate("/training/assessment")}>Start assessment</button>
       <button type="button" onClick={manual.refresh}>Refresh Training history</button>
-    </main> : <LatestProfileDashboard key={user.uid} ownerUid={user.uid} profile={learningProfile} manual={{ ...manual, uid: user.uid }} cumulativeAvailable={Boolean(localCumulativeProfileConfig())} />}
+      {strategy}
+    </main> : <LatestProfileDashboard key={user.uid} ownerUid={user.uid} profile={learningProfile} manual={{ ...manual, uid: user.uid }} cumulativeAvailable={Boolean(localCumulativeProfileConfig())} strategy={strategy} />}
   </div>
   <div className='border_footer section_border'/></>;
 }

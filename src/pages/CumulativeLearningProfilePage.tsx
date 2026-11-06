@@ -6,6 +6,7 @@ import CumulativeProfileDashboard from "../components/CumulativeProfileDashboard
 import "../components/CumulativeProfile.scss";
 import { localCumulativeProfileConfig } from "../services/localCumulativeProfileConfig";
 const SyntheticProfilePreview = lazy(() => import("../components/SyntheticProfilePreview"));
+const DevelopmentStudyStrategy = import.meta.env.DEV ? lazy(() => import("../components/YourStudyStrategy")) : null;
 
 export default function CumulativeLearningProfilePage() {
   const location = useLocation();
@@ -33,7 +34,9 @@ export default function CumulativeLearningProfilePage() {
       {publicationError && <p role="alert">Synthetic publication was not confirmed. Refresh or retry. Accepted evidence remains recorded; no legacy write was attempted.</p>}
     </div>}
     {synthetic ? <Suspense fallback={<main className="cumulative-profile profile-state" id="cumulative-profile-main" tabIndex={-1}><p role="status">Loading synthetic preview...</p></main>}><SyntheticProfilePreview /></Suspense>
-      : state.data && state.uid ? <CumulativeProfileDashboard key={state.uid} data={state.data} refresh={state.refresh} />
+      : state.data && state.uid ? <CumulativeProfileDashboard key={state.uid} data={state.data} refresh={state.refresh}
+        strategy={DevelopmentStudyStrategy && <Suspense fallback={<p role="status">Loading study strategy…</p>}>
+          <DevelopmentStudyStrategy key={state.uid} ownerUid={state.uid} snapshot={state.data} refresh={state.refresh} /></Suspense>} />
       : <main className="cumulative-profile profile-state" id="cumulative-profile-main" tabIndex={-1} aria-busy={state.loading}>
         <p className="cumulative-eyebrow">LOCAL DEMO · LEARNING EVIDENCE</p><h1>Your learning, over time</h1>
         {state.loading ? <p role="status">Loading your recorded learning evidence...</p>

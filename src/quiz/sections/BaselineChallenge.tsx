@@ -1,13 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useQuestionAdvance, useQuestionCompletionFeedback } from "../AssessmentQuestionUX";
 
 import {
-  useTrainingState as useState
+  useTrainingState as useState,
+  useTrainingProgressCheckpoint
 } from "../trainingProgressState";
 
 import {
-  baselineMemoryContentSets,
-  baselineConceptContentSets
-} from "../assessmentData";
+  trainingMemoryContentSets as baselineMemoryContentSets,
+  trainingUnderstandingContentSets as baselineConceptContentSets
+} from "../trainingContent";
+import { isEconomicsContentId } from "../economics9708/selection";
 
 import {
   selectBaselineContent
@@ -39,6 +42,7 @@ type BaselineStage =
 type Props = {
   onComplete: (result: BaselineResult) => void;
   random?: ContentRandomSource;
+  contentIds?: { memory: string | null; understanding: string | null };
   onContentSelected?: (content: {
     memory: string;
     understanding: string;
@@ -50,24 +54,26 @@ type AnswerMap = Record<string, string>;
 function BaselineChallenge({
   onComplete,
   random = Math.random,
-  onContentSelected
+  onContentSelected,
+  contentIds
 }: Props) {
+  const questionCompleted = useQuestionCompletionFeedback();
 
   const [stage, setStage] =
     useState<BaselineStage>("intro");
 
   const [memoryContentId] = useState(
     () =>
-      selectBaselineContent(
-        baselineMemoryContentSets,
+      contentIds?.memory ?? selectBaselineContent(
+        baselineMemoryContentSets.filter(content => !isEconomicsContentId(content.id)),
         random
       ).id
   );
 
   const [conceptContentId] = useState(
     () =>
-      selectBaselineContent(
-        baselineConceptContentSets,
+      contentIds?.understanding ?? selectBaselineContent(
+        baselineConceptContentSets.filter(content => !isEconomicsContentId(content.id)),
         random
       ).id
   );
@@ -140,70 +146,65 @@ function BaselineChallenge({
     isRunning: conceptTimerRunning
   } = useExperimentTimer();
 
-  // Whenever a study stage begins,
-  // configure its countdown.
-
-  useEffect(() => {
-  if (
-    stage !== "memory-study" &&
-    stage !== "concept-study"
-  ) {
-    return;
-  }
-
-  const studyTime =
-    stage === "memory-study"
-      ? memoryContent.studyTime
-      : conceptContent.studyTime;
-
-  setSecondsLeft(previous =>
-    previous > 0 ? previous : studyTime
-  );
-
-  if (
-    stage === "memory-study" &&
-    !memoryTimerRunning
-  ) {
-    startMemoryTimer();
-  }
-
-  if (
-    stage === "concept-study" &&
-    !conceptTimerRunning
-  ) {
-    startConceptTimer();
-  }
-
-  const timer = window.setInterval(() => {
-    setSecondsLeft((prev) => {
-      if (prev <= 1) {
-        window.clearInterval(timer);
-
-        if (stage === "memory-study") {
-          setStage("memory-test");
-        } else {
-          setStage("concept-test");
-        }
-
-        return 0;
-      }
-
-      return prev - 1;
-    });
-  }, 1000);
-
-  return () => {
-    window.clearInterval(timer);
+  const studyEntry = stage === "memory-study"
+    ? `memory:${memoryContentId}`
+    : stage === "concept-study"
+      ? `understanding:${conceptContentId}`
+      : null;
+  const studyDuration = stage === "memory-study"
+    ? memoryContent.studyTime
+    : conceptContent.studyTime;
+  const countdown = useRef<{ entry: string; deadline: number } | null>(null);
+  const timerState = useRef({
+    secondsLeft, memoryTimerRunning, conceptTimerRunning,
+    startMemoryTimer, startConceptTimer, setSecondsLeft, setStage
+  });
+  timerState.current = {
+    secondsLeft, memoryTimerRunning, conceptTimerRunning,
+    startMemoryTimer, startConceptTimer, setSecondsLeft, setStage
   };
-}, [
-  stage,
-  memoryContent.studyTime,
-  conceptContent.studyTime,
-  memoryTimerRunning,
-  conceptTimerRunning,
-  startMemoryTimer,
-  startConceptTimer
-]);
+
+  // Keep the existing saved slots. A study entry's own elapsed timer tells us
+  // whether its remainder belongs to this entry or the previous one.
+  useEffect(() => {
+    if (studyEntry === null) return;
+    const current = timerState.current;
+    const memoryStudy = studyEntry.startsWith("memory:");
+    const started = memoryStudy ? current.memoryTimerRunning : current.conceptTimerRunning;
+    const duration = started ? current.secondsLeft : studyDuration;
+    const active = { entry: studyEntry, deadline: Date.now() + duration * 1000 };
+    countdown.current = active;
+    if (!started) {
+      if (memoryStudy) current.startMemoryTimer();
+      else current.startConceptTimer();
+    }
+    let expired = false;
+    const update = () => {
+      if (countdown.current !== active || expired) return;
+      const remaining = Math.max(0, Math.ceil((active.deadline - Date.now()) / 1000));
+      timerState.current.setSecondsLeft(remaining);
+      if (remaining === 0) {
+        expired = true;
+        timerState.current.setStage(memoryStudy ? "memory-test" : "concept-test");
+      }
+    };
+    update();
+    if (expired) return () => { countdown.current = null; };
+    const interval = window.setInterval(update, 250);
+    const timeout = window.setTimeout(update, duration * 1000);
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+      if (countdown.current === active) countdown.current = null;
+    };
+  }, [studyEntry, studyDuration]);
+
+  useTrainingProgressCheckpoint(() => {
+    const active = countdown.current;
+    if (active?.entry === studyEntry) {
+      setSecondsLeft(Math.max(0, Math.ceil((active.deadline - Date.now()) / 1000)));
+    }
+  });
 
   
   // -------------------------
@@ -274,6 +275,7 @@ function BaselineChallenge({
     if (memoryConfidence === null) {
       return;
     }
+    questionCompleted("baseline:memory-confidence");
 
     const scored =
       calculateScore(
@@ -335,6 +337,7 @@ function BaselineChallenge({
     ) {
       return;
     }
+    questionCompleted("baseline:concept-confidence");
 
     const scored =
       calculateScore(
@@ -381,6 +384,18 @@ function BaselineChallenge({
     conceptContent.questions[
       conceptQuestionIndex
     ];
+
+  const confidenceAdvance = useQuestionAdvance(`baseline:${stage}`, () => {
+    if (stage === "memory-confidence" && memoryConfidence !== null) {
+      finishMemoryBaseline();
+      return true;
+    }
+    if (stage === "concept-confidence" && conceptConfidence !== null && memoryResult !== null) {
+      finishConceptBaseline();
+      return true;
+    }
+    return false;
+  });
 
   // =========================
   // UI
@@ -437,7 +452,7 @@ function BaselineChallenge({
             BASELINE 1 / 2 · MEMORY
           </p>
 
-          <div className="timer">
+          <div className="timer training-timer-value" role="timer" aria-label="Study time remaining">
             {secondsLeft}s
           </div>
 
@@ -498,6 +513,7 @@ function BaselineChallenge({
 
           <MultipleChoiceRunner
             question={currentMemoryQuestion}
+            progress={{ questions: memoryContent.questions, answers: memoryAnswers, id: "memoryAnswers", label: "Section 2 — Memory check" }}
             selectedAnswer={
               memoryAnswers[
                 currentMemoryQuestion.id
@@ -561,11 +577,11 @@ function BaselineChallenge({
                       ? "confidence selected"
                       : "confidence"
                   }
-                  onClick={() =>
-                    setMemoryConfidence(
-                      value
-                    )
-                  }
+                  onClick={() => {
+                    if (confidenceAdvance.blocked()) return;
+                    setMemoryConfidence(value);
+                    confidenceAdvance.schedule();
+                  }}
                 >
                   {value}
                 </button>
@@ -584,9 +600,7 @@ function BaselineChallenge({
             disabled={
               memoryConfidence === null
             }
-            onClick={
-              finishMemoryBaseline
-            }
+            onClick={() => confidenceAdvance.completeNow()}
           >
             Continue
           </button>
@@ -605,7 +619,7 @@ function BaselineChallenge({
             BASELINE 2 / 2 · UNDERSTANDING
           </p>
 
-          <div className="timer">
+          <div className="timer training-timer-value" role="timer" aria-label="Study time remaining">
             {secondsLeft}s
           </div>
 
@@ -667,6 +681,7 @@ function BaselineChallenge({
 
           <MultipleChoiceRunner
             question={currentConceptQuestion}
+            progress={{ questions: conceptContent.questions, answers: conceptAnswers, id: "conceptAnswers", label: "Section 2 — Understanding check" }}
             selectedAnswer={
               conceptAnswers[
                 currentConceptQuestion.id
@@ -729,11 +744,11 @@ function BaselineChallenge({
                       ? "confidence selected"
                       : "confidence"
                   }
-                  onClick={() =>
-                    setConceptConfidence(
-                      value
-                    )
-                  }
+                  onClick={() => {
+                    if (confidenceAdvance.blocked()) return;
+                    setConceptConfidence(value);
+                    confidenceAdvance.schedule();
+                  }}
                 >
                   {value}
                 </button>
@@ -752,9 +767,7 @@ function BaselineChallenge({
             disabled={
               conceptConfidence === null
             }
-            onClick={
-              finishConceptBaseline
-            }
+            onClick={() => confidenceAdvance.completeNow()}
           >
             Continue to Method Lab
           </button>

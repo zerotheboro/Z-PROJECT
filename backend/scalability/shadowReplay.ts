@@ -31,6 +31,8 @@ export function parseReplayPacket(value: unknown, pinValue: ShadowPin): ReplayPa
   const validated = validateCompletion(batch.uid, archive.payload, receipt.recordedAt);
   const row = data.row as Record<string, unknown>;
   const expectedRow = { schemaVersion: 1, evidence: validated.evidence, requestHash: validated.requestHash, receipt,
+    ...(validated.objectiveEvidence ? { objectiveEvidence: validated.objectiveEvidence } : {}),
+    ...(validated.request.materialPresentations ? { materialPresentations: validated.request.materialPresentations } : {}),
     ...(validated.request.mode === "manual" ? { completionDetails: { schemaVersion: 1,
       methodIntroduction: validated.request.methodIntroduction, reflection: validated.request.reflection } } : {}),
     resultAuthority: "client-reported", selectionContextAuthority: "client-advisory" };

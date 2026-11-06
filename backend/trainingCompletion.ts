@@ -212,7 +212,7 @@ export function createTrainingCompletionService({
     async complete(uid: string, raw: unknown): Promise<CompletionReceipt> {
       const recordedAt = new Date(now()).toISOString();
       const validated = validateCompletion(uid, raw, recordedAt);
-      const { request, evidence, legacy, requestHash } = validated;
+      const { request, evidence, legacy, requestHash, objectiveEvidence } = validated;
       const firestore = getFirestore();
       const user = firestore.collection("users").doc(uid);
       const evidenceRef = user.collection("learningEvidence").doc(nativeId(request.sessionId));
@@ -285,6 +285,8 @@ export function createTrainingCompletionService({
         addDecision("native", request.sessionId, evidenceRef.id, requestHash);
         // A temporary receipt is not evidence and never participates in aggregation.
         const nativeRow: Row = { id: evidenceRef.id, data: { schemaVersion: 1, evidence, requestHash,
+          ...(objectiveEvidence ? { objectiveEvidence } : {}),
+          ...(request.materialPresentations ? { materialPresentations: request.materialPresentations } : {}),
           // Immutable completion details are retained, but are NEVER inputs to
           // objective aggregation. The request hash already covers these fields.
           ...(request.mode === "manual" ? { completionDetails: { schemaVersion: 1,

@@ -7,6 +7,7 @@ import {
 
 import type { CompletedSessionEvidence, CompletedSessionInput, EvidenceRecordLimitation } from "./learningEvidence";
 import type { ReflectionPriority } from "./type";
+import { recordedEconomicsMetadata } from "./economics9708/recordedContext";
 
 export type LegacyEvidenceAdaptation =
   | { readonly valid: true; readonly session: CompletedSessionEvidence; readonly warnings: readonly string[] }
@@ -135,6 +136,7 @@ export function adaptLegacyAutomaticAssessment({
       owner: { kind: "user", uid: ownerUid }, mode: "auto",
       provenance: { kind: "legacy-assessment", recordId: assessmentId },
       completedAt, recordedAt, methodLab, methodMatch, preference,
+      metadata: recordedEconomicsMetadata(saved.metadata),
       selectionContext: { kind: "unknown", nominatedMethodIds: [] },
       limitations: [...new Set(warnings)].sort()
     });

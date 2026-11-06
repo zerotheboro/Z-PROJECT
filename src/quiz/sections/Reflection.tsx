@@ -1,6 +1,7 @@
 import {
   useMemo
 } from "react";
+import { AssessmentSectionProgress, useQuestionCompletionFeedback } from "../AssessmentQuestionUX";
 
 import {
   useTrainingState as useState
@@ -36,6 +37,7 @@ function Reflection({
   buildsProfile = true,
   onComplete
 }: Props) {
+  const questionCompleted = useQuestionCompletionFeedback();
 
   const [
     preferredMethod,
@@ -95,6 +97,7 @@ function Reflection({
     setPreferredMethod(method);
 
     setChoseNeither(false);
+    questionCompleted("reflection:preferred");
   }
 
   function chooseNeither() {
@@ -102,6 +105,17 @@ function Reflection({
     setPreferredMethod(null);
 
     setChoseNeither(true);
+    questionCompleted("reflection:preferred");
+  }
+
+  function choosePriority(value: ReflectionPriority) {
+    setPriority(value);
+    questionCompleted("reflection:priority");
+  }
+
+  function chooseSurprise(value: boolean) {
+    setSurprisedByResults(value);
+    questionCompleted("reflection:surprise");
   }
 
   function finishReflection() {
@@ -143,8 +157,10 @@ function Reflection({
     <section className="reflection">
 
       <p>
-        SECTION 5 OF 6
+        SECTION 6 — REFLECTION
       </p>
+      <AssessmentSectionProgress label="Section 6 — Reflection" total={3}
+        completed={Number(preferredMethod !== null || choseNeither) + Number(priority !== null) + Number(surprisedByResults !== null)} />
 
       <h1>
         Your Reflection
@@ -252,7 +268,7 @@ function Reflection({
                 : "assessment-option"
             }
             onClick={() =>
-              setPriority(
+              choosePriority(
                 "performance"
               )
             }
@@ -269,7 +285,7 @@ function Reflection({
                 : "assessment-option"
             }
             onClick={() =>
-              setPriority(
+              choosePriority(
                 "ease"
               )
             }
@@ -286,7 +302,7 @@ function Reflection({
                 : "assessment-option"
             }
             onClick={() =>
-              setPriority(
+              choosePriority(
                 "confidence"
               )
             }
@@ -304,7 +320,7 @@ function Reflection({
                 : "assessment-option"
             }
             onClick={() =>
-              setPriority(
+              choosePriority(
                 "realistic-use"
               )
             }
@@ -338,7 +354,7 @@ function Reflection({
                 : "assessment-option"
             }
             onClick={() =>
-              setSurprisedByResults(true)
+              chooseSurprise(true)
             }
           >
             Yes
@@ -352,7 +368,7 @@ function Reflection({
                 : "assessment-option"
             }
             onClick={() =>
-              setSurprisedByResults(false)
+              chooseSurprise(false)
             }
           >
             No

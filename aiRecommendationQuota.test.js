@@ -149,7 +149,7 @@ async function consume(manager, identity, count) {
 }
 
 describe("server-authoritative AI recommendation quota", () => {
-  it("allows two guest successes and blocks the third per IP", async () => {
+  it("allows one guest success and blocks the second per IP", async () => {
     const { manager } = setup();
     const identity = { ip: "203.0.113.10" };
 
@@ -158,8 +158,8 @@ describe("server-authoritative AI recommendation quota", () => {
     await expect(manager.getAccess(identity))
       .resolves.toMatchObject({
         plan: "guest",
-        limit: 2,
-        used: 2,
+        limit: 1,
+        used: 1,
         remaining: 0
       });
     await expect(manager.consume(identity))
@@ -168,7 +168,7 @@ describe("server-authoritative AI recommendation quota", () => {
       );
   });
 
-  it("allows four signed-in Free successes and blocks the fifth", async () => {
+  it("allows three signed-in Free successes and blocks the fourth", async () => {
     const { manager } = setup();
     const identity = { uid: "free-user" };
 
@@ -177,8 +177,8 @@ describe("server-authoritative AI recommendation quota", () => {
     await expect(manager.getAccess(identity))
       .resolves.toMatchObject({
         plan: "free",
-        limit: 4,
-        used: 4,
+        limit: 3,
+        used: 3,
         remaining: 0
       });
     await expect(manager.consume(identity))
@@ -231,9 +231,9 @@ describe("server-authoritative AI recommendation quota", () => {
       uid: "expired-user"
     })).resolves.toMatchObject({
       plan: "free",
-      limit: 4,
+      limit: 3,
       used: 0,
-      remaining: 4
+      remaining: 3
     });
   });
 
@@ -249,7 +249,7 @@ describe("server-authoritative AI recommendation quota", () => {
         dayKey: "2026-10-09",
         timezone: "UTC",
         used: 0,
-        remaining: 4
+        remaining: 3
       });
   });
 
@@ -265,10 +265,10 @@ describe("server-authoritative AI recommendation quota", () => {
 
     expect(results.filter(
       result => result.status === "fulfilled"
-    )).toHaveLength(2);
+    )).toHaveLength(1);
     expect(results.filter(
       result => result.status === "rejected"
-    )).toHaveLength(1);
+    )).toHaveLength(2);
   });
 
   it("stores only a hash of the guest IP in the usage document path", async () => {

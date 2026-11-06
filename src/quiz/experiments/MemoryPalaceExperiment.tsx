@@ -215,7 +215,7 @@ function MemoryPalaceExperiment({
           </h2>
 
           <p>
-            We'll use five locations:
+            We'll use {data.locations.length === 5 ? "five" : data.locations.length} locations:
           </p>
 
           <ol>
@@ -274,7 +274,8 @@ function MemoryPalaceExperiment({
                 .map(
                   ({
                     location,
-                    item
+                    item,
+                    meaning
                   }) => (
 
                     <div
@@ -289,9 +290,7 @@ function MemoryPalaceExperiment({
                         →
                       </span>
 
-                      <strong>
-                        {item}
-                      </strong>
+                      {meaning ? <div><strong>{item}</strong><p>{meaning}</p></div> : <strong>{item}</strong>}
                     </div>
 
                   )
@@ -381,6 +380,7 @@ function MemoryPalaceExperiment({
 
           <MultipleChoiceRunner
             question={currentQuestion}
+            progress={{ questions: data.questions, answers: answers, id: "answers", label: "Current method quiz" }}
             selectedAnswer={
               answers[currentQuestion.id]
             }

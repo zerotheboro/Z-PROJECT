@@ -13,10 +13,11 @@ function PracticeRecord({ item }: { item: Extract<SavedProfileHistoryItem, { kin
   const revealed = revealedRecord === record;
   return <li className="cumulative-card" data-history-key={item.key}><span className="profile-status-pill">SAVED INDIVIDUAL PRACTICE · LEGACY</span>
     <h3>Individual Training · {record.completedAt ? new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(record.completedAt)) + " UTC" : "Completion time not recorded"}</h3>
-    <p>Methods: {methods.map(getMethodName).join(", ")}. Subject and topic were not recorded by this legacy flow.</p>
+    <p>Methods: {methods.map(getMethodName).join(", ")}.{Object.keys(item.contexts).length === 0 && " Subject and topic were not recorded by this legacy flow."}</p>
     <details><summary>View individual session results</summary>
       {details.methodLab!.experiments.map(result => <div className="profile-practice-result" key={result.method}>
         <h4>{getMethodName(result.method)}</h4><TaskScoreBar label="Method Lab" score={result.score} />
+        {item.contexts[result.method] && <p>{[item.contexts[result.method].subject, item.contexts[result.method].topic].filter(Boolean).join(" / ")}</p>}
         <TaskScoreBar label="Verification" score={details.methodMatch!.methods.find(m => m.method === result.method)?.verificationScore ?? null} tone="coral" />
         <p>Personal ratings (out of 5): confidence {result.confidence}, ease {result.ease}, willingness to use again {result.willingnessToUse}.</p>
       </div>)}

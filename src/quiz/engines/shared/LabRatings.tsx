@@ -1,6 +1,7 @@
 import type {
   ReactNode
 } from "react";
+import { useQuestionAdvance } from "../../AssessmentQuestionUX";
 
 type Rating = {
   prompt: ReactNode;
@@ -31,8 +32,8 @@ function RatingScale({
             key={rating}
             className={highlightSelection
               ? value === rating
-                ? "selected"
-                : ""
+                ? "rating-choice selected"
+                : "rating-choice"
               : undefined}
             onClick={() => onChange(rating)}
           >
@@ -51,6 +52,11 @@ function LabRatings({
   completeLabel,
   onComplete
 }: Props) {
+  const submission = useQuestionAdvance("lab-ratings", () => {
+    if (confidence.value === null || ease.value === null || willingnessToUse.value === null) return false;
+    onComplete();
+    return true;
+  });
   return (
     <>
       <h3>{confidence.prompt}</h3>
@@ -69,7 +75,7 @@ function LabRatings({
           ease.value === null ||
           willingnessToUse.value === null
         }
-        onClick={onComplete}
+        onClick={event => { if (event.detail < 2) submission.completeNow(); }}
       >
         {completeLabel}
       </button>

@@ -9,6 +9,9 @@ import {
 import {
   db
 } from "../firebase";
+import type { ObservationMetadata } from "../quiz/learningEvidence";
+import type { MaterialPresentations } from "../quiz/economics9708/presentationRecords";
+import type { EconomicsResponses } from "../quiz/economics9708/assessmentEvidence";
 
 import type {
   LearningSituation,
@@ -21,6 +24,9 @@ import type {
 } from "../quiz/type";
 
 type SaveAssessmentInput = {
+  metadata?: readonly ObservationMetadata[];
+  materialPresentations?: MaterialPresentations;
+  economicsResponses?: EconomicsResponses;
   userId: string;
 
   sessionId?: string;
@@ -56,7 +62,10 @@ export async function saveAssessment({
   methodLab,
   methodMatch,
   reflection,
-  learningProfile
+  learningProfile,
+  metadata,
+  materialPresentations,
+  economicsResponses
 }: SaveAssessmentInput) {
 
   const assessmentsRef =
@@ -68,6 +77,9 @@ export async function saveAssessment({
     );
 
   const assessmentData = {
+      ...(metadata ? { metadata } : {}),
+      ...(materialPresentations ? { materialPresentations } : {}),
+      ...(economicsResponses ? { economicsResponses } : {}),
       status: "completed",
 
       learningSituation,

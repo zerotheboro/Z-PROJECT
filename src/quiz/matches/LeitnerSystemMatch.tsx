@@ -31,7 +31,8 @@ function LeitnerSystemMatch({ method, data, originalScore, onComplete }: Props) 
       {data.cards.map((card) => <StudyPanel key={card.id}><h3>{card.front}</h3><p>{card.back}</p></StudyPanel>)}
       <button type="button" onClick={() => setStage("recall")}>Start recall</button></div>}
     {stage === "recall" && <div><p>RECALL {practiceIndex + 1}{" / "}{data.practice.length}</p>
-      <MultipleChoiceRunner question={currentPractice} selectedAnswer={practiceAnswers[currentPractice.id]}
+      <MultipleChoiceRunner question={currentPractice}
+        progress={{ questions: data.practice, answers: practiceAnswers, id: "practiceAnswers", label: "Practice questions" }} selectedAnswer={practiceAnswers[currentPractice.id]}
         onSelect={(option) => setPracticeAnswers((previous) => ({ ...previous, [currentPractice.id]: option }))}
         onBack={() => setPracticeIndex((value) => Math.max(0, value - 1))} backDisabled={practiceIndex === 0}
         onNext={() => practiceIndex < data.practice.length - 1 ? setPracticeIndex((value) => value + 1) : setStage("organize")}
@@ -40,13 +41,15 @@ function LeitnerSystemMatch({ method, data, originalScore, onComplete }: Props) 
       <h3>Level 1 · Review soon</h3>{weakItems.length === 0 ? <p>No weak items this round.</p> : <ul>{weakItems.map((item) => <li key={item.id}>{item.question}</li>)}</ul>}
       <button type="button" onClick={() => setStage(weakItems.length > 0 ? "retest" : "test")}>{weakItems.length > 0 ? "Retest weak items" : "Continue to final test"}</button></div>}
     {stage === "retest" && currentRetest && <div><p>RETEST {retestIndex + 1}{" / "}{weakItems.length}</p>
-      <MultipleChoiceRunner question={currentRetest} selectedAnswer={retestAnswers[currentRetest.id]}
+      <MultipleChoiceRunner question={currentRetest}
+        progress={{ questions: weakItems, answers: retestAnswers, id: "retestAnswers", label: "Weak-item retest" }} selectedAnswer={retestAnswers[currentRetest.id]}
         onSelect={(option) => setRetestAnswers((previous) => ({ ...previous, [currentRetest.id]: option }))}
         onBack={() => setRetestIndex((value) => Math.max(0, value - 1))} backDisabled={retestIndex === 0}
         onNext={() => retestIndex < weakItems.length - 1 ? setRetestIndex((value) => value + 1) : setStage("test")}
         nextLabel={retestIndex === weakItems.length - 1 ? "Continue to final test" : "Next weak item"} /></div>}
     {stage === "test" && <div><p>VERIFICATION TEST</p><p>Question {testIndex + 1}{" / "}{data.test.length}</p>
-      <MultipleChoiceRunner question={currentTest} selectedAnswer={testAnswers[currentTest.id]}
+      <MultipleChoiceRunner question={currentTest}
+        progress={{ questions: data.test, answers: testAnswers, id: "testAnswers", label: "Final quiz" }} selectedAnswer={testAnswers[currentTest.id]}
         onSelect={(option) => setTestAnswers((previous) => ({ ...previous, [currentTest.id]: option }))}
         onBack={() => setTestIndex((value) => Math.max(0, value - 1))} backDisabled={testIndex === 0}
         onNext={() => testIndex < data.test.length - 1 ? setTestIndex((value) => value + 1) : setStage("confidence")}

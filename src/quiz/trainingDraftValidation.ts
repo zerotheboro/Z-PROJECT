@@ -1,18 +1,25 @@
 import {
-  baselineConceptContentSets,
-  baselineMemoryContentSets,
   learningSituationQuestions
 } from "./assessmentData";
 import {
-  methodLabContentSets,
-  methodMatchContentSets
-} from "./methodContentSets";
+  trainingLabContentSets as methodLabContentSets,
+  trainingMatchContentSets as methodMatchContentSets,
+  trainingMemoryContentSets as baselineMemoryContentSets,
+  trainingUnderstandingContentSets as baselineConceptContentSets
+} from "./trainingContent";
+import { economicsContentId, isEconomicsContentId, readEconomicsSelection, readEconomicsActivityVersion } from "./economics9708/selection";
+import { economicsAssignments } from "./economics9708/allocation";
+import { getTrainingContentSet } from "./economics9708/adapter";
+import type { EconomicsTemplate } from "./economics9708/adapter";
+import { assertMaterialPresentations } from "./economics9708/presentationRecords";
 import {
   getMethodDefinition
 } from "./methodRegistry";
 import {
   isTrainingMethodId
 } from "./type";
+import { FEYNMAN_STUDY_SECONDS } from "./methodLabData";
+import { isCompatibleQuestionAnswer, legacyQuestionOptions } from "./legacyQuestionOptions";
 
 import type {
   MultipleChoiceQuestion
@@ -126,7 +133,7 @@ const labRules: Record<TrainingMethodId, MethodScopeRule> = {
     {
       maximumSlots: 10,
       countdownSlots: [
-        { slot: 9, maximum: 35 }
+        { slot: 9, maximum: FEYNMAN_STUDY_SECONDS }
       ]
     }
   ),
@@ -359,6 +366,17 @@ const matchRules: Record<TrainingMethodId, MethodScopeRule> = {
   )
 };
 
+// Shared with the completion collector; existing engine slot bindings stay the
+// sole source of truth. This reader allocates no slots and changes no scoring.
+export const BASELINE_ANSWER_SLOTS = { memory: 3, understanding: 7 } as const;
+export function trainingAnswerBindings(method: TrainingMethodId, phase: "lab" | "match") {
+  let practice = 0;
+  return (phase === "lab" ? labRules : matchRules)[method].questions.map(binding => ({
+    answerSlot: binding.answerSlot,
+    role: binding.group === "practice" ? practice++ ? "retest" as const : "practice" as const : "scored" as const
+  }));
+}
+
 function isRecord(value: unknown): value is UnknownRecord {
   return (
     typeof value === "object" &&
@@ -534,7 +552,7 @@ function contentSetFor(
     ? methodLabContentSets[method]
     : methodMatchContentSets[method];
 
-  return sets.find(set => set.id === id) ?? null;
+  try { return getTrainingContentSet<EconomicsTemplate>(sets, id); } catch { return null; }
 }
 
 function isAnswerMap(
@@ -552,8 +570,7 @@ function isAnswerMap(
   return Object.entries(value).every(([id, answer]) => {
     const question = byId.get(id);
     return question !== undefined &&
-      typeof answer === "string" &&
-      question.options.includes(answer);
+      isCompatibleQuestionAnswer(question, answer);
   });
 }
 
@@ -586,18 +603,14 @@ function validateNamedOrders(
     return false;
   }
 
-  const byId = new Map(
-    questions.map(question => [question.id, question.options])
-  );
+  const byId = new Map(questions.map(question => [question.id, question]));
 
   return Object.entries(orders).every(([id, order]) => {
-    const expected = introductionMethods &&
-      isTrainingMethodId(id)
-        ? introductionMethods
-        : byId.get(id);
-
-    return expected !== undefined &&
-      isExactPermutation(order, expected);
+    if (introductionMethods && isTrainingMethodId(id)) return isExactPermutation(order, introductionMethods);
+    const question = byId.get(id);
+    if (!question) return false;
+    const previous = legacyQuestionOptions(question);
+    return isExactPermutation(order, question.options) || previous !== null && isExactPermutation(order, previous);
   });
 }
 
@@ -980,11 +993,15 @@ function validateMethodScope(
   }
 
   if (
-    rule.countdownSlots?.some(({ slot, maximum }) =>
-      slot < slots.length &&
-      slots[slot] !== null &&
-      !isIntegerInRange(slots[slot], 0, maximum)
-    )
+    rule.countdownSlots?.some(({ slot, maximum }) => {
+      // Follow Recall's selected content duration, retaining old remainders.
+      // This validates the existing timer; it does not change its deadline.
+      const data: unknown = contentSet.data;
+      const duration = method === "active-recall" && kind === "lab" && isRecord(data)
+        ? slot === 8 ? data.studyTime : data.retrievalTime : undefined;
+      const limit = typeof duration === "number" ? duration : maximum;
+      return slot < slots.length && slots[slot] !== null && !isIntegerInRange(slots[slot], 0, limit);
+    })
   ) {
     return false;
   }
@@ -1023,8 +1040,20 @@ function validateMethodScope(
     return false;
   }
 
+  const { ["material-presentations"]: presentations, ...orders } = named;
+  if (presentations !== undefined) {
+    const runtime = contentSet.data.runtime;
+    if (!runtime || !isRecord(presentations)) return false;
+    try {
+      const envelope = { schemaVersion: 1, kind: "client-rendered", records: Object.values(presentations) };
+      assertMaterialPresentations(envelope);
+      if (envelope.records.some(record => record.contentSetId !== contentSetId || record.phase !== kind || record.methodId !== method ||
+        presentations[record.materialId] !== record || !runtime.materials.some(m => m.id === record.materialId && m.version === record.materialVersion &&
+          JSON.stringify(m.objectiveIds) === JSON.stringify(record.objectiveIds)))) return false;
+    } catch { return false; }
+  }
   return validateNamedOrders(
-    named,
+    orders,
     [...allQuestions.values()]
   ) && scope === `${kind}:${method}:${contentSetId}`;
 }
@@ -1044,6 +1073,11 @@ function validateInternalState(
   const baselineIds = draft.baselineContentSetIds as UnknownRecord;
 
   for (const [scope, unknownState] of Object.entries(internalState)) {
+    if (scope === "curriculum") {
+      try { if (!readEconomicsSelection(internalState)) return false; }
+      catch { return false; }
+      continue;
+    }
     if (!isRecord(unknownState)) {
       return false;
     }
@@ -1110,11 +1144,11 @@ function validateInternalState(
         (slots.length > 0 && !stages.includes(slots[0] as string)) ||
         (slots.length > 1 && slots[1] !== baselineIds.memory) ||
         (slots.length > 2 && slots[2] !== baselineIds.understanding) ||
-        (slots.length > 3 && !isAnswerMap(slots[3], memory?.questions ?? [])) ||
+        (slots.length > BASELINE_ANSWER_SLOTS.memory && !isAnswerMap(slots[BASELINE_ANSWER_SLOTS.memory], memory?.questions ?? [])) ||
         (slots.length > 4 && !isIntegerInRange(slots[4], 0, Math.max((memory?.questions.length ?? 1) - 1, 0))) ||
         (slots.length > 5 && !isRating(slots[5])) ||
         (slots.length > 6 && slots[6] !== null && !isBaselineTaskResult(slots[6])) ||
-        (slots.length > 7 && !isAnswerMap(slots[7], concept?.questions ?? [])) ||
+        (slots.length > BASELINE_ANSWER_SLOTS.understanding && !isAnswerMap(slots[BASELINE_ANSWER_SLOTS.understanding], concept?.questions ?? [])) ||
         (slots.length > 8 && !isIntegerInRange(slots[8], 0, Math.max((concept?.questions.length ?? 1) - 1, 0))) ||
         (slots.length > 9 && !isRating(slots[9])) ||
         (slots.length > 10 && !isIntegerInRange(slots[10], 0, maxStudyTime)) ||
@@ -1256,6 +1290,19 @@ export function validateTrainingDraftSemantics(
   const completed = draft.completed as UnknownRecord;
   const internalState = draft.internalState as UnknownRecord;
   const pendingAIConfirmation = draft.pendingAIConfirmation;
+
+  try {
+    const pack = readEconomicsSelection(internalState);
+    const assignments = [baselineIds.memory, baselineIds.understanding, ...labIds, ...matchIds].filter((id): id is string => typeof id === "string");
+    if (pack) {
+      const activityVersion = readEconomicsActivityVersion(internalState);
+      const expectedLabs = economicsAssignments(selectedMethods, "lab", pack.topicId, activityVersion);
+      const expectedMatches = economicsAssignments(verificationMethods, "match", pack.topicId, activityVersion);
+      const baselineMismatch = mode === "auto" && (baselineIds.memory !== economicsContentId(pack.topicId, "memory") ||
+        baselineIds.understanding !== economicsContentId(pack.topicId, "understanding"));
+      if (baselineMismatch || labIds.some((id, i) => id !== expectedLabs[i]) || matchIds.some((id, i) => id !== expectedMatches[i])) return "The saved Economics topic and content assignments disagree.";
+    } else if (assignments.some(isEconomicsContentId)) return "The saved Economics topic is missing.";
+  } catch { return "The saved Economics topic or content version is unavailable."; }
 
   if (pendingAIConfirmation !== undefined && (
     !isRecord(pendingAIConfirmation) ||

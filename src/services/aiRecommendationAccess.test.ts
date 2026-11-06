@@ -1,5 +1,6 @@
 import {
   describe,
+  afterEach,
   expect,
   it,
   vi
@@ -9,16 +10,21 @@ import type { User } from "firebase/auth";
 
 import {
   AIRecommendationAccessError,
+  FREE_AI_RECOMMENDATION_LIMIT,
+  GUEST_AI_RECOMMENDATION_LIMIT,
+  PREMIUM_AI_RECOMMENDATION_LIMIT,
   loadAIRecommendationAccess,
   validateAIRecommendationAccess
 } from "./aiRecommendationAccess";
 
+afterEach(() => vi.unstubAllEnvs());
+
 function access(plan: "guest" | "free" | "premium") {
   const limit = plan === "guest"
-    ? 2
+    ? 1
     : plan === "premium"
       ? 10
-      : 4;
+      : 3;
 
   return {
     limit,
@@ -39,6 +45,26 @@ function access(plan: "guest" | "free" | "premium") {
 }
 
 describe("AI recommendation access client", () => {
+  it("keeps approved fallback limits at Guest 1, Free 3 and Premium 10", () => {
+    expect(GUEST_AI_RECOMMENDATION_LIMIT).toBe(1);
+    expect(FREE_AI_RECOMMENDATION_LIMIT).toBe(3);
+    expect(PREMIUM_AI_RECOMMENDATION_LIMIT).toBe(10);
+  });
+
+  it("preserves server-provided limits instead of replacing them with fallbacks", async () => {
+    const authoritative = { ...access("free"), limit: 6, remaining: 5 };
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(authoritative)));
+    await expect(loadAIRecommendationAccess(null, {
+      fetcher, apiBase: "https://api.example"
+    })).resolves.toEqual(authoritative);
+  });
+
+  it("uses the shared environment base for development without changing guest headers", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "http://127.0.0.1:3001/");
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(access("guest"))));
+    await expect(loadAIRecommendationAccess(null, { fetcher })).resolves.toEqual(access("guest"));
+    expect(fetcher).toHaveBeenCalledWith("http://127.0.0.1:3001/api/recommend/access", { method: "GET", headers: {} });
+  });
   it("loads authoritative guest access without browser quota data", async () => {
     const fetcher = vi.fn().mockResolvedValue(
       new Response(JSON.stringify(access("guest")), {

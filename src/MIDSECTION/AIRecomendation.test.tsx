@@ -7,8 +7,9 @@ import {
   act,
   cleanup,
   fireEvent,
-  render,
+  render as renderUI,
   screen,
+  within,
   waitFor
 } from "@testing-library/react";
 import {
@@ -20,6 +21,12 @@ import {
   it,
   vi
 } from "vitest";
+import { getReviewedHowTo } from "../../recommendationHowTo.js";
+import { MemoryRouter, useLocation } from "react-router-dom";
+
+// The product uses useNavigate for Apply Methods; test it within its real router contract.
+const render = (ui: React.ReactNode) => renderUI(<MemoryRouter>{ui}</MemoryRouter>);
+function LocationProbe() { return <output aria-label="Current route">{useLocation().pathname}</output>; }
 
 type TestUser = {
   uid: string;
@@ -175,10 +182,10 @@ function quotaResponse(
   deepRemaining = plan === "premium" ? 1 : 0
 ) {
   const limit = plan === "guest"
-    ? 2
+    ? 1
     : plan === "premium"
       ? 10
-      : 4;
+      : 3;
 
   return new Response(JSON.stringify({
     limit,
@@ -253,11 +260,140 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
 describe("AIRecommendation persistence", () => {
+  it.each(["standard", "deep"])("renders fresh %s HOW guides through API validation and preserves the saved schema", async mode => {
+    vi.stubEnv("VITE_API_BASE_URL", "http://127.0.0.1:3001/");
+    const selected = { ...recommendation, recommended_methods: [["Calm Start", "pre-learn"], ["Post-Learning Rest", "meta-learn"], ["Active Recall", "meta-learn"]].map(([name, branch]) => ({
+      name, branch, reason: "Mock reason", warning: "Mock caution", how_to_use: ["Untrusted API steps"]
+    })) };
+    vi.mocked(fetch).mockImplementation(async url => String(url).endsWith("/access") ? quotaResponse("premium", 10)
+      : successfulResponse(selected) as unknown as Response);
+    render(<AIRecommendation />); await emitAuth(user("fresh-how-student")); await reachFinalQuestion();
+    if (mode === "deep") fireEvent.click(await screen.findByRole("radio", { name: /Deep Recommendation/ }));
+    fireEvent.click(screen.getByRole("button", { name: mode === "deep" ? "Get my Deep Recommendation" : "Get my Recommendation" }));
+    await screen.findByText(recommendation.user_problem);
+    const cards = screen.getAllByRole("article"); expect(cards).toHaveLength(3);
+    cards.forEach((card, index) => expect(within(card).getAllByRole("listitem").map(item => item.textContent)).toEqual(getReviewedHowTo(selected.recommended_methods[index].name)));
+    expect(screen.queryByText("Untrusted API steps")).toBeNull();
+    await waitFor(() => expect(firestore.setDoc).toHaveBeenCalled());
+    const stored = firestore.setDoc.mock.calls[0][1] as { mode: string; result: { recommended_methods: object[] } };
+    expect(stored.mode).toBe(mode);
+    stored.result.recommended_methods.forEach(method => expect(Object.keys(method).sort()).toEqual(["branch", "name", "reason", "warning"]));
+    const posts = vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(posts).toHaveLength(1); expect(JSON.parse(String(posts[0][1]?.body)).mode).toBe(mode);
+    expect(posts[0][0]).toBe("http://127.0.0.1:3001/api/recommend");
+    expect(posts[0][1]?.headers).toMatchObject({ Authorization: "Bearer token-fresh-how-student", "Content-Type": "application/json" });
+    const accessRequests = vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "GET");
+    expect(accessRequests.length).toBeGreaterThan(0);
+    accessRequests.forEach(([url, init]) => {
+      expect(url).toBe("http://127.0.0.1:3001/api/recommend/access");
+      expect(init?.headers).toMatchObject({ Authorization: "Bearer token-fresh-how-student" });
+    });
+  });
+  it("rejects a production loopback misconfiguration before either request can transmit a token", async () => {
+    vi.stubEnv("DEV", false); vi.stubEnv("PROD", true);
+    vi.stubEnv("VITE_API_BASE_URL", "https://127.0.0.1:3001");
+    render(<AIRecommendation />); await emitAuth(user("production-routing-user"));
+    await completeForm();
+    await screen.findByText("Could not get an AI recommendation.");
+    expect(fetch).not.toHaveBeenCalled(); expect(firestore.setDoc).not.toHaveBeenCalled();
+  });
+  it.each([
+    ["standard", "user"], ["deep", "user"], ["standard", "guest"], ["deep", "guest"]
+  ])("corrects historical Sleep After Studying display in %s for %s without rewriting saved data", async (mode, owner) => {
+    const saved = { ...savedRecommendation({ ...recommendation, recommended_methods: [{
+      name: "Sleep After Studying", branch: "meta-learn", reason: "A personalized reason from the original recommendation.", warning: "Go to bed after studying."
+    }] }), mode };
+    const stored = owner === "guest" ? { ...saved, updatedAt: new Date().toISOString() } : saved;
+    const before = JSON.stringify(stored);
+    if (owner === "guest") window.localStorage.setItem("edulience.aiRecommendation.latest.v1", before);
+    else firestore.getDoc.mockResolvedValue(existingSnapshot(saved));
+    vi.mocked(fetch).mockResolvedValue(quotaResponse(owner === "guest" ? "guest" : "premium", owner === "guest" ? 1 : 10));
+    render(<AIRecommendation />); await emitAuth(owner === "guest" ? null : user("historical-rest-user"));
+    const heading = await screen.findByRole("heading", { name: "Post-Learning Rest" });
+    const card = within(heading.closest("article")!);
+    expect(card.getByText("A personalized reason from the original recommendation.")).toBeTruthy();
+    expect(card.getAllByRole("listitem").map(item => item.textContent)).toEqual(getReviewedHowTo("Post-Learning Rest"));
+    expect(card.getByText(/Falling asleep is optional, not required/)).toBeTruthy();
+    expect(screen.queryByText("Go to bed after studying.")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Sleep After Studying" })).toBeNull();
+    const why = card.getByText("Why this fits you"), how = card.getByText("How to use it"), warning = card.getByText("Keep in mind");
+    expect(why.compareDocumentPosition(how) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(how.compareDocumentPosition(warning) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(firestore.setDoc).not.toHaveBeenCalled();
+    expect(JSON.stringify(stored)).toBe(before);
+    if (owner === "guest") expect(window.localStorage.getItem("edulience.aiRecommendation.latest.v1")).toBe(before);
+    expect(vi.mocked(fetch).mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+  });
+  it("keeps production POST and access GET on Render by default", async () => {
+    vi.stubEnv("DEV", false); vi.stubEnv("PROD", true); vi.stubEnv("VITE_API_BASE_URL", "");
+    vi.mocked(fetch).mockImplementation(async url => String(url).endsWith("/access") ? quotaResponse("premium", 10)
+      : successfulResponse() as unknown as Response);
+    render(<AIRecommendation />); await emitAuth(user("production-default-user"));
+    await completeForm(); await screen.findByText(recommendation.user_problem);
+    const requests = vi.mocked(fetch).mock.calls;
+    expect(requests.some(([url, init]) => url === "https://z-project-ba3t.onrender.com/api/recommend" && init?.method === "POST")).toBe(true);
+    expect(requests.some(([url, init]) => url === "https://z-project-ba3t.onrender.com/api/recommend/access" && init?.method === "GET")).toBe(true);
+    requests.forEach(([url, init]) => {
+      expect(String(url).startsWith("https://z-project-ba3t.onrender.com/api/recommend")).toBe(true);
+      expect(init?.headers).toMatchObject({ Authorization: "Bearer token-production-default-user" });
+    });
+  });
+  it("keeps Apply Methods navigating to the existing Test Me controller", async () => {
+    firestore.getDoc.mockResolvedValue(existingSnapshot());
+    render(<><AIRecommendation /><LocationProbe /></>); await emitAuth(user("apply-how-user"));
+    await screen.findByText(recommendation.user_problem);
+    fireEvent.click(screen.getByRole("button", { name: /Apply Methods/ }));
+    expect(screen.getByLabelText("Current route").textContent).toBe("/training/assessment");
+    expect(firestore.setDoc).not.toHaveBeenCalled();
+  });
+  it.each(["standard", "deep"])("shows three ordered practical guides for saved %s recommendations without rewriting history", async mode => {
+    const methods = ["Active Recall", "Divide Steps", "Derive Basics"].map(name => ({
+      name, branch: name === "Active Recall" ? "meta-learn" : "note-take", reason: `Mock why for ${name}`, warning: `Mock caution for ${name}`,
+      how_to_use: ["Untrusted saved instructions"]
+    }));
+    firestore.getDoc.mockResolvedValue(existingSnapshot({ ...savedRecommendation({ ...recommendation, recommended_methods: methods }), mode }));
+    render(<AIRecommendation />); await emitAuth(user("how-student"));
+    await screen.findByText(recommendation.user_problem);
+    const cards = screen.getAllByRole("article"); expect(cards).toHaveLength(3);
+    cards.forEach((card, index) => {
+      const method = methods[index], scope = within(card);
+      expect(scope.getByRole("heading", { name: method.name })).toBeTruthy();
+      const why = scope.getByText("Why this fits you"), how = scope.getByText("How to use it"), caution = scope.getByText("Keep in mind");
+      expect(why.compareDocumentPosition(how) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(how.compareDocumentPosition(caution) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      const list = scope.getByRole("list"); expect(list.tagName).toBe("OL");
+      expect(within(list).getAllByRole("listitem").map(item => item.textContent)).toEqual(getReviewedHowTo(method.name));
+      expect(scope.getByText(`Mock why for ${method.name}`)).toBeTruthy();
+      expect(scope.getByText(`Mock caution for ${method.name}`)).toBeTruthy();
+      expect(scope.getByText("Reviewed method instructions")).toBeTruthy();
+    });
+    expect(screen.queryByText("Untrusted saved instructions")).toBeNull();
+    expect(firestore.setDoc).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Start Again" }));
+    expect(screen.queryByText("How to use it")).toBeNull();
+    expect(screen.getByRole("button", { name: "Start →" })).toBeTruthy();
+  });
+
+  it("restores legacy instructions by a unique name, and leaves unknown method guidance unavailable", async () => {
+    firestore.getDoc.mockResolvedValue(existingSnapshot(savedRecommendation({ ...recommendation, recommended_methods: [
+      recommendation.recommended_methods[0], { ...recommendation.recommended_methods[0], name: "Unknown historical method" }
+    ] })));
+    render(<AIRecommendation />); await emitAuth(user("historical-how-user"));
+    await screen.findByText("Unknown historical method");
+    expect(screen.getByText(getReviewedHowTo("Active Recall")![0])).toBeTruthy();
+    expect(screen.getByText("Practical steps are unavailable for this saved method.")).toBeTruthy();
+    const unknown = screen.getByRole("heading", { name: "Unknown historical method" }).closest("article")!;
+    expect(within(unknown).queryByRole("list")).toBeNull();
+    expect(within(unknown).queryByText("Reviewed method instructions")).toBeNull();
+    expect(firestore.setDoc).not.toHaveBeenCalled();
+  });
+
   it("persists a signed-in user's successful recommendation", async () => {
     vi.mocked(fetch).mockResolvedValue(
       successfulResponse() as unknown as Response
@@ -820,10 +956,10 @@ describe("Premium recommendation modes", () => {
               json: async () => ({
                 error: "Deep Recommendation requires Premium",
                 code: "ai_deep_requires_premium",
-                limit: 4,
+                limit: 3,
                 used: 0,
                 reserved: 0,
-                remaining: 4,
+                remaining: 3,
                 plan: "free",
                 deep: {
                   limit: 0,
@@ -877,7 +1013,7 @@ describe("Premium recommendation modes", () => {
     async plan => {
       mockRecommendationApi(
         plan,
-        plan === "guest" ? 2 : 4
+        plan === "guest" ? 1 : 3
       );
       render(<AIRecommendation />);
       await emitAuth(

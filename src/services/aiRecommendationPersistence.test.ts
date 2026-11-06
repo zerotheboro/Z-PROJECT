@@ -79,6 +79,14 @@ beforeEach(() => {
 });
 
 describe("AI recommendation persistence", () => {
+  it("keeps display-only HOW out of guest and cloud storage, preserving existing rules and saved fields", async () => {
+    const enriched = { ...result, recommended_methods: result.recommended_methods.map(method => ({ ...method, how_to_use: ["Display-only steps"] })) };
+    expect(validateRecommendationResult(enriched)).toEqual(result);
+    await saveAIRecommendation({ kind: "guest" }, inputs, enriched);
+    expect(JSON.parse(window.localStorage.getItem(GUEST_AI_RECOMMENDATION_STORAGE_KEY)!).result).toEqual(result);
+    await saveAIRecommendation({ kind: "user", uid: "how-test-user" }, inputs, enriched);
+    expect(firestore.setDoc).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ result }));
+  });
   it("stores a successful guest recommendation under the versioned key", async () => {
     await saveAIRecommendation(
       { kind: "guest" },

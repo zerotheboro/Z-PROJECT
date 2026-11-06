@@ -4,7 +4,7 @@ import React from "react";
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
 import { webcrypto } from "node:crypto";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTrainingCompletionClient } from "../../services/trainingCompletion";
@@ -20,6 +20,8 @@ import type {
 } from "../type";
 
 const mocks = vi.hoisted(() => ({
+  user: { uid: "qa-user" } as { uid: string } | null,
+  authListeners: new Set<(user: { uid: string } | null) => void>(),
   durable: null as TrainingCompletionClient | null,
   savedAI: null as SavedAIRecommendation | null,
   labMethods: [] as TrainingMethodId[],
@@ -38,9 +40,10 @@ vi.mock("../../services/localTrainingCompletion", () => ({ getLocalTrainingCompl
 vi.mock("../../HEADER/header", () => ({ default: () => <nav>Navigation</nav> }));
 vi.mock("../../firebase", () => ({ auth: { currentUser: null } }));
 vi.mock("../../services/auth", () => ({
-  subscribeToAuth: (callback: (user: { uid: string }) => void) => {
-    callback({ uid: "qa-user" });
-    return () => undefined;
+  subscribeToAuth: (callback: (user: { uid: string } | null) => void) => {
+    mocks.authListeners.add(callback);
+    callback(mocks.user);
+    return () => { mocks.authListeners.delete(callback); };
   }
 }));
 vi.mock("../../services/trainingProgress", () => ({
@@ -72,12 +75,18 @@ vi.mock("../sections/LearningSituation", () => ({
   )
 }));
 vi.mock("../sections/BaselineChallenge", () => ({
-  default: ({ onComplete }: { onComplete: (value: BaselineResult) => void }) => (
-    <button onClick={() => onComplete({
+  default: ({ onComplete, onContentSelected }: {
+    onComplete: (value: BaselineResult) => void;
+    onContentSelected?: (value: { memory: string; understanding: string }) => void;
+  }) => {
+    React.useEffect(() => {
+      onContentSelected?.({ memory: "baseline-memory-01", understanding: "baseline-concept-01" });
+    }, [onContentSelected]);
+    return <button onClick={() => onComplete({
       memory: { score: 0.5, correct: 2, total: 4, confidence: 3, timeSpentMs: 1000 },
-      understanding: { score: 0.5, correct: 2, total: 4, confidence: 3, timeSpentMs: 1200 }
-    })}>Complete baseline</button>
-  )
+      understanding: { score: 2 / 3, correct: 2, total: 3, confidence: 3, timeSpentMs: 1200 }
+    })}>Complete baseline</button>;
+  }
 }));
 vi.mock("../sections/MethodIntroduction", () => ({
   default: ({ methods, onComplete }: {
@@ -142,6 +151,8 @@ vi.mock("../sections/Reflection", () => ({
 }));
 
 import Assessment from "../Assessment";
+import { validateTrainingDraft } from "../trainingProgress";
+import type { TrainingDraft } from "../trainingProgress";
 
 function savedRecommendation(): SavedAIRecommendation {
   return {
@@ -208,6 +219,7 @@ function enableV2() {
 }
 
 beforeEach(() => {
+  mocks.user = { uid: "qa-user" }; mocks.authListeners.clear();
   mocks.durable = null; durableSnapshot = null;
   mocks.savedAI = null;
   mocks.labMethods = [];
@@ -257,5 +269,155 @@ describe("complete automatic Test Me journeys with real ranking and profile buil
       .toBeCloseTo(0.9 * 0.4 + 0.75 * 0.35 + 0.6 * 0.05 +
         0.6 * 0.05 + 0.6 * 0.05 + 0.6 * 0.1);
     expect(mocks.saveAssessment).toHaveBeenCalledTimes(v2 ? 0 : 1);
+  });
+});
+
+describe("AI confirmation at the actual selection boundary", () => {
+  function entry(url = "/training/assessment") {
+    return render(<MemoryRouter initialEntries={[url]}><Routes>
+      <Route path="/training/assessment" element={<Assessment />} />
+      <Route path="/training" element={<p>Training landing</p>} />
+    </Routes></MemoryRouter>);
+  }
+  async function reachSelection() {
+    entry();
+    expect(screen.queryByRole("heading", { name: "Use your recent AI Recommendation?" })).toBeNull();
+    fireEvent.click(await screen.findByRole("button", { name: "Complete situation" }));
+    fireEvent.click(screen.getByRole("button", { name: "Complete baseline" }));
+  }
+  async function prompt() {
+    mocks.savedAI = savedRecommendation(); await reachSelection();
+    await screen.findByRole("heading", { name: "Use your recent AI Recommendation?" });
+    expect(screen.queryByRole("button", { name: /Complete introduction/ })).toBeNull();
+  }
+  async function expectCount(count: number, timeout = 1000) {
+    expect(await screen.findByRole("button", { name: `Complete introduction: ${count}` }, { timeout })).toBeTruthy();
+    expect(mocks.reserveTrainingAccess).toHaveBeenCalledTimes(1);
+  }
+
+  it("announces committed major sections once, keeps the AI prompt after Baseline, and does not overlay Lab/Match sounds", async () => {
+    const play = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("Audio", vi.fn(function () { return { play, pause: vi.fn(), currentTime: 0, volume: 1 }; }));
+    mocks.savedAI = savedRecommendation(); entry();
+    await screen.findByRole("button", { name: "Complete situation" });
+    expect(play).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Completion sound: off" }));
+    fireEvent.click(screen.getByRole("button", { name: "Complete situation" }));
+    expect(play).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Complete baseline" }));
+    await screen.findByRole("heading", { name: "Use your recent AI Recommendation?" });
+    expect(play).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Use this recommendation" }));
+    await expectCount(3); expect(play).toHaveBeenCalledTimes(2);
+    fireEvent.click(screen.getByRole("button", { name: "Complete introduction: 3" }));
+    expect(play).toHaveBeenCalledTimes(3);
+    // These stubs have no individual activity callbacks. The real Lab/Match
+    // controllers announce those; their enclosing section must stay silent.
+    fireEvent.click(screen.getByRole("button", { name: "Complete lab: 3" }));
+    fireEvent.click(screen.getByRole("button", { name: "Complete match: 2" }));
+    expect(play).toHaveBeenCalledTimes(3);
+  });
+
+  it.each([true, false])("requires an explicit decision after Baseline and selects the actual count (yes=%s)", async yes => {
+    await prompt();
+    fireEvent.click(screen.getByRole("button", { name: yes ? "Use this recommendation" : "Use standard selection" }));
+    await expectCount(yes ? 3 : 4);
+    expect(mocks.loadAIRecommendation).toHaveBeenCalledTimes(yes ? 2 : 1);
+  });
+
+  it.each(["expired", "non-trainable", "ambiguous"])("keeps %s advice on the four-method route", async kind => {
+    mocks.savedAI = savedRecommendation();
+    if (kind === "expired") mocks.savedAI.updatedAt = { seconds: 1, nanoseconds: 0 };
+    else mocks.savedAI.result.recommended_methods[0].name = kind === "non-trainable" ? "Calm Start" : "Active Recall / Feynman";
+    await reachSelection(); await expectCount(4);
+    expect(screen.queryByRole("heading", { name: "Use your recent AI Recommendation?" })).toBeNull();
+    expect(screen.getByText(/saved AI recommendation isn't eligible/)).toBeTruthy();
+  });
+
+  it("keeps guests traditional even when browser advice exists", async () => {
+    mocks.user = null; mocks.savedAI = savedRecommendation(); await reachSelection(); await expectCount(4);
+    expect(mocks.loadAIRecommendation).not.toHaveBeenCalled();
+  });
+
+  it.each(["removed", "changed-context", "expired"])("revalidates %s advice when Yes is committed", async kind => {
+    await prompt();
+    if (kind === "removed") mocks.savedAI = null;
+    else if (kind === "changed-context") mocks.savedAI = {
+      ...mocks.savedAI!, inputs: { ...mocks.savedAI!.inputs, extraContext: "A different subject and topic" }
+    };
+    else mocks.savedAI = { ...mocks.savedAI!, updatedAt: { seconds: 1, nanoseconds: 0 } };
+    fireEvent.click(screen.getByRole("button", { name: "Use this recommendation" }));
+    await expectCount(4);
+    expect(screen.getByText(/previous AI recommendation is no longer available/)).toBeTruthy();
+    expect(mocks.loadAIRecommendation).toHaveBeenLastCalledWith({ kind: "user", uid: "qa-user" });
+  });
+
+  it("checks the seven-day boundary again even if the saved record itself has not changed", async () => {
+    await prompt();
+    const now = vi.spyOn(Date, "now").mockReturnValue(Date.now() + 8 * 86400000);
+    try {
+      fireEvent.click(screen.getByRole("button", { name: "Use this recommendation" }));
+      await expectCount(4);
+    } finally { now.mockRestore(); }
+  });
+
+  it("deduplicates confirmation while the latest owner read is pending", async () => {
+    await prompt();
+    let release!: (saved: SavedAIRecommendation) => void;
+    mocks.loadAIRecommendation.mockImplementation(() => new Promise(resolve => { release = resolve; }));
+    const yes = screen.getByRole("button", { name: "Use this recommendation" });
+    fireEvent.click(yes); fireEvent.click(yes);
+    await waitFor(() => expect(mocks.loadAIRecommendation).toHaveBeenCalledTimes(2));
+    await act(async () => { release(mocks.savedAI!); }); await expectCount(3);
+  });
+
+  it("times out a stalled confirmation read and never changes finalized methods on late resolution", async () => {
+    await prompt();
+    let release!: (saved: SavedAIRecommendation) => void;
+    mocks.loadAIRecommendation.mockImplementation(() => new Promise(resolve => { release = resolve; }));
+    fireEvent.click(screen.getByRole("button", { name: "Use this recommendation" }));
+    await expectCount(4, 3500);
+    await act(async () => { release(mocks.savedAI!); });
+    expect(screen.queryByRole("button", { name: "Complete introduction: 3" })).toBeNull();
+  });
+
+  it("rejects a late old-owner result after account switching", async () => {
+    await prompt();
+    let release!: (saved: SavedAIRecommendation) => void;
+    const old = mocks.savedAI!;
+    mocks.loadAIRecommendation.mockImplementation(() => new Promise(resolve => { release = resolve; }));
+    fireEvent.click(screen.getByRole("button", { name: "Use this recommendation" }));
+    await waitFor(() => expect(mocks.loadAIRecommendation).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      mocks.user = { uid: "different-student" };
+      for (const callback of mocks.authListeners) callback(mocks.user);
+    });
+    await act(async () => { release(old); });
+    expect(screen.queryByRole("button", { name: /Complete introduction/ })).toBeNull();
+    expect(await screen.findByRole("heading", { name: "Training paused" })).toBeTruthy();
+    expect(mocks.reserveTrainingAccess).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([true, false])("resumes the session's already fixed methods without another decision or reservation (yes=%s)", async yes => {
+    await prompt();
+    fireEvent.click(screen.getByRole("button", { name: yes ? "Use this recommendation" : "Use standard selection" }));
+    const count = yes ? 3 : 4;
+    await expectCount(count);
+    fireEvent.click(screen.getByRole("button", { name: "Save and exit" }));
+    await screen.findByText("Training landing");
+    const saved = mocks.saveTrainingDraft.mock.calls.map(call => call[0] as TrainingDraft)
+      .reverse().find(draft => draft.section === 3 && draft.selectedMethods.length === count);
+    expect(saved).toBeDefined();
+    const draft = saved!;
+    expect(draft.pendingAIConfirmation).toBeUndefined();
+    const validation = validateTrainingDraft(draft, { kind: "user", uid: "qa-user" });
+    expect(validation.valid, JSON.stringify(validation)).toBe(true);
+    cleanup(); mocks.loadTrainingDraft.mockResolvedValue(validation);
+    mocks.savedAI = null; mocks.loadAIRecommendation.mockClear(); mocks.reserveTrainingAccess.mockClear();
+    entry(`/training/assessment?resume=${encodeURIComponent(draft.sessionId)}`);
+    expect(await screen.findByRole("button", { name: `Complete introduction: ${count}` })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Use your recent AI Recommendation?" })).toBeNull();
+    expect(mocks.loadAIRecommendation).not.toHaveBeenCalled();
+    expect(mocks.reserveTrainingAccess).not.toHaveBeenCalled();
   });
 });

@@ -953,6 +953,16 @@ a.nav-logo h3{
       box-shadow 140ms ease,
       background 140ms ease;
   }
+   button.confidence:focus{
+    background-color: var(--lightblue);
+  }
+
+  // The separate Lab/Match rating controls had no visible selected rule.
+  button.rating-choice.selected,
+  button.rating-choice.selected:hover {
+    background: #20B2AA;
+    color: var(--darker-black);
+  }
 
 
   button:hover:not(:disabled) {
@@ -1032,7 +1042,7 @@ a.nav-logo h3{
   }
 
 
-  .assessment-option:hover:not(:disabled) {
+  .assessment-option:hover:not(:disabled):not(.selected) {
 
     background:
       rgba(32, 178, 170, 0.13);
@@ -1047,7 +1057,8 @@ a.nav-logo h3{
   }
 
 
-  .assessment-option.selected {
+  .assessment-option.selected,
+  .assessment-option.selected:hover {
 
     background:
       var(--energetic--yellow);
@@ -2363,7 +2374,7 @@ a.nav-logo h3{
   .assessment.assessment-v2 {
 
     padding:
-      1rem
+      calc(5rem + var(--space-2))
       10px
       5rem;
 
@@ -2474,6 +2485,64 @@ a.nav-logo h3{
    REDUCED MOTION
    ========================================================= */
 
+/* Question UX only: no timer durations or assessment rules are changed. */
+.assessment-v2 {
+  .assessment-section-progress {
+    margin-block: var(--space-1) var(--space-2);
+    .assessment-progress {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0.35rem 1rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.95rem;
+      strong { font-weight: 800; }
+    }
+    .progress-track {
+      height: 0.8rem;
+      border: 1px solid var(--lightblue);
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--complement-of-yellow);
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--lightblue);
+    }
+  }
+  .selection-note {
+    font-weight: 800;
+    border-inline-start: 4px solid var(--lightblue);
+    padding: 0.45rem 0.75rem;
+    margin-block: 0.75rem 1rem;
+    color: inherit;
+    strong { font-weight: 800; }
+  }
+}
+
+/* More specific than the assessment paragraph color; timer values only. */
+.assessment.assessment-v2 .training-timer-value {
+  display: inline-block;
+  min-inline-size: calc(5ch + 1.5rem);
+  max-inline-size: 100%;
+  padding: 0.4rem 0.75rem;
+  margin-block: 0.5rem;
+  border-radius: var(--radius);
+  background: var(--energetic--yellow);
+  color: var(--darker-black);
+  font-family: var(--font-body);
+  font-size: clamp(1.35rem, 2vw, 1.85rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  .training-timer-digits {
+    display: inline-block;
+    min-inline-size: 3ch;
+    text-align: end;
+  }
+}
+
 @media (
   prefers-reduced-motion:
     reduce
@@ -2486,3 +2555,10 @@ a.nav-logo h3{
     transition: none !important;
   }
 }
+
+.training-page [aria-label="Study content options"] {
+  label { display: block; margin-block: var(--space-1); }
+  select { display: block; max-width: 100%; width: 100%; padding: .75rem; font: inherit; border: 2px solid var(--complement-of-yellow); border-radius: var(--radius); color: var(--darker-black); background: var(--font-color); }
+}
+.assessment-v2 .economics-diagram { margin-block: var(--space-2); }
+.assessment-v2 .economics-diagram figcaption { font-size: .9em; }

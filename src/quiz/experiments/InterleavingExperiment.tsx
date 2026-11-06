@@ -305,6 +305,7 @@ function InterleavingExperiment({
 
           <MultipleChoiceRunner
             question={currentPractice}
+            progress={{ questions: data.practice, answers: practiceAnswers, id: "practiceAnswers", label: "Practice questions" }}
             selectedAnswer={
               practiceAnswers[
                 currentPractice.id
@@ -355,6 +356,7 @@ function InterleavingExperiment({
 
           <MultipleChoiceRunner
             question={currentTest}
+            progress={{ questions: data.test, answers: testAnswers, id: "testAnswers", label: "Final quiz" }}
             selectedAnswer={
               testAnswers[currentTest.id]
             }

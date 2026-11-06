@@ -209,6 +209,7 @@ function ActiveBlurtingExperiment({
           </p>
           <MultipleChoiceRunner
             question={currentQuestion}
+            progress={{ questions: data.questions, answers: answers, id: "answers", label: "Current method quiz" }}
             selectedAnswer={
               answers[currentQuestion.id]
             }
@@ -243,14 +244,12 @@ function ActiveBlurtingExperiment({
             confidence={{
               prompt: "Confidence",
               value: confidence,
-              onChange: setConfidence,
-              highlightSelection: false
+              onChange: setConfidence
             }}
             ease={{
               prompt: "How easy was it to use?",
               value: ease,
-              onChange: setEase,
-              highlightSelection: false
+              onChange: setEase
             }}
             willingnessToUse={{
               prompt: <>
@@ -258,8 +257,7 @@ function ActiveBlurtingExperiment({
                 this while studying?
               </>,
               value: willingnessToUse,
-              onChange: setWillingnessToUse,
-              highlightSelection: false
+              onChange: setWillingnessToUse
             }}
             completeLabel="Complete experiment"
             onComplete={finishExperiment}

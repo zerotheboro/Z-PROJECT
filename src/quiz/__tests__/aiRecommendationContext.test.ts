@@ -5,6 +5,7 @@ import {
   getRelevantAIRecommendedMethods,
   resolveAITrainingMethodId
 } from "../aiRecommendationContext";
+import { selectMethods } from "../methodSelector";
 
 import type {
   SavedAIRecommendation
@@ -77,6 +78,21 @@ describe("saved AI recommendation context", () => {
       .toBeNull();
     expect(resolveAITrainingMethodId("Recall"))
       .toBeNull();
+    // Recommendable study routines are not automatically new Training engines.
+    expect(resolveAITrainingMethodId("Calm Start")).toBeNull();
+    expect(resolveAITrainingMethodId("Sleep After Studying")).toBeNull();
+    expect(resolveAITrainingMethodId("Post-Learning Rest")).toBeNull();
+  });
+
+  it.each(["Sleep After Studying", "Post-Learning Rest"])("keeps %s out of Training and preserves the four-method fallback", restName => {
+    const routinesOnly = saved(["Calm Start", restName]);
+    const nominations = getRelevantAIRecommendedMethods(routinesOnly, situation, baseline, true);
+    expect(nominations).toEqual([]);
+    const selected = selectMethods(situation, baseline, nominations);
+    expect(selected).toHaveLength(4);
+    expect(selected).toEqual(selectMethods(situation, baseline));
+    const mixed = saved(["Calm Start", restName, "Active Recall"]);
+    expect(getRelevantAIRecommendedMethods(mixed, situation, baseline, true)).toEqual(["active-recall"]);
   });
 
   it("keeps only trainable candidates that fit the current situation", () => {

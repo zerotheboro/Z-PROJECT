@@ -30,6 +30,10 @@ type Stage =
 
 type Props = LabEngineProps<ExplanationEngineData>;
 
+function formatStudyTime(seconds: number) {
+  return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
 function FeynmanExperiment({
   method,
   category,
@@ -262,9 +266,9 @@ function FeynmanExperiment({
           </StudyPanel>
 
           {studySecondsRemaining !== null && (
-            <p role="timer">
+            <p role="timer" className="training-timer-value">
               Time remaining:{" "}
-              {studySecondsRemaining}s
+              <span className="training-timer-digits">{formatStudyTime(studySecondsRemaining)}</span>
             </p>
           )}
 
@@ -393,6 +397,7 @@ function FeynmanExperiment({
 
           <MultipleChoiceRunner
             question={currentQuestion}
+            progress={{ questions: data.questions, answers: answers, id: "answers", label: "Current method quiz" }}
             selectedAnswer={
               answers[currentQuestion.id]
             }

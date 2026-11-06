@@ -46,6 +46,10 @@ it("loads all generation-pinned pages, keeps accepted/pending separate and prese
   expect(view.history).toHaveLength(14); expect(f.paths).toHaveLength(6); expect(view.warnings).toEqual([]); expect(view.coverageComplete).toBe(true);
   expect(view.publication).toMatchObject({ publication: "published", publishedSessions: 14, acceptedSessions: 16, pendingSessions: 2, authority: "NOT VERIFIED" });
   expect(view.revision).toBeNull(); expect(view.preview).toBeUndefined();
+  expect(view.strategyEvidence).toMatchObject({ ownerUid: f.uid, scope: "published-generation", pendingAcceptedSessions: 2 });
+  expect(view.strategyEvidence?.rows).toHaveLength(14);
+  expect(view.strategyEvidence?.acceptanceHead).toMatchObject({ revision: f.status.accepted.revision, basis: "server-journal-head" });
+  expect(view.strategyEvidence?.rows.some(row => "completionDetails" in (row.data as object))).toBe(false);
   for (const entry of view.history) {
     const original = f.history.find(row => (row.data as any).evidence.sessionId === entry.evidence.sessionId)!;
     expect(entry.evidence).toEqual((original.data as any).evidence);
@@ -77,6 +81,7 @@ it("does not turn accepted evidence into a published summary and keeps browser-o
   const view = await createSyntheticPublishedProfileReader(async () => ({ ...f.status, publication: null, profile: null }), () => {},
     async () => [{ sessionId: "not-sent", acknowledged: false, legacy: false }])(f.uid);
   expect(view.summary).toBeNull(); expect(view.history).toEqual([]); expect(view.publication?.pendingSessions).toBe(16); expect(view.pending).toHaveLength(1);
+  expect(view.strategyEvidence).toBeUndefined();
 });
 it("erases delayed owner data before any asynchronous result can return", async () => {
   const f = await fixture(); let current = f.uid;

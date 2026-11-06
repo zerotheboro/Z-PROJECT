@@ -136,6 +136,7 @@ function StrooperEffectExperiment({
       {stage === "test" && (
         <MultipleChoiceRunner
           question={current}
+          progress={{ questions: data.questions, answers: answers, id: "answers", label: "Current method quiz" }}
           selectedAnswer={answers[current.id]}
           onSelect={option =>
             setAnswers(currentAnswers => ({

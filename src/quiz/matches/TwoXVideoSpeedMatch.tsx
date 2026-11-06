@@ -69,6 +69,7 @@ function TwoXVideoSpeedMatch({
       {stage === "watch" && (
         <div>
           <h2>{data.topic}</h2>
+          {data.reading && <StudyPanel><h3>Topic notes</h3>{data.reading.map((note, i) => <p key={i}>{note}</p>)}<p>The video reinforces part of this topic; the notes cover its full pilot lesson.</p></StudyPanel>}
           <YouTubeTrainingPlayer
             youtubeId={data.youtubeId}
             title={data.videoTitle}
@@ -105,6 +106,7 @@ function TwoXVideoSpeedMatch({
       {stage === "test" && (
         <MultipleChoiceRunner
           question={current}
+          progress={{ questions: data.questions, answers: answers, id: "answers", label: "Current method quiz" }}
           selectedAnswer={answers[current.id]}
           onSelect={option =>
             setAnswers(currentAnswers => ({

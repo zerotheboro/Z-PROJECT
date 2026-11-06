@@ -142,7 +142,8 @@ function MemoryPalaceMatch({
                 .map(
                   ({
                     location,
-                    item
+                    item,
+                    meaning
                   }) => (
 
                     <div
@@ -158,9 +159,7 @@ function MemoryPalaceMatch({
                         →
                       </span>
 
-                      <strong>
-                        {item}
-                      </strong>
+                      {meaning ? <div><strong>{item}</strong><p>{meaning}</p></div> : <strong>{item}</strong>}
 
                     </div>
 
@@ -250,6 +249,7 @@ function MemoryPalaceMatch({
 
           <MultipleChoiceRunner
             question={currentQuestion}
+            progress={{ questions: data.questions, answers: answers, id: "answers", label: "Current method quiz" }}
             selectedAnswer={
               answers[currentQuestion.id]
             }

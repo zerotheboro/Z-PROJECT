@@ -12,6 +12,9 @@ import {
 import {
   EngineProgress
 } from "../engines/shared";
+import { useAssessmentCompletionSound } from "../AssessmentQuestionUX";
+import { economicsAssignments } from "../economics9708/allocation";
+import type { EconomicsActivityVersion } from "../economics9708/runtime";
 
 import type {
   MethodExperimentResult,
@@ -23,6 +26,8 @@ type Props = {
   methods: TrainingMethodId[];
 
   random?: () => number;
+  economicsTopicId?: string;
+  economicsActivityVersion?: EconomicsActivityVersion;
 
   onProgress?: (progress: {
     method: TrainingMethodId;
@@ -39,7 +44,9 @@ function MethodLab({
   methods,
   random,
   onProgress,
-  onComplete
+  onComplete,
+  economicsTopicId,
+  economicsActivityVersion
 }: Props) {
 
 console.log(
@@ -61,17 +68,18 @@ console.log(
 
   const [contentSetIds] = useState(
     () =>
-      methods.map((method) =>
+      economicsTopicId ? economicsAssignments(methods, "lab", economicsTopicId, economicsActivityVersion) : methods.map((method) =>
         getMethodDefinition(
           method
         ).selectLabContentSetId(
-          random
+          random, economicsTopicId
         )
       )
   );
 
   const currentMethod =
     methods[currentExperimentIndex];
+  const completeSound = useAssessmentCompletionSound();
 
   useEffect(() => {
     onProgress?.({
@@ -90,12 +98,15 @@ console.log(
     result: MethodExperimentResult
   ) {
 
+    if (result.method !== currentMethod || results.some(item => item.method === result.method)) return;
+
     const updatedResults = [
       ...results,
       result
     ];
 
     setResults(updatedResults);
+    completeSound(`lab:${currentMethod}:${contentSetIds[currentExperimentIndex]}`);
 
     console.log(
       "EXPERIMENT RESULT:",
@@ -148,7 +159,7 @@ console.log(
 
       <EngineProgress
         className="method-lab-progress"
-        label="SECTION 3 OF 6"
+        label="SECTION 4 — METHOD LAB"
         status={
           <>
           Experiment{" "}

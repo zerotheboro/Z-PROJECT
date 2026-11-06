@@ -78,16 +78,19 @@ export function rankMethodsForSelection(
 export function selectMethods(
   situation: LearningSituation,
   baseline: BaselineResult,
-  aiRecommendedMethods: readonly TrainingMethodId[] = []
+  aiRecommendedMethods: readonly TrainingMethodId[] = [],
+  allowedMethods?: readonly TrainingMethodId[]
 ): TrainingMethodId[] {
+  const recommendations = aiRecommendedMethods.filter(id => !allowedMethods || allowedMethods.includes(id));
   const hasUsableAIContext =
-    aiRecommendedMethods.some(isTrainingMethodId);
+    recommendations.some(isTrainingMethodId);
 
   return rankMethodsForSelection(
     situation,
     baseline,
-    aiRecommendedMethods
+    recommendations
   )
+    .filter(({ method }) => !allowedMethods || allowedMethods.includes(method))
     .slice(0, hasUsableAIContext ? 3 : 4)
     .map(({ method }) => method);
 }

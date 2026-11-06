@@ -57,7 +57,8 @@ function LeitnerSystemExperiment({ method, category, name, data, onComplete }: P
     </div>}
     {stage === "recall" && <div>
       <p>STEP 2 · RECALL {practiceIndex + 1}{" / "}{data.practice.length}</p>
-      <MultipleChoiceRunner question={currentPractice} selectedAnswer={practiceAnswers[currentPractice.id]}
+      <MultipleChoiceRunner question={currentPractice}
+        progress={{ questions: data.practice, answers: practiceAnswers, id: "practiceAnswers", label: "Practice questions" }} selectedAnswer={practiceAnswers[currentPractice.id]}
         onSelect={(option) => setPracticeAnswers((previous) => ({ ...previous, [currentPractice.id]: option }))}
         onBack={() => setPracticeIndex((value) => Math.max(0, value - 1))} backDisabled={practiceIndex === 0}
         onNext={advancePractice} nextLabel={practiceIndex === data.practice.length - 1 ? "Organize levels" : "Next card"} />
@@ -74,14 +75,16 @@ function LeitnerSystemExperiment({ method, category, name, data, onComplete }: P
     </div>}
     {stage === "retest" && currentRetest && <div>
       <p>STEP 4 · RETEST WEAK ITEMS {retestIndex + 1}{" / "}{weakItems.length}</p>
-      <MultipleChoiceRunner question={currentRetest} selectedAnswer={retestAnswers[currentRetest.id]}
+      <MultipleChoiceRunner question={currentRetest}
+        progress={{ questions: weakItems, answers: retestAnswers, id: "retestAnswers", label: "Weak-item retest" }} selectedAnswer={retestAnswers[currentRetest.id]}
         onSelect={(option) => setRetestAnswers((previous) => ({ ...previous, [currentRetest.id]: option }))}
         onBack={() => setRetestIndex((value) => Math.max(0, value - 1))} backDisabled={retestIndex === 0}
         onNext={advanceRetest} nextLabel={retestIndex === weakItems.length - 1 ? "Continue to final test" : "Next weak item"} />
     </div>}
     {stage === "test" && <div>
       <p>STEP 5 · FINAL TEST</p><p>Question {testIndex + 1}{" / "}{data.test.length}</p>
-      <MultipleChoiceRunner question={currentTest} selectedAnswer={testAnswers[currentTest.id]}
+      <MultipleChoiceRunner question={currentTest}
+        progress={{ questions: data.test, answers: testAnswers, id: "testAnswers", label: "Final quiz" }} selectedAnswer={testAnswers[currentTest.id]}
         onSelect={(option) => setTestAnswers((previous) => ({ ...previous, [currentTest.id]: option }))}
         onBack={() => setTestIndex((value) => Math.max(0, value - 1))} backDisabled={testIndex === 0}
         onNext={advanceTest} nextLabel={testIndex === data.test.length - 1 ? "Finish test" : "Next question"} />

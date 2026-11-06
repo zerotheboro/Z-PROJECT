@@ -7,6 +7,7 @@ import SpacePlan from "./Space_plan.jsx";
 import AddingMethods from "./Writing.jsx";
 import RSVP from "./RSVP.jsx";
 import { useState, useEffect } from "react";
+import { getCanonicalRecommendationMethodName } from "../../recommendationHowTo.js";
 
 export const images = import.meta.glob("../image/*.{png,jpg,jpeg,webp,gif,svg,mp4,mp3}", { eager: true });
 /*return an object of file */
@@ -135,6 +136,7 @@ function CITATE(props){
     case "37": num = "³⁷";break;
     case "38": num = "³⁸";break;
     case "39": num = "³⁹";break;
+    case "40": num = "⁴⁰";break;
 
     
     default : num = props.num;
@@ -200,11 +202,33 @@ const Prime_question = new DetailOfTips(
   }  ,
   {
     eng: <>
-    determine the importance of it (what is it? The topic, the unit, the subject?) 
-    to yourself by asking how will this 
-    help me? The more important something
-    is, the more attention you should pay to it.
-    You can write it (what is it? alternative questions or your answers to those questions) down by pressing <u>more-info</u>
+    <p>
+      Before studying, give yourself an interesting question to explore.
+      Choose something you genuinely want to understand or discover.
+    </p>
+    <ol>
+      <li>Generate an interesting question about the topic before you study.</li>
+      <li>Choose a question you genuinely want to understand or discover the answer to.</li>
+      <li>Try predicting the answer, even if you are unsure.</li>
+      <li>Study the topic while looking for an answer.</li>
+      <li>Afterward, check whether you can answer your question and revise your explanation if needed.</li>
+    </ol>
+    <p>
+      <strong>Example:</strong> Before studying inflation, ask:
+      {" "}<q>Why can inflation fall while prices are still rising?</q>
+    </p>
+    <p>
+      Questions you generate yourself may spark curiosity and help direct
+      your attention toward learning. In one experimental task, better
+      questions were associated with curiosity, seeking answers, and later
+      recall. This does not prove that this particular Edulience routine
+      improves grades.
+      <CITATE n="35" src="https://pubmed.ncbi.nlm.nih.gov/37012694/" />
+    </p>
+    <p>
+      You can write your question, prediction, and later answer by pressing
+      {" "}<u>more-info</u>.
+    </p>
   </>,
   },
   image_importor("brain.svg"),
@@ -259,22 +283,74 @@ const Everything_in_1_place = new DetailOfTips(
     src : image_importor("whale").src
   },
   {
-    eng: 
+    eng:
     <>
-    free up your mind by putting everything you
-    need in 1 place, Moreover you would notice (what?) (what still needs doing )
-    easier and get it done, and edulience offer 
-    <a
-      href=""
-      target="_blank"
-    >
-      BOXITO
-    </a>{" "}
-    can help u achieve that for free in the your opinion section
+      <p>
+        Make studying easier to start by creating one reliable place for
+        your resources and tasks. A useful study environment is not just
+        a tidy desk: it also reduces distractions and makes your next
+        action clear.
+      </p>
+      <h3>How to use it</h3>
+      <ol>
+        <li>Choose one place to keep subject notes, assignments, deadlines, and useful links.</li>
+        <li>Before studying, prepare only the materials you need for your next task.</li>
+        <li>Reduce avoidable distractions, such as unrelated tabs and phone notifications.</li>
+        <li>Keep a short list of what to do next, what is in progress, and what is finished.</li>
+        <li>After studying, update the list and prepare your first step for next time.</li>
+      </ol>
+      <p>
+        <strong>Example:</strong> For Mathematics, keep your exercise questions,
+        calculator, notes, and next assignment in an easy-to-find study hub.
+        You can use BOXITO as an optional place to organize tasks and resources.
+      </p>
+      <p>
+        <strong>Keep in mind:</strong> Organizing supports studying; it does not
+        replace practice or guarantee better results. Avoid spending more
+        time setting up than actually learning.
+      </p>
     </>,
   },
   image_importor("BOXITO"),
   "right"
+)
+
+const Calm_start = new DetailOfTips(
+  {
+    eng: "Calm Start",
+    src : image_importor("whale").src
+  },
+  {eng:
+    <>
+      <p>
+        If you feel overwhelmed before studying, take a short moment
+        to settle and choose one manageable task. This is a study-start
+        routine, not a treatment for anxiety or a guaranteed focus boost.
+      </p>
+      <p>
+        Brief breathing-based practices may help some adolescents manage
+        feelings of stress. Research on related practices found varying
+        results and very low certainty of evidence; it did not establish
+        the effects of this specific brief routine.
+        <CITATE n="36" src="https://pubmed.ncbi.nlm.nih.gov/40980898/" />
+      </p>
+      <h3>How to use it</h3>
+      <ol>
+        <li>Find a comfortable position and put aside avoidable distractions.</li>
+        <li>Relax your shoulders and breathe naturally at a comfortable pace for about a minute.</li>
+        <li>Notice what is distracting you and jot down reminders you can return to later.</li>
+        <li>Choose one small, clear task, such as answering one practice question.</li>
+        <li>Begin for five minutes, then decide how to continue.</li>
+      </ol>
+      <p>
+        <strong>Keep in mind:</strong> Different students find different
+        routines useful. Do not force uncomfortable breathing or let
+        preparation become another way of avoiding study.
+      </p><CITATE n="36"src="https://pubmed.ncbi.nlm.nih.gov/40980898/"/>
+    </>,
+  },
+  image_importor("meditate"),
+  "left",
 )
 
 const Auto_google = new DetailOfTips(
@@ -399,6 +475,76 @@ const Long_term_workout = new DetailOfTips(
     </>,
   },
   image_importor("dumbell")
+)
+
+const Sleep_after_studying = new DetailOfTips(
+  {
+    eng: "Post-Learning Rest",
+    src : image_importor("whale").src
+  },
+  {eng:
+    <>
+      <span id="Sleep After Studying" aria-hidden="true" />
+      <h3>What it is</h3>
+      <p>
+        Wakeful rest is a quiet, low-stimulation break shortly after
+        learning. You can stay awake; a nap is not required.
+      </p>
+      <h3>Why it may help</h3>
+      <p>
+        Research suggests that quiet rest after learning can support later
+        memory retention, potentially by reducing interference from new
+        activities. This is a possibility supported by research, not a
+        guaranteed improvement for every student or subject.
+        <CITATE n="37" src="https://pubmed.ncbi.nlm.nih.gov/40087245/" />
+      </p>
+      <h3>How to use it</h3>
+      <ol>
+        <li>Complete a section of studying.</li>
+        <li>Find a quiet, comfortable space.</li>
+        <li>Put away your phone and avoid stimulating media.</li>
+        <li>Rest for approximately 10–15 minutes.</li>
+        <li>Keep your eyes open or closed, whichever feels comfortable.</li>
+        <li>Return to your activities afterward and test your memory later.</li>
+      </ol>
+      <p>
+        Ten to fifteen minutes is a practical suggestion, not a proven
+        optimal duration. Falling asleep is optional, and a short nap is
+        not guaranteed to improve memory more than quiet wakeful rest.
+      </p>
+      <h3>Optional: Relaxation routine if you want to nap</h3>
+      <p>
+        You can simply rest quietly instead. This optional routine draws
+        on techniques commonly described as the "military sleep method".
+        Its popular two-minute sleep claim is not scientifically validated,
+        and there is no guaranteed time to fall asleep.
+        <CITATE n="38" src="https://health.clevelandclinic.org/military-sleep-method" />
+      </p>
+      <ol>
+        <li>Sit or lie comfortably and gently relax your forehead, jaw and face.</li>
+        <li>Let your shoulders drop and release tension in your arms and hands.</li>
+        <li>Breathe gently and naturally, without forcing or holding your breath.</li>
+        <li>Gradually release tension in your chest, legs and feet.</li>
+        <li>Imagine a peaceful scene, such as resting near a quiet lake.</li>
+        <li>If sleep comes naturally, that's fine. If you remain awake, quiet rest still counts.</li>
+      </ol>
+      <p>
+        As a gentle muscle-relaxation alternative, notice and release
+        tension across your body without uncomfortable contractions or
+        forcing sleep. Relaxation guidance does not prove that the military
+        sleep method improves memory.
+        <CITATE n="39" src="https://www.nhs.uk/every-mind-matters/mental-wellbeing-tips/how-to-fall-asleep-faster-and-sleep-better/how-can-meditation-help-with-sleep/" />
+      </p>
+      <p>
+        <strong>Keep in mind:</strong> Quiet rest does not replace retrieval
+        practice, spaced review, or sufficient nighttime sleep. Teens aged
+        13–18 generally need 8–10 hours of sleep each night.
+        <CITATE n="40" src="https://www.cdc.gov/yrbs/youth-health-in-focus/sleep.html" />
+      </p>
+    </>,
+  },
+  image_importor("sleeping"),
+  "left"
 )
 
 const Structure_your_day = new DetailOfTips(
@@ -823,8 +969,27 @@ const Divide_steps = new DetailOfTips(
   },
   {eng:
     <>
-      divide your exercise  into steps
-      with clear instructions like Cambrigde does it
+      <p>
+        Break a complex exercise into smaller actions so you can understand
+        how to solve it, not just copy the final answer.
+      </p>
+      <h3>How to use it</h3>
+      <ol>
+        <li>Read the question and identify exactly what you need to find or explain.</li>
+        <li>List the smaller actions needed, using a worked example if you are new to the task.</li>
+        <li>For each action, identify the relevant information, formula, or reasoning.</li>
+        <li>Complete the steps and check whether the answer addresses the question.</li>
+        <li>Try a similar question with fewer hints until you can solve it independently.</li>
+      </ol>
+      <p>
+        <strong>Example:</strong> For a quadratic equation, first identify its
+        form, choose a suitable solving method, solve, and substitute the
+        answers back to check them.
+      </p>
+      <p>
+        <strong>Keep in mind:</strong> Step-by-step guidance is a starting
+        point. Gradually remove it as your understanding improves.
+      </p><CITATE n="34" src="https://www.cambridge.org/core/books/abs/cambridge-handbook-of-multimedia-learning/workedout-examples-principle-in-multimedia-learning/5A8A07C14A2911C49982D19950EF5307"/>
     </>,
   },
   image_importor("STEP"),
@@ -838,15 +1003,32 @@ const Derive_basics = new DetailOfTips(
   },
   {eng:
     <>
-       Complex equations/ formulas are made
-      up by other basic formulas, like 
-      how the "1/2cos(B).a.b" formula
-      for the area of a triangle consists of sin, cos and 1/2.base.height.
-      Breaking a complex formula into its component parts
-      helps you remember the basics
-      that make it up, hence deepens your memory of it.
-  </>,
-},
+      <p>
+        Some complex formulas can be reconstructed from simpler ideas.
+        Working through those connections can help you understand why
+        a formula works instead of only memorizing its appearance.
+      </p>
+      <h3>How to use it</h3>
+      <ol>
+        <li>Choose a formula or concept you want to understand.</li>
+        <li>Find the basic definitions and relationships it depends on.</li>
+        <li>Rebuild it step by step, explaining why each step is valid.</li>
+        <li>Hide the derivation and try reconstructing it independently.</li>
+        <li>Use the result in a new question to check your understanding.</li>
+      </ol>
+      <p>
+        <strong>Example:</strong> The area of a triangle is
+        1/2 × base × perpendicular height. If sides a and b enclose angle C,
+        the perpendicular height relative to base a is b × sin(C).
+        Substituting gives area = 1/2 × a × b × sin(C).
+      </p>
+      <p>
+        <strong>Keep in mind:</strong> Not every formula can be derived
+        using what you already know. Use reliable explanations when
+        necessary and practise applying the result as well.
+      </p><CITATE n="35" src="https://www.cambridge.org/core/books/abs/cambridge-handbook-of-cognition-and-education/selfexplaining/847D1A99961216B215E93C9762220FDE"/>
+    </>,
+  },
   image_importor("dedrive"),
 )
 
@@ -1232,6 +1414,7 @@ export const preLearnTips = [
   describe_problems,
   Flowtime_technique,
   Everything_in_1_place,
+  Calm_start,
   Auto_google,
   Water_ur_face_body,
  real_music,
@@ -1261,6 +1444,7 @@ export const metaLearnTips = [
   FEYNMAN_technique,
   Memory_Palace,
   twenty_eighty_rule,
+  Sleep_after_studying,
   Summary_and_print_meta
 
 ]
@@ -1602,7 +1786,7 @@ export function loadcustomized_user_list() {
     .filter(Boolean)
     .map(header =>
       [...metaLearnTips, ...preLearnTips, ...noteTakeTips]
-        .find(tip => tip.header.eng === header)
+        .find(tip => tip.header.eng === getCanonicalRecommendationMethodName(header))
     )
     .filter(Boolean);
 }

@@ -17,6 +17,9 @@ import {
 import {
   EngineProgress
 } from "../engines/shared";
+import { useAssessmentCompletionSound } from "../AssessmentQuestionUX";
+import { economicsAssignments } from "../economics9708/allocation";
+import type { EconomicsActivityVersion } from "../economics9708/runtime";
 
 import type {
   MethodLabResult,
@@ -29,6 +32,8 @@ type Props = {
   methodLab: MethodLabResult;
 
   random?: () => number;
+  economicsTopicId?: string;
+  economicsActivityVersion?: EconomicsActivityVersion;
 
   onProgress?: (progress: {
     method: TrainingMethodId;
@@ -46,7 +51,9 @@ function MethodMatchChallenge({
   methodLab,
   random,
   onProgress,
-  onComplete
+  onComplete,
+  economicsTopicId,
+  economicsActivityVersion
 }: Props) {
 
   const methods = useMemo(
@@ -72,17 +79,18 @@ function MethodMatchChallenge({
 
   const [contentSetIds] = useState(
     () =>
-      methods.map((method) =>
+      economicsTopicId ? economicsAssignments(methods, "match", economicsTopicId, economicsActivityVersion) : methods.map((method) =>
         getMethodDefinition(
           method
         ).selectMatchContentSetId(
-          random
+          random, economicsTopicId
         )
       )
   );
 
   const currentMethod =
     methods[currentIndex];
+  const completeSound = useAssessmentCompletionSound();
 
   useEffect(() => {
     onProgress?.({
@@ -104,12 +112,15 @@ function MethodMatchChallenge({
       MethodMatchExperimentResult
   ) {
 
+    if (result.method !== currentMethod || results.some(item => item.method === result.method)) return;
+
     const updated = [
       ...results,
       result
     ];
 
     setResults(updated);
+    completeSound(`match:${currentMethod}:${contentSetIds[currentIndex]}`);
 
     if (
       currentIndex <
@@ -160,7 +171,7 @@ function MethodMatchChallenge({
 
       <EngineProgress
         className="method-match-header"
-        label="SECTION 4 OF 6"
+        label="SECTION 5 — VERIFICATION"
         status={
           <>
           Match{" "}
