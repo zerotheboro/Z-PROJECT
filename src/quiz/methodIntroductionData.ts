@@ -276,17 +276,17 @@ export const methodIntroductionData:
   "doodle-effect": {
     name: "the Doodle effect",
     description:
-      "the Doodle effect turns important ideas and relationships into a simple visual representation that supports recall.",
+      "the Doodle effect uses simple, free-form scribbles while studying, without needing a meaningful drawing.",
     howTo: [
       "Study the material.",
-      "Sketch or describe a simple visual representation.",
-      "Connect the important ideas in the visual.",
-      "Use it to reconstruct the material."
+      "Make simple scribbles, loops or free-form movements while you study.",
+      "Keep your attention on the study material; the scribbles do not need meaning.",
+      "Check your Economics knowledge afterward, separately from the doodle."
     ],
     example:
-      "Represent a food web with simple organisms and arrows showing energy flow.",
+      "Move around the pad or make loops while reading about demand; then answer the knowledge questions.",
     knowledgePrompt:
-      "Which method encodes important ideas in a simple visual representation?"
+      "Which method uses free-form scribbling alongside studying?"
   },
 
   "eighty-twenty-rule": {
@@ -340,5 +340,6 @@ export const methodIntroductionData:
   "premack-principle": { name: "Premack's principle", description: "Premack's principle places a more-preferred activity after a less-preferred task to reinforce completing the task first.", howTo: ["Identify the less-preferred learning task.", "Choose a preferred activity.", "Make it available only after the task.", "Complete the learning task before the reward."], example: "Finish a difficult review set before taking time for a preferred game or video.", knowledgePrompt: "Which method places a preferred activity after a less-preferred learning task?" },
   "ten-minute-wall-stare": { name: "10 min wall stare", description: "10 min wall stare is a full ten-minute low-stimulation break before learning, without a phone, reading, music, or another stimulating activity.", howTo: ["Put away the phone and other media.", "Look at a blank wall or neutral surface.", "Remain there for ten minutes.", "Study new material immediately afterward."], example: "Take the full quiet reset, then begin one focused learning task and measure your own result.", knowledgePrompt: "Which method uses a ten-minute low-stimulation reset immediately before learning?" },
   "strooper-effect": { name: "Strooper effect", description: "The Strooper effect exercise warms up attention by focusing on ink color while a conflicting color word competes for attention.", howTo: ["Start the interference task.", "Focus on ink color rather than the word.", "Repeat across conflicting stimuli.", "Continue into the learning task."], example: "When blue appears in red ink, attend to and say red.", knowledgePrompt: "Which method asks you to focus on ink color instead of a conflicting color word?" },
-  "two-x-video-speed": { name: "2X video speed", description: "2X video speed tests whether accelerated instructional playback works well for the individual learner.", howTo: ["Open the instructional media.", "Consume it at 2x speed.", "Stay focused on central ideas.", "Test comprehension afterward."], example: "Watch a local instructional clip at 2x speed, then answer objective questions.", knowledgePrompt: "Which method tests comprehension after accelerated instructional playback?" }
+  "two-x-video-speed": { name: "2X video speed", description: "2X video speed tests whether accelerated instructional playback works well for the individual learner.", howTo: ["Open the instructional media.", "Consume it at 2x speed.", "Stay focused on central ideas.", "Test comprehension afterward."], example: "Watch a local instructional clip at 2x speed, then answer objective questions.", knowledgePrompt: "Which method tests comprehension after accelerated instructional playback?" },
+  "hundred-second-delay": { name: "100-SECOND DELAY", description: "Read the passage, put it out of view for 100 seconds, then test what you remember.", howTo: ["Read the passage and its illustration.", "Press I'm ready to hide the learning material.", "Stay on this screen for the full 100 seconds without referring to notes.", "Answer the knowledge questions when the countdown ends."], example: "Read about opportunity cost, wait 100 seconds with no passage visible, then answer the allocated PPC questions.", knowledgePrompt: "Which method hides the passage for 100 seconds before the knowledge questions?" }
 };

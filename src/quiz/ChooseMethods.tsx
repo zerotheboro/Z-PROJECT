@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useRef,
   useState
 } from "react";
@@ -35,11 +36,12 @@ import type {
 import type {
   TrainingMethodId
 } from "./type";
+import { getStudyMethodSuggestion } from "../services/studyFollowThroughSession";
+import { auth } from "../firebase";
 
 const MAX_SELECTED_METHODS = 3;
 
-type MethodDefinition =
-  (typeof methodDefinitions)[number];
+type MethodDefinition = (typeof methodDefinitions)[number];
 
 const methodGroups =
   methodDefinitions.reduce<
@@ -86,6 +88,21 @@ function ChooseMethods() {
         MAX_SELECTED_METHODS,
         trainingAccess.manualMethodsRemaining ?? 0
       );
+
+  const [, expireSuggestion] = useState(0);
+  const suggestion = import.meta.env.DEV && import.meta.env.VITE_STUDY_TRAINING_GUIDANCE === "emulator-only"
+    ? getStudyMethodSuggestion(auth.currentUser, economicsTopicId) : null;
+  useEffect(() => {
+    if (!suggestion) return;
+    const timer = window.setTimeout(() => expireSuggestion(value => value + 1), Math.max(0, suggestion.expiresAt - Date.now()));
+    return () => window.clearTimeout(timer);
+  }, [suggestion?.expiresAt, trainingAccess.user]);
+  // Decoration only: use the actual visible, supported and currently selectable
+  // options. Never add, reorder, select or submit a method from this hint.
+  const suggestedMethod = suggestion && economicsTopicId && trainingAccess.user === auth.currentUser && !trainingAccess.loading && !trainingAccess.error && !starting &&
+    !economicsMethodGap(suggestion.methodId, economicsTopicId) && methodDefinitions.some(method => method.id === suggestion.methodId) &&
+    selectionLimit > 0 && (selectedMethods.includes(suggestion.methodId) || selectedMethods.length < selectionLimit)
+    ? suggestion.methodId : null;
 
   function toggleMethod(
     method: TrainingMethodId
@@ -175,7 +192,7 @@ function ChooseMethods() {
       <main className="training-page method-picker-page">
         <EconomicsTopicPicker value={economicsTopicId} onChange={topic => {
           setEconomicsTopicId(topic);
-          if (topic) setSelectedMethods(methods => methods.filter(method => !economicsMethodGap(method)));
+          if (topic) setSelectedMethods(methods => methods.filter(method => !economicsMethodGap(method, topic)));
         }} disabled={starting} />
         <section className="training-hero">
           <p>
@@ -214,6 +231,8 @@ function ChooseMethods() {
             </p>
           </div>
 
+          {import.meta.env.DEV && suggestedMethod && <p>Profile suggestions are optional. Choose any available methods; none are selected for you.</p>}
+
           <div className="method-picker-groups">
             {Array.from(
               methodGroups.entries()
@@ -237,14 +256,13 @@ function ChooseMethods() {
                   <div className="method-picker-grid">
                     {definitions.map(
                       definition => {
-                        const selected =
-                          selectedMethods.includes(
-                            definition.id
-                          );
-                        const unsupported = Boolean(economicsTopicId && economicsMethodGap(definition.id));
+                        const selected = selectedMethods.includes(definition.id);
+                        const gap = economicsTopicId ? economicsMethodGap(definition.id, economicsTopicId) : null;
+                        const unsupported = Boolean(gap);
 
                         return (
                           <button
+                            key={definition.id}
                             type="button"
                             role="checkbox"
                             aria-checked={selected}
@@ -253,30 +271,27 @@ function ChooseMethods() {
                               Boolean(trainingAccess.error) || unsupported
                             }
                             className={
-                              selected
+                              (selected
                                 ? "method-picker-card selected"
-                                : "method-picker-card"
+                                : "method-picker-card") + (unsupported ? " is-unavailable" : "")
                             }
-                            key={definition.id}
-                            onClick={() =>
-                              toggleMethod(
-                                definition.id
-                              )
-                            }
+                            onClick={() => toggleMethod(definition.id)}
                           >
 
-                            <strong>
+                            <span className="method-picker-name"><strong>
                               {definition.name}
-                            </strong>
+                            </strong>{unsupported && <span className="method-availability-badge">Unavailable</span>}</span>
 
-                            <span>
+                            {import.meta.env.DEV && suggestedMethod === definition.id && <span className="method-profile-suggestion">Suggested by your Learning Profile</span>}
+
+                            <span className="method-picker-description">
                               {
                                 definition
                                   .introduction
                                   .description
                               }
                             </span>
-                            {unsupported && <span>Not available for this Economics activity.</span>}
+                            {unsupported && <span className="method-availability-message">Not available for this Economics topic yet.</span>}
                           </button>
                         );
                       }

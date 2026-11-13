@@ -116,6 +116,7 @@ const simpleMatch = (
 });
 
 const labRules: Record<TrainingMethodId, MethodScopeRule> = {
+  "hundred-second-delay": simpleLab(["study", "restudy", "wait", "test", "reflection"], 1, 2, 3, 6),
   "active-recall": simpleLab(
     ["intro", "study", "retrieval", "test", "reflection"],
     2, 3, 4, 7,
@@ -248,6 +249,7 @@ const labRules: Record<TrainingMethodId, MethodScopeRule> = {
 };
 
 const matchRules: Record<TrainingMethodId, MethodScopeRule> = {
+  "hundred-second-delay": simpleMatch(["study", "restudy", "wait", "test", "confidence"], 1, 2, 3, 6),
   "active-recall": simpleMatch(
     ["study", "retrieve", "test", "confidence"],
     2, 3, 4

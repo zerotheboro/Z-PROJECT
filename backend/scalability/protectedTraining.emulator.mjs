@@ -20,7 +20,18 @@ const bundled = await build({ stdin: { contents: [
   'export { createTrainingRecoveryAttempt } from "./backend/scalability/protectedTrainingRecovery";',
   'export { protectedSealRequest } from "./backend/scalability/protectedTrainingPolicy";',
   'export * from "./src/services/trainingCompletion";', 'export * from "./src/services/trainingCompletionOutbox";'
-].join("\n"), resolveDir: process.cwd(), loader: "ts" }, bundle: true, packages: "external", platform: "node", target: "node24", format: "esm", write: false });
+].join("\n"), resolveDir: process.cwd(), loader: "ts" }, bundle: true, packages: "external", platform: "node", target: "node24", format: "esm", write: false,
+// Completion metadata now imports the shared registry, including browser-only
+// components. Keep their Vite constants defined without constructing a browser
+// Firebase client in Node. Actual Auth/Firestore tests use the guarded Admin
+// transports above; any accidental browser-SDK access must fail, not fall back.
+define: { "import.meta.env": JSON.stringify({ DEV: false, BASE_URL: "/" }) },
+plugins: [{ name: "no-browser-firebase-in-node-fixture", setup(builder) {
+  builder.onLoad({ filter: /[/\\]src[/\\]firebase\.ts$/ }, () => ({ loader: "js", contents:
+    'const unavailable = new Proxy({}, { get() { throw new Error("Browser Firebase SDK is unavailable in this Node-only fixture"); } }); export const auth = unavailable; export const db = unavailable; export const functions = unavailable; export default unavailable;' }));
+  builder.onLoad({ filter: /[/\\]EconomicsTopicImages\.tsx$/ }, () => ({ loader: "js", contents:
+    'export default function unavailable() { throw new Error("Browser image rendering is unavailable in this Node-only fixture"); }' }));
+} }] });
 await mkdir("dist-stage2", { recursive: true }); await writeFile("dist-stage2/stage4e-test-api.mjs", bundled.outputFiles[0].text);
 const api = await import("../../dist-stage2/stage4e-test-api.mjs");
 globalThis.IDBKeyRange = IDBKeyRange;
@@ -74,6 +85,7 @@ function client(s, { factory = new IDBFactory(), lose = false, wait = null, owne
 function draft(s, mode = "auto", count = 3) {
   const input = completionFixture({ mode, count, sessionId: "stage4e-session-" + id() });
   return { schemaVersion: 1, owner: { kind: "user", uid: s.uid }, sessionId: input.sessionId, mode, phase: "final-save", section: 6,
+    internalState: {},
     selectedMethods: input.selectedMethods, labContentSetIds: input.selectedMethods.map(id => id + "-lab"),
     verificationMethodOrder: input.methodMatch.methods.map(m => m.method), matchContentSetIds: input.methodMatch.methods.map(m => m.method + "-match"),
     completed: { methodIntroduction: input.methodIntroduction, methodLab: input.methodLab, methodMatch: input.methodMatch, reflection: input.reflection,

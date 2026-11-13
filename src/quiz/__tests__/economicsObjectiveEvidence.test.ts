@@ -17,6 +17,17 @@ function accepted(request = economicsEvidenceFixture()) {
     receipt: { schemaVersion: 2, status: "accepted", evidenceId: id, sessionId: request.sessionId, mode: request.mode, requestHash: result.requestHash } } };
 }
 describe("canonical objective-level evidence integrity", () => {
+  it.each(["1.5", "2.2"])("accepts the 100-second method's normal %s Lab/Match results and canonical objective answers without sleep or gain claims", topic => {
+    const request = economicsEvidenceFixture({ topic, methods: ["hundred-second-delay"] });
+    const input = { ...request, methodLab: { experiments: request.methodLab.experiments.map(result => ({ ...result, category: "memory" as const, timeSpentMs: 100_000 })) } };
+    const result = validateCompletion(UID, input, recorded);
+    expect(result.objectiveEvidence?.activities.map(activity => activity.stage)).toEqual(["method-lab", "method-match"]);
+    expect(result.objectiveEvidence?.activities[1].verificationRole).toBe("top-two-verification");
+    expect(result.objectiveEvidence?.activities.every(activity => activity.answers.length === 3 && activity.answers.every(answer => answer.correct))).toBe(true);
+    expect(result.objectiveEvidence?.outsideStudy).toBe("unknown");
+    expect(validateCompletion(UID, input, recorded).requestHash).toBe(result.requestHash);
+    expect(result.evidence.observations.map(observation => observation.methodId)).toEqual(["hundred-second-delay", "hundred-second-delay"]);
+  });
   it.each(["1.5", "2.2"])("derives %s objective membership and correctness from actual responses, independently of presentations", topic => {
     const request = economicsEvidenceFixture({ topic }), validated = validateCompletion(UID, request, recorded);
     const sidecar = validated.objectiveEvidence!;

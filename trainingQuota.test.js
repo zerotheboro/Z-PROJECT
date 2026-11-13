@@ -1,8 +1,12 @@
 import {
   describe,
   expect,
-  it
+  it,
+  vi
 } from "vitest";
+import { once } from "node:events";
+import { createRecommendationApp } from "./server.js";
+import { TRAINING_METHOD_IDS } from "./trainingMethodIds.js";
 
 import {
   createFirebaseTrainingQuotaManager,
@@ -128,6 +132,47 @@ function usagePath(
   return `users/${uid}/trainingUsage/${dayKey}`;
 }
 
+describe("Training method registration", () => {
+  it.each(TRAINING_METHOD_IDS)("accepts canonical %s through the real quota validator and charges one method exactly once", async method => {
+    const { manager } = setup();
+    const input = reservation({ mode: "manual", methodIds: [method] });
+    expect(await manager.reserve("synthetic-registration", input)).toMatchObject({ allowed: true, idempotent: false });
+    expect(await manager.reserve("synthetic-registration", input)).toMatchObject({ allowed: true, idempotent: true });
+    expect(await manager.getAccess("synthetic-registration", TIMEZONE)).toMatchObject({ usage: { manualMethodsStarted: 1 } });
+  });
+  it.each(["100-second-delay", "post-sleep", "HundredSecondDelay"])("rejects stale/incorrect %s without changing quota or persisted progress", async method => {
+    const { manager, firestore } = setup();
+    await expect(manager.reserve("synthetic-registration", reservation({ mode: "manual", methodIds: [method] }))).rejects.toMatchObject({
+      code: "invalid_training_reservation", message: "methodIds contains an unknown training method"
+    });
+    expect(firestore.documents.size).toBe(0);
+  });
+  it("accepts 100-second delay at the actual authenticated HTTP session-start route, retaining retry, conflict and auth protections", async () => {
+    const { manager, firestore } = setup();
+    const paidCall = vi.fn(() => { throw new Error("Paid calls are disabled in this test"); });
+    const app = createRecommendationApp({ trainingQuotaManager: manager,
+      openAIClient: { responses: { create: paidCall } },
+      verifyFirebaseToken: async token => { if (token !== "synthetic-token") throw new Error("Invalid token"); return { uid: "synthetic-registration" }; },
+      logger: { info() {}, warn() {}, error() {}, log() {} } });
+    const server = app.listen(0, "127.0.0.1"); await once(server, "listening");
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const input = reservation({ mode: "manual", methodIds: ["hundred-second-delay"] });
+    const post = (body, token = "synthetic-token") => fetch(base + "/api/training/reserve", { method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(body) });
+    try {
+      const first = await post(input); expect(first.status).toBe(200); expect(await first.json()).toMatchObject({ allowed: true, idempotent: false });
+      const retry = await post(input); expect(retry.status).toBe(200); expect(await retry.json()).toMatchObject({ allowed: true, idempotent: true });
+      const before = new Map(firestore.documents);
+      expect((await post({ ...input, methodIds: ["post-sleep"] })).status).toBe(400);
+      expect((await post({ ...input, methodIds: ["feynman"] })).status).toBe(409);
+      expect((await post({ ...input, sessionId: "unauthenticated-registration" }, null)).status).toBe(401);
+      expect(firestore.documents).toEqual(before);
+      expect(await manager.getAccess("synthetic-registration", TIMEZONE)).toMatchObject({ usage: { manualMethodsStarted: 1 } });
+      expect(paidCall).not.toHaveBeenCalled();
+    } finally { await new Promise(resolve => server.close(resolve)); }
+  });
+});
+
 describe("server-authoritative Training quotas", () => {
   it("treats a missing entitlement as free", async () => {
     const { manager } = setup();
@@ -138,7 +183,7 @@ describe("server-authoritative Training quotas", () => {
       plan: "free",
       planSource: "default",
       unlimited: false,
-      remaining: { testMe: 1, manualMethods: 3 }
+      remaining: { testMe: 2, manualMethods: 4 }
     });
   });
 
@@ -154,12 +199,15 @@ describe("server-authoritative Training quotas", () => {
     });
   });
 
-  it("denies a second new free Test Me reservation that day", async () => {
+  it("denies a third new free Test Me reservation that day", async () => {
     const { manager } = setup();
     await manager.reserve("user-a", reservation());
+    await manager.reserve("user-a", reservation({
+      sessionId: "session-0002"
+    }));
 
     await expect(manager.reserve("user-a", reservation({
-      sessionId: "session-0002"
+      sessionId: "session-0003"
     }))).rejects.toMatchObject({
       code: "training_quota_exceeded",
       quota: "test_me"
@@ -178,7 +226,7 @@ describe("server-authoritative Training quotas", () => {
       manager.getAccess("user-a", TIMEZONE)
     ).resolves.toMatchObject({
       usage: { manualMethodsStarted: 1 },
-      remaining: { manualMethods: 2 }
+      remaining: { manualMethods: 3 }
     });
   });
 
@@ -217,7 +265,7 @@ describe("server-authoritative Training quotas", () => {
       dayKey: "2026-10-07",
       timezone: TIMEZONE,
       testMeStarted: 0,
-      manualMethodsStarted: 2
+      manualMethodsStarted: 3
     });
 
     await expect(manager.reserve("user-a", reservation({
@@ -306,7 +354,7 @@ describe("server-authoritative Training quotas", () => {
     ).resolves.toMatchObject({
       dayKey: "2026-10-08",
       usage: { testMeStarted: 0 },
-      remaining: { testMe: 1 }
+      remaining: { testMe: 2 }
     });
   });
 
@@ -334,11 +382,14 @@ describe("server-authoritative Training quotas", () => {
       manager.reserve("user-a", reservation()),
       manager.reserve("user-a", reservation({
         sessionId: "session-0002"
+      })),
+      manager.reserve("user-a", reservation({
+        sessionId: "session-0003"
       }))
     ]);
 
     expect(results.filter(result => result.status === "fulfilled"))
-      .toHaveLength(1);
+      .toHaveLength(2);
     expect(results.filter(result => result.status === "rejected"))
       .toHaveLength(1);
   });

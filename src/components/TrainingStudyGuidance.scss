@@ -1,0 +1,13 @@
+.training-page .training-study-guidance {
+  display: grid;
+  gap: var(--space-1);
+  border-color: var(--lightblue);
+  h2 { text-align: left; font-size: clamp(1.8rem, 4vw, 2.6rem); }
+  h3 { font-size: clamp(1.25rem, 3vw, 1.65rem); }
+  p { font-size: 1rem; overflow-wrap: anywhere; }
+  details { min-width: 0; }
+  details p { margin-block: var(--space-1); }
+  summary { cursor: pointer; min-height: 44px; padding-block: .5rem; }
+  summary::before, summary::after { content: none !important; }
+  :is(button, summary):focus-visible { outline: 3px solid var(--energetic--yellow); outline-offset: 4px; }
+}

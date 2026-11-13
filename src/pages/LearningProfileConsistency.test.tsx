@@ -49,7 +49,8 @@ function checkAllFour() {
   expect(within(history).getByRole("heading", { name: /Individual Training · Oct 21, 2026/ })).toBeTruthy();
   expect(within(history).getByRole("heading", { name: /Individual Training · Oct 20, 2026/ })).toBeTruthy();
   expect(s.progress.getByText("Not enough comparable results yet.")).toBeTruthy();
-  expect(s.progress.getByText("Your practice sessions are saved. As you complete more comparable assessments, your progress trends will appear here.")).toBeTruthy();
+  expect(s.progress.getByText("Your practice sessions are saved. Their available results remain in your history.")).toBeTruthy();
+  expect(s.progress.getByText(/This latest-snapshot view does not build progress charts/)).toBeTruthy();
   expect(s.progress.getByText("10 observations recorded")).toBeTruthy();
   expect(s.progress.queryByText(/excluded from progress charts|scoring versions|question exposure/)).toBeNull();
   expect(s.progress.queryByRole("img")).toBeNull();

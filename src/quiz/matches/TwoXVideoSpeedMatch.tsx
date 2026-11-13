@@ -16,6 +16,9 @@ import type {
   MatchEngineProps,
   TwoXVideoEngineData
 } from "../methodEngineTypes";
+import { useRef, useState as useReactState } from "react";
+import { selectEconomicsVideo } from "../economics9708/videos";
+import EconomicsYouTubePlayer from "../economics9708/EconomicsYouTubePlayer";
 
 type Stage =
   | "watch"
@@ -27,6 +30,7 @@ type Props = MatchEngineProps<TwoXVideoEngineData>;
 function TwoXVideoSpeedMatch({
   method,
   data,
+  contentSetId,
   originalScore,
   onComplete
 }: Props) {
@@ -44,6 +48,11 @@ function TwoXVideoSpeedMatch({
     useResumableYouTubeProgress();
   const [notes, setNotes] = useState("");
   const current = data.questions[index];
+  const economics = Boolean(contentSetId?.startsWith("ec9708-"));
+  const video = economics ? selectEconomicsVideo(contentSetId!, data.questions.map(q => q.id)) : null;
+  const [playbackConfirmed, setPlaybackConfirmed] = useReactState(false);
+  const livePlayback = useRef(false);
+  const confirmPlayback = (value: boolean) => { livePlayback.current = value; setPlaybackConfirmed(value); };
 
   function finish() {
     if (confidence === null) {
@@ -69,14 +78,18 @@ function TwoXVideoSpeedMatch({
       {stage === "watch" && (
         <div>
           <h2>{data.topic}</h2>
-          {data.reading && <StudyPanel><h3>Topic notes</h3>{data.reading.map((note, i) => <p key={i}>{note}</p>)}<p>The video reinforces part of this topic; the notes cover its full pilot lesson.</p></StudyPanel>}
-          <YouTubeTrainingPlayer
+
+          {economics ? <StudyPanel><div className="two-x-economics-study">
+            <div>{video?.status === "ready" ? <EconomicsYouTubePlayer video={video.video} progressController={videoProgress} onPlaybackConfirmed={confirmPlayback} />
+              : <p role="alert">{video?.reason ?? "The video is unavailable. Please retry."}</p>}</div>
+            <div className="two-x-economics-passage"><h3>Topic notes</h3>{data.reading?.map((note, i) => <p key={i}>{note}</p>)}</div>
+          </div></StudyPanel> : <YouTubeTrainingPlayer
             youtubeId={data.youtubeId}
             title={data.videoTitle}
             channel={data.channel}
             playbackRate={2}
             progressController={videoProgress}
-          />
+          />}
           <div className="two-x-video-notes">
             <h3>Your notes</h3>
             <TextResponse
@@ -92,14 +105,16 @@ function TwoXVideoSpeedMatch({
               ))}
             </ul>
           </StudyPanel>
-          <button
+          {video?.status !== "unavailable" && <button
+            disabled={economics && !playbackConfirmed}
             onClick={() => {
+              if (economics && !livePlayback.current) return;
               videoProgress.checkpoint();
               setStage("test");
             }}
           >
-            I finished at 2x · test comprehension
-          </button>
+            {economics ? "Continue to comprehension test" : "I finished at 2x · test comprehension"}
+          </button>}
         </div>
       )}
 

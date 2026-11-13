@@ -43,6 +43,7 @@ describe("actual Learning Profile study strategy integration", () => {
   it("renders PPC advice above existing sections, hides IDs/Reflection, and preserves history and original scores", async () => {
     render(<App />); await screen.findByRole("region", { name: "Your Study Strategy" });
     const s = section(); expect(s.getByRole("heading", { name: "Distinguish utilisation from capacity" })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Your Study Strategy" }).getAttribute("data-strategy-state")).toBe("ready");
     expect(s.getByText("Feynman Technique", { exact: true })).toBeTruthy();
     expect(s.getByText("Limited recorded answer evidence")).toBeTruthy();
     expect(s.getByText(/spare capacity/)).toBeTruthy();
@@ -69,14 +70,20 @@ describe("actual Learning Profile study strategy integration", () => {
     mocks.snapshot = { ...mocks.snapshot!, strategyEvidence: { ownerUid: "strategy-student-a", rows: [], scope: "accepted-history", pendingAcceptedSessions: 0, legacyReportsExcluded: true } };
     mocks.read.mockResolvedValue(mocks.snapshot);
     render(<App latest />); await screen.findByText("Task-based suggestion · not personalised performance evidence");
+    expect(screen.getByRole("region", { name: "Your Study Strategy" }).getAttribute("data-strategy-state")).toBe("no-objective-evidence");
+    expect(section().getByText(/No accepted objective answers are available for this topic yet/)).toBeTruthy();
     expect(section().getByText(/Older saved reports do not contain accepted answer evidence/)).toBeTruthy();
     expect(section().getByText(/No scored answer evidence supports a personal conclusion/)).toBeTruthy();
     expect(screen.getByRole("heading", { name: "You don't have a learning profile yet." })).toBeTruthy();
   });
   it("does not turn legacy-only ordinary local profiles into accepted evidence or make database requests", async () => {
     mocks.local = false; render(<App latest />);
-    await screen.findByText(/Study advice from accepted answer evidence is not available/);
+    await screen.findByText(/accepted-evidence reader is not configured/);
     expect(mocks.read).not.toHaveBeenCalled(); expect(section().queryByText("Feynman Technique", { exact: true })).toBeNull();
+    expect(screen.getByRole("region", { name: "Your Study Strategy" }).getAttribute("data-strategy-state")).toBe("unconfigured");
+    expect(section().getByText(/General starting suggestion from reviewed topic/)).toBeTruthy();
+    expect(section().getByText("Task-based suggestion · not personalised performance evidence")).toBeTruthy();
+    expect(section().queryByRole("complementary", { name: "Recommendation follow-through" })).toBeNull();
     expect(screen.getByRole("region", { name: "Learning History" })).toBeTruthy();
   });
   it("treats accepted historical records without objective details as unknown rather than inventing personal evidence", async () => {
@@ -98,11 +105,13 @@ describe("actual Learning Profile study strategy integration", () => {
     const source = mocks.snapshot!.strategyEvidence!;
     const row = source.rows[0].data as { objectiveEvidence: { activities: { contentSetId: string }[] } };
     row.objectiveEvidence.activities[0].contentSetId = row.objectiveEvidence.activities[0].contentSetId.replace("memory-palace", "derive-basics");
-    render(<App />); await screen.findByText(/isn’t enough trustworthy, compatible evidence/);
+    render(<App />); await screen.findByText(/available evidence cannot support a safe recommendation/);
     expect(section().queryByText("Feynman Technique", { exact: true })).toBeNull();
+    expect(screen.getByRole("region", { name: "Your Study Strategy" }).getAttribute("data-strategy-state")).toBe("insufficient");
+    expect(section().queryByText(/The method is a suggestion/)).toBeNull();
     expect(screen.getByRole("region", { name: "Learning History" })).toBeTruthy();
   });
-  it("distinguishes published-generation advice and newer pending acceptance, and never invents advice from pending-only sessions", async () => {
+  it("distinguishes published advice from pending acceptance and labels the pending-only starting point as curriculum-based", async () => {
     mocks.snapshot!.strategyEvidence!.scope = "published-generation";
     mocks.snapshot!.strategyEvidence!.pendingAcceptedSessions = 2;
     const page = render(<App />); await screen.findByText(/Based on the displayed local synthetic profile generation/);
@@ -110,7 +119,10 @@ describe("actual Learning Profile study strategy integration", () => {
     const next = { ...mocks.snapshot!, strategyEvidence: undefined, publication: { kind: "synthetic-emulator-publication" as const, authority: "NOT VERIFIED" as const,
       publication: "not-published" as const, acceptedSessions: 2, publishedSessions: 0, pendingSessions: 2, generationId: null, publishedAt: null } };
     mocks.snapshot = next; page.rerender(<App />);
-    await screen.findByText(/Evidence-based advice is not available from those pending sessions/);
+    await screen.findByText(/accepted sessions are waiting for profile preparation or publication/);
+    expect(screen.getByRole("region", { name: "Your Study Strategy" }).getAttribute("data-strategy-state")).toBe("pending");
+    expect(section().getByText(/General starting suggestion from reviewed topic/)).toBeTruthy();
+    expect(section().getByText(/No scored answer evidence supports a personal conclusion/)).toBeTruthy();
     expect(section().queryByText("Feynman Technique", { exact: true })).toBeNull();
   });
   it("navigates normally without passing a forced method/topic allocation or modifying the frozen session", async () => {
@@ -125,6 +137,8 @@ describe("actual Learning Profile study strategy integration", () => {
   it("retries redacted loading errors without exposing the failure payload", async () => {
     mocks.read.mockRejectedValueOnce({ private: "PRIVATE FAILURE", code: "permission-denied" }).mockResolvedValue(mocks.snapshot);
     render(<App latest />); await screen.findByText(/Your study strategy could not be loaded safely/);
+    expect(screen.getByRole("region", { name: "Your Study Strategy" }).getAttribute("data-strategy-state")).toBe("failed");
+    expect(section().queryByText(/The method is a suggestion/)).toBeNull();
     expect(screen.queryByText(/PRIVATE FAILURE/)).toBeNull();
     fireEvent.click(section().getByRole("button", { name: "Retry study strategy" }));
     await screen.findByRole("heading", { name: "Distinguish utilisation from capacity" });
@@ -165,7 +179,7 @@ describe("actual Learning Profile study strategy integration", () => {
   });
   it("does not expose a provided source snapshot belonging to another account", async () => {
     mocks.snapshot!.strategyEvidence = economicsStrategyFixture("another-student", "2.2").snapshot.strategyEvidence;
-    render(<App />); await screen.findByText(/Study advice from accepted answer evidence is not available/);
+    render(<App />); await screen.findByText(/available evidence cannot support a safe recommendation/);
     expect(section().queryByText(/Relate PED|Feynman Technique|divide steps/)).toBeNull();
   });
   it("clears recommendations on logout and ignores late failures after unmount", async () => {
@@ -175,5 +189,10 @@ describe("actual Learning Profile study strategy integration", () => {
     expect(screen.queryByRole("region", { name: "Your Study Strategy" })).toBeNull();
     await act(async () => pending.reject({ private: "PRIVATE LATE FAILURE" }));
     expect(screen.queryByText(/PRIVATE LATE FAILURE/)).toBeNull();
+  });
+  it("keeps curriculum-only suggestions and the entire strategy panel out of production mode", async () => {
+    vi.stubEnv("DEV", false); mocks.local = false;
+    render(<App latest />); await act(async () => {});
+    expect(screen.queryByRole("region", { name: "Your Study Strategy" })).toBeNull(); expect(mocks.read).not.toHaveBeenCalled();
   });
 });

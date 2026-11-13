@@ -12,6 +12,7 @@ await Promise.all([18787, 9099].map(port => new Promise((resolve, reject) => {
   socket.setTimeout(3000, () => socket.destroy(new Error("Required demo Emulator unavailable; no production fallback.")));
   socket.once("connect", () => { socket.end(); resolve(); }); socket.once("error", reject);
 })));
+await import("./build-stage2.mjs");
 const { createStage2AcceptanceApp } = await import("../dist-stage2/acceptance.js");
 const local = createStage2AcceptanceApp({ enabled: true });
 const server = local.app.listen(3002, "127.0.0.1", () => console.log("Stage 2 demo acceptance only: http://127.0.0.1:3002. No bootstrap HTTP endpoint or publisher."));

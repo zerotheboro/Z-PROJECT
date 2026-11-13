@@ -7,6 +7,8 @@ import { packProblems } from "./packs";
 import { mapTopicLearningContent } from "./objectives";
 import type { LearningContentType, TopicLearningContent } from "./objectives";
 import type { TopicPack } from "./types";
+import { economicsVideoEligibilityGap, selectEconomicsVideo } from "./videos";
+import { interleavingEligibilityGap, mixedPracticeGap } from "./interleaving";
 
 export type MethodContentForm = {
   readonly questions: readonly { readonly id: string }[];
@@ -52,7 +54,7 @@ export const reviewedMethodNames: Record<TrainingMethodId, string | null> = {
   "header-first": "Header First", "prime-question": "Prime Question", "doodle-effect": "Doodle Effect",
   "eighty-twenty-rule": "80/20 Rule", "divide-steps": "Divide Steps", "derive-basics": "Derive Basics",
   "kidlin-rule": null, "premack-principle": "Premack's Principle", "ten-minute-wall-stare": "10 Minute Wall Stare",
-  "strooper-effect": "Stroop Effect Exercise", "two-x-video-speed": "2X Video Speed"
+  "strooper-effect": "Stroop Effect Exercise", "two-x-video-speed": "2X Video Speed", "hundred-second-delay": null
 };
 const preferredTypes: Partial<Record<TrainingMethodId, readonly LearningContentType[]>> = {
   feynman: ["conceptual-explanation", "causal-explanation", "relationship"],
@@ -64,13 +66,12 @@ const preferredTypes: Partial<Record<TrainingMethodId, readonly LearningContentT
   "kidlin-rule": ["application", "causal-explanation"]
 };
 const knownGaps: Partial<Record<TrainingMethodId, string>> = {
-  interleaving: "No reviewed grouping of the assigned examples into distinct problem types and approaches.",
   "derive-basics": "Existing general reasoning steps are not a checked step-by-step derivation.",
-  "doodle-effect": "The reviewed HOW requires a familiar listening task; the existing Training engine asks for relationship drawings.",
-  "eighty-twenty-rule": "No reviewed objective priorities or dependency map; the first notes cannot be assumed most important.",
-  "two-x-video-speed": "The reviewed HOW requires familiar material and adjustable playback; that prerequisite/procedure is not established by this pack."
+  "eighty-twenty-rule": "No reviewed objective priorities or dependency map; the first notes cannot be assumed most important."
 };
-export function economicsMethodGap(method: TrainingMethodId): string | null {
+export function economicsMethodGap(method: TrainingMethodId, topicId?: string): string | null {
+  if (method === "two-x-video-speed") return economicsVideoEligibilityGap(topicId);
+  if (method === "interleaving") return interleavingEligibilityGap(topicId);
   return knownGaps[method] ?? null;
 }
 
@@ -86,6 +87,13 @@ export function mapMethodLearningContent(pack: TopicPack, methodId: TrainingMeth
   const reasons = [...packProblems(pack)];
   const gap = knownGaps[methodId];
   if (gap) reasons.push(gap);
+  // Doodling uses free-form scribbling alongside source notes, followed by the
+  // independent knowledge check; a listening prerequisite is not a permanent
+  // topic ban. Missing/malformed material still fails normal pack/form validation.
+  if (methodId === "two-x-video-speed") {
+    const video = selectEconomicsVideo(`ec9708-${pack.topicId.replace(".", "_")}-${pack.version}-${phase}-two-x-video-speed-mapped1`, form.questions.map(q => q.id));
+    if (video.status === "unavailable") reasons.push(video.reason);
+  }
   const questionIndex = new Map(topic.questions.map(q => [q.questionId, q]));
   const seen = new Set<string>();
   const assessment: MethodLearningContent["assessment"][number][] = [];
@@ -108,6 +116,11 @@ export function mapMethodLearningContent(pack: TopicPack, methodId: TrainingMeth
     }
   }
   const types = preferredTypes[methodId];
+  if (methodId === "interleaving" && !reasons.length) {
+    const pool = phase === "lab" ? pack.lab : pack.verification;
+    const gap = mixedPracticeGap(pack, form.practice.map(q => pool.find(item => item.id === q.id)!));
+    if (gap) reasons.push(gap);
+  }
   let primary = topic.objectives.filter(o => !types || o.contentTypes.some(t => types.includes(t)));
   if (methodId === "memory-palace" && topic.objectives.length > 8) reasons.push("The existing palace has only eight locations.");
   if (methodId === "abbreviation" && pack.terms.length < 2) reasons.push("No accurate term list for initials.");

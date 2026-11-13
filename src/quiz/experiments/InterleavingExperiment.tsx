@@ -242,7 +242,7 @@ function InterleavingExperiment({
           </p>
 
           <h2>
-            Three problem types
+            Problem types to practise
           </h2>
 
           {data

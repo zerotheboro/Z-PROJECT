@@ -23,6 +23,7 @@ import { CompletionOutboxError } from "../services/trainingCompletionOutbox";
 import { saveAssessment } from "../services/assessment";
 import { readEconomicsSelection, readEconomicsActivityVersion } from "./economics9708/selection";
 import { supportedEconomicsMethods } from "./economics9708/runtime";
+import { TimedActivityIdentity } from "./timedActivities/TimedActivityIdentity";
 import { collectMaterialPresentations } from "./economics9708/presentationRecords";
 import { collectEconomicsResponses } from "./economics9708/collectAssessmentResponses";
 import { economicsTopic } from "./economics9708/syllabus";
@@ -635,7 +636,7 @@ function AssessmentSession({
     }
 
     const methods = selectMethods(situation, result, aiRecommendedMethods,
-      economicsActivityVersion ? supportedEconomicsMethods() : undefined);
+      economicsActivityVersion ? supportedEconomicsMethods(economicsPack?.topicId) : undefined);
     updateDraft(current => {
       const { pendingAIConfirmation: _pending, ...withoutPending } = current;
       return {
@@ -679,7 +680,7 @@ function AssessmentSession({
 
     const key = saved && getAIRecommendationKey(saved);
     const candidates = getAIRecommendationCandidates(saved, situation, result)
-      .filter(method => !economicsActivityVersion || supportedEconomicsMethods().includes(method));
+      .filter(method => !economicsActivityVersion || supportedEconomicsMethods(economicsPack?.topicId).includes(method));
     if (saved && key && key.length <= 4_000 && candidates.length > 0 &&
       (expectedKey === null || expectedKey === key)) {
       updateDraft(current => ({
@@ -728,7 +729,7 @@ function AssessmentSession({
         latest.pendingAIConfirmation?.recommendationKey === expectedKey &&
         getAIRecommendationKey(saved) === expectedKey
           ? getRelevantAIRecommendedMethods(saved, situation, baseline, true)
-            .filter(method => !economicsActivityVersion || supportedEconomicsMethods().includes(method))
+            .filter(method => !economicsActivityVersion || supportedEconomicsMethods(economicsPack?.topicId).includes(method))
           : [];
       if (methods.length === 0) {
         setAIContextNotice(
@@ -1142,6 +1143,7 @@ function AssessmentSession({
         state={draft.adaptiveDifficulty}
         onChange={updateAdaptiveDifficulty}
       >
+        <TimedActivityIdentity value={{ owner: draft.owner.kind === "user" ? draft.owner.uid : "guest", sessionId: draft.sessionId, project: localCompletionConfig()?.projectId ?? "edulience" }}>
         <TrainingProgressStateProvider
           state={draft.internalState}
           onChange={updateInternalState}
@@ -1399,6 +1401,7 @@ function AssessmentSession({
         </main>
         </AssessmentQuestionUXProvider>
         </TrainingProgressStateProvider>
+        </TimedActivityIdentity>
       </AdaptiveDifficultyProvider>
     </WritingJudgeProvider>
   );

@@ -21,5 +21,6 @@ export const TRAINING_METHOD_IDS: readonly [
   "premack-principle",
   "ten-minute-wall-stare",
   "strooper-effect",
-  "two-x-video-speed"
+  "two-x-video-speed",
+  "hundred-second-delay"
 ];

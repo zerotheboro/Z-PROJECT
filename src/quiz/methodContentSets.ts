@@ -15,6 +15,14 @@ import type {
 import type {
   TrainingMethodId
 } from "./type";
+import type { MultipleChoiceQuestion } from "./methodEngineTypes";
+
+// Reused approved general material is not a new independent question form.
+// Namespace this new method's aliases without changing prompts/options/keys;
+// exposure stays unknown where the existing reader lacks source identities.
+function delayContent<Data extends { questions: readonly MultipleChoiceQuestion[] }>(data: Data, phase: "lab" | "match") {
+  return { ...data, questions: data.questions.map(question => ({ ...question, id: `hundred-second-delay-${phase}-${question.id}` })) };
+}
 
 function contentSet<Data>(
   id: string,
@@ -65,7 +73,10 @@ export const methodLabContentSets = {
   "premack-principle": addVariants("premack-principle-lab", labData.premackPrincipleExperiment, methodLabContentVariants["premack-principle"]),
   "ten-minute-wall-stare": addVariants("ten-minute-wall-stare-lab", labData.wallStareExperiment, methodLabContentVariants["ten-minute-wall-stare"]),
   "strooper-effect": addVariants("strooper-effect-lab", labData.strooperEffectExperiment, methodLabContentVariants["strooper-effect"]),
-  "two-x-video-speed": addVariants("two-x-video-speed-lab", labData.twoXVideoExperiment, methodLabContentVariants["two-x-video-speed"])
+  "two-x-video-speed": addVariants("two-x-video-speed-lab", labData.twoXVideoExperiment, methodLabContentVariants["two-x-video-speed"]),
+  // Reuse approved material/questions; Economics still resolves the normal,
+  // independently allocated Lab and Match pools through withEconomics.
+  "hundred-second-delay": addVariants("hundred-second-delay-lab", delayContent({ ...labData.wallStareExperiment, method: "hundred-second-delay" as const, category: "memory" as const, title: "100-SECOND DELAY" }, "lab"), methodLabContentVariants["ten-minute-wall-stare"].map(data => delayContent({ ...data, method: "hundred-second-delay" as const, category: "memory" as const, title: "100-SECOND DELAY" }, "lab")))
 } satisfies Record<
   TrainingMethodId,
   readonly MethodContentSet<unknown>[]
@@ -94,7 +105,8 @@ export const methodMatchContentSets = {
   "premack-principle": addVariants("premack-principle-match", matchData.premackPrincipleMatchData, methodMatchContentVariants["premack-principle"]),
   "ten-minute-wall-stare": addVariants("ten-minute-wall-stare-match", matchData.wallStareMatchData, methodMatchContentVariants["ten-minute-wall-stare"]),
   "strooper-effect": addVariants("strooper-effect-match", matchData.strooperEffectMatchData, methodMatchContentVariants["strooper-effect"]),
-  "two-x-video-speed": addVariants("two-x-video-speed-match", matchData.twoXVideoMatchData, methodMatchContentVariants["two-x-video-speed"])
+  "two-x-video-speed": addVariants("two-x-video-speed-match", matchData.twoXVideoMatchData, methodMatchContentVariants["two-x-video-speed"]),
+  "hundred-second-delay": addVariants("hundred-second-delay-match", delayContent({ ...matchData.wallStareMatchData, method: "hundred-second-delay" as const, title: "100-SECOND DELAY · ROUND 2" }, "match"), methodMatchContentVariants["ten-minute-wall-stare"].map(data => delayContent({ ...data, method: "hundred-second-delay" as const, title: "100-SECOND DELAY · ROUND 2" }, "match")))
 } satisfies Record<
   TrainingMethodId,
   readonly MethodContentSet<unknown>[]

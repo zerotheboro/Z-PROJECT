@@ -30,7 +30,7 @@ export function resolveEconomicsAssessment(id: string) {
     return { pack, methodId: null, phase, scored: phase === "memory" ? pack.baselineMemory : pack.baselineUnderstanding, practice: [] as readonly EconomicsQuestion[] };
   }
   if (!isTrainingMethodId(match[4])) throw new Error("Unknown objective method.");
-  requireEconomicsMethods([match[4]]);
+  requireEconomicsMethods([match[4]], pack.topicId);
   const offset = Number(match[5] ?? 0), [ordinary, practice, test] = economicsFormats[match[4]][phase === "lab" ? "lab" : "match"];
   const pool = phase === "lab" ? pack.lab : pack.verification;
   if (!Number.isSafeInteger(offset) || offset + ordinary + practice + test > pool.length) throw new Error("Invalid objective question offset.");
@@ -49,7 +49,7 @@ export function deriveEconomicsObjectiveEvidence(input: ObjectiveCompletionInput
   requireValue(exact(raw, ["schemaVersion", "activityVersion", "topicId", "sessionStartedAt", "activities"]));
   requireValue(raw.schemaVersion === 1 && raw.activityVersion === "mapped-1" && typeof raw.topicId === "string");
   const pack = requireEconomicsPack(raw.topicId);
-  requireEconomicsMethods(input.selectedMethods);
+  requireEconomicsMethods(input.selectedMethods, pack.topicId);
   const start = normalizeEvidenceTimestamp(raw.sessionStartedAt);
   const completedAt = normalizeEvidenceTimestamp(input.completedAt ?? null);
   requireValue(start === raw.sessionStartedAt && (start === null || completedAt === null || start <= completedAt));

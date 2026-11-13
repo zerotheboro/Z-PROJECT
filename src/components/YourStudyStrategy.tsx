@@ -8,7 +8,9 @@ import { getMethodName } from "../quiz/methodRegistry";
 import { isTrainingMethodId } from "../quiz/type";
 import type { CumulativeProfileSnapshot } from "../services/cumulativeProfileReader";
 import type { StudyRecommendation } from "../quiz/economics9708/studyRecommendations";
+import type { EconomicsObjectiveEvidence } from "../quiz/economics9708/assessmentEvidence";
 import "./YourStudyStrategy.scss";
+import { studyTrainingLink } from "../services/studyTrainingGuidance";
 
 const strength = { "repeated-recorded-errors": "Several recorded questions suggest a review",
   "limited-recorded-answers": "Limited recorded answer evidence", "task-suitability-only": "Task-based suggestion · not personalised performance evidence" };
@@ -32,14 +34,31 @@ export default function YourStudyStrategy({ ownerUid, snapshot, refresh }: { own
   const id = useId(), state = useStudyStrategyEvidence(ownerUid, snapshot);
   const [topicId, setTopicId] = useState("1.5");
   const source = state.data?.strategyEvidence;
-  const result = useMemo(() => source?.ownerUid === ownerUid ? recommendEconomicsStudy(ownerUid, topicId, source.rows) : null,
+  const acceptedResult = useMemo(() => source?.ownerUid === ownerUid ? recommendEconomicsStudy(ownerUid, topicId, source.rows) : null,
     [source, ownerUid, topicId]);
+  // Only inspect objective metadata after the unchanged engine has validated
+  // the owner and canonical sidecars. These checks label UI state, not scores.
+  const hasTopicAnswers = acceptedResult?.status === "recommended" && source?.rows.some(row => {
+    const detail = (row.data as { objectiveEvidence?: EconomicsObjectiveEvidence }).objectiveEvidence;
+    return detail?.topicId === topicId && detail.activities.some(activity => activity.answers.some(answer => answer.role === "scored"));
+  });
+  const status = state.loading ? "loading" : state.error ? "failed"
+    : source && source.ownerUid !== ownerUid ? "insufficient"
+      : !state.local && !source ? "unconfigured"
+        : !source ? state.data?.publication?.pendingSessions ? "pending" : "insufficient"
+          : acceptedResult?.status !== "recommended" ? "insufficient" : hasTopicAnswers ? "ready" : "no-objective-evidence";
+  // Curriculum-only suggestions never consume browser reports, pending rows or
+  // failed/malformed source data, and never enter accepted evidence tracking.
+  const generalResult = useMemo(() => status === "unconfigured" || status === "pending"
+    ? recommendEconomicsStudy(ownerUid, topicId, []) : null, [status, ownerUid, topicId]);
+  const result = acceptedResult ?? generalResult;
   const r = result?.status === "recommended" ? result.recommendation : null;
-  const follow = useStudyFollowThrough(ownerUid, topicId, source, Boolean(import.meta.env.DEV && state.visible && !state.loading && r));
+  const follow = useStudyFollowThrough(ownerUid, topicId, source, Boolean(import.meta.env.DEV && state.visible && !state.loading && r && acceptedResult?.status === "recommended"));
   if (!import.meta.env.DEV || !state.visible) return null;
   const topic = economicsCoverageManifest.find(t => t.id === topicId);
   const retry = refresh ?? state.refresh;
-  return <section className="study-strategy" id="your-study-strategy" aria-labelledby={`${id}-heading`} aria-busy={state.loading}>
+  const trainingLink = studyTrainingLink(topicId);
+  return <section className="study-strategy" id="your-study-strategy" aria-labelledby={`${id}-heading`} aria-busy={state.loading} data-strategy-state={status}>
     <div className="study-strategy-heading"><div><p className="cumulative-eyebrow">A PRACTICAL NEXT STEP · LOCAL PREVIEW</p><h2 id={`${id}-heading`}>Your Study Strategy</h2>
       <p>Choose a whole topic. Find one useful thing to work on next.</p></div>
       <label htmlFor={`${id}-topic`}>Economics topic<select id={`${id}-topic`} value={topicId} onChange={e => setTopicId(e.target.value)}>
@@ -47,15 +66,16 @@ export default function YourStudyStrategy({ ownerUid, snapshot, refresh }: { own
       </select></label></div>
     {state.loading ? <p role="status">Loading accepted learning evidence for your study strategy…</p>
       : state.error ? <div><p role="alert">Your study strategy could not be loaded safely. Your saved results have not changed.</p><button type="button" onClick={retry}>Retry study strategy</button></div>
-        : !source || source.ownerUid !== ownerUid ? <div><p role="status">{state.data?.publication?.pendingSessions
-          ? "Your accepted sessions are waiting for profile preparation. Evidence-based advice is not available from those pending sessions yet."
-          : "Study advice from accepted answer evidence is not available for this profile yet. Your saved Test Me and individual practice remain in your history."}</p>
-          <p>Older browser-saved reports are not treated as accepted evidence. You can still choose a topic and explore Training.</p></div>
-          : !r ? <div><p role="status">There isn’t enough trustworthy, compatible evidence to suggest a study strategy for this topic.</p><p>Keep your saved results and try refreshing. No method or session has been changed.</p><button type="button" onClick={retry}>Retry study strategy</button></div>
-            : <>
-              <p className="study-strategy-source">{source.scope === "published-generation" ? "Based on the displayed local synthetic profile generation. This is not a verified real-student publication." : "Based on accepted records from the local demo account. Acceptance is separate from profile publication."}</p>
-              {source.pendingAcceptedSessions > 0 && <p className="study-strategy-notice">Newer accepted sessions are still awaiting profile preparation and are not included in this advice.</p>}
-              {source.legacyReportsExcluded && <p className="study-strategy-notice">Older saved reports do not contain accepted answer evidence. This suggestion uses topic suitability, not those legacy scores.</p>}
+        : <>
+              {status === "unconfigured" && <p role="status">Personal study advice is not connected in this local setup: the accepted-evidence reader is not configured. Your saved history is still available.</p>}
+              {status === "no-objective-evidence" && <p role="status">No accepted objective answers are available for this topic yet. The starting suggestion below is based on the task, not proven personal results.</p>}
+              {status === "pending" && <p role="status">Your accepted sessions are waiting for profile preparation or publication. They are not included in personal advice yet; the starting suggestion below uses only the curriculum.</p>}
+              {status === "insufficient" && <div><p role="status">The available evidence cannot support a safe recommendation for this topic.</p><p>Your saved results have not changed. Choose a topic in Training or retry loading your study strategy.</p>{state.local && <button type="button" onClick={retry}>Retry study strategy</button>}</div>}
+              {r && <>
+              <p className="study-strategy-source">{!hasTopicAnswers ? "General starting suggestion from reviewed topic–method compatibility. It is not personally proven and does not use legacy browser scores."
+                : source?.scope === "published-generation" ? "Based on the displayed local synthetic profile generation. This is not a verified real-student publication." : "Based on accepted records from the local demo account. Acceptance is separate from profile publication."}</p>
+              {(source?.pendingAcceptedSessions ?? 0) > 0 && <p className="study-strategy-notice">Newer accepted sessions are still awaiting profile preparation and are not included in this advice.</p>}
+              {source?.legacyReportsExcluded && <p className="study-strategy-notice">Older saved reports do not contain accepted answer evidence. This suggestion uses topic suitability, not those legacy scores.</p>}
               <div className="study-strategy-grid"><article><p className="cumulative-eyebrow">{purpose[r.purpose]}</p><h3>{r.objectiveLabel}</h3>
                 <p className="study-strategy-method">Try <strong>{getMethodName(r.methodId)}</strong></p><p>{r.action}</p>
                 <details className="profile-card-details"><summary>How to use {getMethodName(r.methodId)}</summary><ol>{r.contentSuggestion.canonicalHow.map((step, i) => <li key={i}>{step}</li>)}</ol></details>
@@ -95,8 +115,11 @@ export default function YourStudyStrategy({ ownerUid, snapshot, refresh }: { own
                 <p>This local comparison is kept in memory across navigation, not as a saved recommendation receipt. Reloading, closing the tab or signing out resets it. Changing topics starts a new comparison. Outside study and the student's intent remain unknown.</p>
               </aside>}
             </>}
-    <div className="study-strategy-actions"><Link className="profile-primary-action" to="/training" onClick={follow.openTraining}>Open Training</Link>
+            </>}
+    <div className="study-strategy-actions"><Link className="profile-primary-action" to={trainingLink} onClick={acceptedResult?.status === "recommended" ? follow.openTraining : undefined}>Open Training</Link>
       {state.local && <button className="profile-refresh" type="button" disabled={state.loading} onClick={retry}>Refresh study strategy</button>}
-      <p>Choose {topic?.title ?? "your topic"} in Training. The method is a suggestion: your saved session, method allocation and normal access checks stay unchanged.</p></div>
+      <p>Selected topic: <strong>{topic?.title ?? "Choose an available Economics topic"}</strong>. {r
+        ? `${trainingLink.includes("?studyTopic=") ? "Open Training to review this whole-topic guidance." : "Open Training, then choose this topic in the content picker."} The method is a suggestion: your saved session, method allocation and normal access checks stay unchanged.`
+        : "Open Training to choose this whole topic normally. Your saved session and normal access checks stay unchanged."}</p></div>
   </section>;
 }

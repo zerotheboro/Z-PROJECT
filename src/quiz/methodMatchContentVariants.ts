@@ -23,7 +23,7 @@ const question = (
 
 type MethodWithGeneratedVariants = Exclude<
   TrainingMethodId,
-  "two-x-video-speed"
+  "two-x-video-speed" | "hundred-second-delay"
 >;
 
 export const methodMatchContentVariants = {

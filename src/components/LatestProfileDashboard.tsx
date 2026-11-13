@@ -91,7 +91,9 @@ export default function LatestProfileDashboard({ profile, cumulativeAvailable, m
       </section>
       <section id="learning-progress" aria-labelledby="latest-progress-title">
         <ProfileSectionTitle number="04" title="Progress Over Time" id="latest-progress-title" description="" />
-        <div className="profile-empty-panel"><ProfileIcon name="progress" /><h3>Not enough comparable results yet.</h3><p>Your practice sessions are saved. As you complete more comparable assessments, your progress trends will appear here.</p><Link to="/training">Keep exploring <ProfileIcon name="arrow" /></Link></div>
+        <p>Progress charts show recorded accuracy on comparable tasks. Some saved history cannot be compared fairly. This latest-snapshot view does not build progress charts; the cumulative view can show trends when enough comparable records are available.</p>
+        <div className="profile-empty-panel"><ProfileIcon name="progress" /><h3>Not enough comparable results yet.</h3><p>Your practice sessions are saved. Their available results remain in your history.</p><Link to="/training">Keep exploring <ProfileIcon name="arrow" /></Link></div>
+        <p>Correct answers on these tasks do not by themselves prove learning gains or that one method caused a change.</p>
         {view.coverage === "complete" && <p>{view.counts.observations} observations recorded</p>}
       </section>
     </div></div>

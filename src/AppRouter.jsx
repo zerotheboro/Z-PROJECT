@@ -1,6 +1,8 @@
 import React, {
   useEffect,
-  useLayoutEffect
+  useLayoutEffect,
+  lazy,
+  Suspense
 } from "react";
 
 import {
@@ -25,6 +27,9 @@ import Assessment
   from "./quiz/Assessment";
 import ChooseMethods
   from "./quiz/ChooseMethods";
+// Retired overnight pilot: retained only for explicit legacy development work.
+const PostSleepPage = import.meta.env.DEV
+  ? lazy(() => import("./quiz/timedActivities/PostSleepPage")) : null;
 
 function scrollToHashTarget(hash) {
   if (!hash || hash === "#") {
@@ -111,6 +116,8 @@ export function AppRoutes() {
         path="/training/choose"
         element={<ChooseMethods />}
       />
+      <Route path="/training/post-sleep" element={<Navigate to="/training/choose" replace />} />
+      {import.meta.env.DEV && import.meta.env.VITE_POST_SLEEP_PILOT === "local-only" && PostSleepPage && <Route path="/training/post-sleep/preview" element={<Suspense fallback={<p role="status">Loading legacy pilot…</p>}><PostSleepPage ownerPreview /></Suspense>} />}
       <Route
         path="/training/profile"
         element={<LearningProfilePage />}

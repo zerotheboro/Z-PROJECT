@@ -16,6 +16,9 @@ import type {
   LabEngineProps,
   TwoXVideoEngineData
 } from "../methodEngineTypes";
+import { selectEconomicsVideo } from "../economics9708/videos";
+import EconomicsYouTubePlayer from "../economics9708/EconomicsYouTubePlayer";
+import { useRef, useState as useReactState } from "react";
 
 type Stage =
   | "intro"
@@ -30,6 +33,7 @@ function TwoXVideoSpeedExperiment({
   category,
   name,
   data,
+  contentSetId,
   onComplete
 }: Props) {
   const [stage, setStage] =
@@ -48,6 +52,12 @@ function TwoXVideoSpeedExperiment({
     useResumableYouTubeProgress();
   const [notes, setNotes] = useState("");
   const current = data.questions[index];
+  const economics = Boolean(contentSetId?.startsWith("ec9708-"));
+  const video = economics ? selectEconomicsVideo(contentSetId!, data.questions.map(question => question.id)) : null;
+  // Transient player readiness is not a new saved progress/evidence slot.
+  const [playbackConfirmed, setPlaybackConfirmed] = useReactState(false);
+  const livePlayback = useRef(false);
+  const confirmPlayback = (value: boolean) => { livePlayback.current = value; setPlaybackConfirmed(value); };
 
   function finish() {
     if (
@@ -96,14 +106,16 @@ function TwoXVideoSpeedExperiment({
       {stage === "watch" && (
         <div>
           <h2>{data.topic}</h2>
-          {data.reading && <StudyPanel><h3>Topic notes</h3>{data.reading.map((note, i) => <p key={i}>{note}</p>)}<p>The video reinforces part of this topic; the notes cover its full pilot lesson.</p></StudyPanel>}
-          <YouTubeTrainingPlayer
+
+          {economics ? <StudyPanel>{video?.status === "ready" ? <EconomicsYouTubePlayer video={video.video} progressController={videoProgress} onPlaybackConfirmed={confirmPlayback} />
+            : <p role="alert">{video?.reason ?? "The video is unavailable. Please retry."}</p>}</StudyPanel> : <YouTubeTrainingPlayer
             youtubeId={data.youtubeId}
             title={data.videoTitle}
             channel={data.channel}
             playbackRate={2}
             progressController={videoProgress}
-          />
+          />}
+          <p>Watch at 2× speed and focus on the key ideas. Add your own notes if useful, then test your comprehension.</p>
           <div className="two-x-video-notes">
             <h3>Your notes</h3>
             <TextResponse
@@ -119,14 +131,16 @@ function TwoXVideoSpeedExperiment({
               ))}
             </ul>
           </StudyPanel>
-          <button
+          {video?.status !== "unavailable" && <button
+            disabled={economics && !playbackConfirmed}
             onClick={() => {
+              if (economics && !livePlayback.current) return;
               videoProgress.checkpoint();
               setStage("test");
             }}
           >
-            I finished at 2x · test comprehension
-          </button>
+            {economics ? "I finished at 2× · test comprehension" : "I finished at 2x · test comprehension"}
+          </button>}
         </div>
       )}
 

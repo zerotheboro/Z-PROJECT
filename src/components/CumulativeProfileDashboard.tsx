@@ -270,10 +270,11 @@ export default function CumulativeProfileDashboard({ data, refresh, strategy }: 
     </section>
 
     <section id="learning-progress" aria-labelledby="progress-title"><ProfileSectionTitle number="04" title="Progress Over Time" id="progress-title" description="Look for patterns in genuinely comparable tasks." />
+      <p>These charts show recorded accuracy on comparable tasks, not a mastery score. Some saved history cannot be compared fairly, so it stays in Learning History without becoming a trend. Unlike the latest-snapshot view, this cumulative view can chart comparable observations across sessions.</p>
       {progress.length === 0 ? <div className="cumulative-notice"><h3>Not enough comparable results yet.</h3><p>Your practice sessions are saved. As you complete more comparable assessments, your progress trends will appear here.</p></div>
         : <div className="cumulative-grid">{progress.map(series => <ProgressChart key={series.key} series={series} />)}</div>}
       {summary && data.coverageComplete && <p>{summary.observationCount} observations recorded</p>}
-      <p>These records do not prove that a method is scientifically best for you, that a method caused improvement, or that personalization has been validated.</p>
+      <p>A change in task accuracy does not by itself prove a learning gain or that a particular method caused it.</p>
     </section>
     </div></div>
   </main>;

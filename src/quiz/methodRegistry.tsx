@@ -37,6 +37,7 @@ import DeriveBasicsExperiment from "./experiments/DeriveBasicsExperiment";
 import KidlinRuleExperiment from "./experiments/KidlinRuleExperiment";
 import PremackPrincipleExperiment from "./experiments/PremackPrincipleExperiment";
 import TenMinuteWallStareExperiment from "./experiments/TenMinuteWallStareExperiment";
+import HundredSecondDelayExperiment, { HundredSecondDelayMatch } from "./experiments/HundredSecondDelayExperiment";
 import StrooperEffectExperiment from "./experiments/StrooperEffectExperiment";
 import TwoXVideoSpeedExperiment from "./experiments/TwoXVideoSpeedExperiment";
 
@@ -251,7 +252,9 @@ function defineMethod<LabData extends EconomicsTemplate, MatchData extends Econo
             <TrainingStateScope
               name={`lab:${method.id}:${contentSetId}`}
             >
-              <MappedActivity runtime={data.runtime}><LabEngine
+              <MappedActivity runtime={data.runtime} contentSetId={contentSetId} videoOnly={method.id === "two-x-video-speed"} managedStudy={method.id === "hundred-second-delay"}
+                questionIds={[...(data.questions ?? []), ...(data.practice ?? []), ...(data.test ?? [])].map(question => question.id)}><LabEngine
+                contentSetId={contentSetId}
                 method={method.id}
                 category={method.category}
                 name={method.name}
@@ -285,7 +288,9 @@ function defineMethod<LabData extends EconomicsTemplate, MatchData extends Econo
             <TrainingStateScope
               name={`match:${method.id}:${contentSetId}`}
             >
-              <MappedActivity runtime={data.runtime}><MatchEngine
+              <MappedActivity runtime={data.runtime} contentSetId={contentSetId} managedStudy={method.id === "hundred-second-delay"}
+                questionIds={[...(data.questions ?? []), ...(data.practice ?? []), ...(data.test ?? [])].map(question => question.id)}><MatchEngine
+                contentSetId={contentSetId}
                 method={method.id}
                 name={method.name}
                 shortName={method.shortName}
@@ -910,7 +915,11 @@ export const methodRegistry = {
     {kind:"difficulty",value:"inefficiency",weight:4,selectionOrder:66,reasonOrder:0,reason:"You reported spending substantial time without enough progress."},
     {kind:"content-type",value:"reading",weight:2,selectionOrder:67,reasonOrder:1,reason:"Accelerated instructional presentation is worth comparing with your usual information intake."}
   ],labEngine:TwoXVideoSpeedExperiment,labContentSets:methodLabContentSets["two-x-video-speed"],matchEngine:TwoXVideoSpeedMatch,matchContentSets:methodMatchContentSets["two-x-video-speed"]
-  })
+  }),
+  "hundred-second-delay": defineMethod({ id: "hundred-second-delay", name: "100-SECOND DELAY", category: "memory",
+    introduction: methodIntroductionData["hundred-second-delay"], defaultSelectionWeight: 0, defaultSelectionOrder: 100, selectionSignals: [],
+    labEngine: HundredSecondDelayExperiment, labContentSets: methodLabContentSets["hundred-second-delay"],
+    matchEngine: HundredSecondDelayMatch, matchContentSets: methodMatchContentSets["hundred-second-delay"] })
 } satisfies Record<
   TrainingMethodId,
   MethodDefinition

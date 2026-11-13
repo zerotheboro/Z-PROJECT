@@ -51,6 +51,9 @@ vi.mock(
   "./quiz/ChooseMethods",
   () => ({ default: () => <p>Choose page</p> })
 );
+vi.mock("./quiz/timedActivities/PostSleepPage", () => ({
+  default: ({ ownerPreview }: { ownerPreview?: boolean }) => <p>{ownerPreview ? "Owner Post-Sleep preview route" : "Post-Sleep method route"}</p>
+}));
 
 import AppRouter, {
   AppRoutes,
@@ -70,9 +73,24 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllEnvs();
 });
 
 describe("application routing", () => {
+  it.each([
+    ["/training/post-sleep?economics=1.5", "Choose page"],
+    ["/training/post-sleep/preview?economics=2.2", "Owner Post-Sleep preview route"]
+  ])("opens %s through the actual HashRouter", async (path, expected) => {
+    vi.stubEnv("VITE_POST_SLEEP_PILOT", "local-only");
+    window.history.replaceState({}, "", "/#" + path); render(<AppRouter />);
+    expect(await screen.findByText(expected)).toBeTruthy();
+    expect(window.location.hash).toBe(path.includes("/preview") ? "#" + path : "#/training/choose");
+  });
+  it("does not expose the owner preview route in production", () => {
+    vi.stubEnv("DEV", false); window.history.replaceState({}, "", "/#/training/post-sleep/preview");
+    render(<AppRouter />); expect(screen.getByText("Home page")).toBeTruthy();
+    expect(screen.queryByText("Owner Post-Sleep preview route")).toBeNull();
+  });
   it.each([
     ["/", "Home page"],
     ["/library", "Library page"],

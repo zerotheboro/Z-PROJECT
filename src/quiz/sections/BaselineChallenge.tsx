@@ -11,6 +11,14 @@ import {
   trainingUnderstandingContentSets as baselineConceptContentSets
 } from "../trainingContent";
 import { isEconomicsContentId } from "../economics9708/selection";
+import EconomicsTopicImages from "../economics9708/EconomicsTopicImages";
+import { learningObjectiveId } from "../economics9708/objectives";
+
+function StudyImages({ id, questions }: { id: string; questions: readonly { id: string; coverage?: readonly string[] }[] }) {
+  const topic = /^ec9708-(\d+)_(\d+)-/.exec(id);
+  return topic ? <EconomicsTopicImages topicId={`${topic[1]}.${topic[2]}`}
+    objectiveIds={[...new Set(questions.flatMap(q => q.coverage ?? []).map(learningObjectiveId))]} /> : null;
+}
 
 import {
   selectBaselineContent
@@ -466,6 +474,7 @@ function BaselineChallenge({
           
 
           <div className="study-content">
+            <StudyImages id={memoryContentId} questions={memoryContent.questions} />
 
             {memoryContent.facts.map(
               (fact, index) => (
@@ -636,6 +645,7 @@ function BaselineChallenge({
           </p>
 
           <div className="study-content">
+            <StudyImages id={conceptContentId} questions={conceptContent.questions} />
 
             <p>
               {

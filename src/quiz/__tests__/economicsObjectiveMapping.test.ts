@@ -16,7 +16,7 @@ import { trainingLabContentSets, trainingMatchContentSets } from "../trainingCon
 import { createTrainingDraft } from "../trainingProgress";
 import { scoreMultipleChoice } from "../engines/shared/scoring";
 
-const gaps = ["interleaving", "derive-basics", "doodle-effect", "eighty-twenty-rule", "two-x-video-speed"];
+const gaps = ["derive-basics", "eighty-twenty-rule"];
 const ppc = economicsPacks.find(p => p.topicId === "1.5")!;
 const elasticity = economicsPacks.find(p => p.topicId === "2.2")!;
 const objective = (point: string) => learningObjectiveId(point);
@@ -80,6 +80,27 @@ describe("reviewed topic-level objective source mappings", () => {
 });
 
 describe("canonical method material plans, separate from observed evidence", () => {
+  it("supports all 43 Doodling source objectives through actual bounded forms without changing questions", () => {
+    const covered = new Set<string>();
+    for (const pack of economicsPacks) for (const phase of ["lab", "match"] as const) {
+      const pool = phase === "lab" ? pack.lab : pack.verification;
+      for (let offset = 0; offset + 4 <= pool.length; offset++) {
+        const id = economicsContentId(pack.topicId, `${phase}-doodle-effect-mapped1${offset ? `-q${offset}` : ""}`);
+        const sets = phase === "lab" ? trainingLabContentSets["doodle-effect"] : trainingMatchContentSets["doodle-effect"];
+        const data = getTrainingContentSet<EconomicsTemplate>(sets, id).data;
+        expect(data.questions).toEqual(pool.slice(offset, offset + 4));
+        expect(data.runtime?.materials.length).toBeGreaterThan(0);
+        for (const material of data.runtime!.materials) {
+          expect(pack.notes).toContain(material.text);
+          material.objectiveIds.forEach(id => covered.add(id));
+        }
+      }
+    }
+    expect([...covered].sort()).toEqual(economicsPacks.flatMap(pack => getEconomicsObjectiveMapping(pack.topicId).objectives.map(o => o.id)).sort());
+    expect(covered.size).toBe(43);
+    const broken = { ...ppc, notes: ["", ...ppc.notes.slice(1)] };
+    expect(() => mapMethodLearningContent(broken, "doodle-effect", "lab", { questions: ppc.lab.slice(0, 4), practice: [], test: [] })).toThrow(/Incomplete objective material/);
+  });
   it.each(economicsPacks)("checks all 23 existing methods and both phases in $topicId", p => {
     for (const method of TRAINING_METHOD_IDS) for (const phase of ["lab", "match"] as const) {
       const sets = phase === "lab" ? trainingLabContentSets[method] : trainingMatchContentSets[method];

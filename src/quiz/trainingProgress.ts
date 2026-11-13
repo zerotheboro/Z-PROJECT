@@ -162,7 +162,7 @@ export function createTrainingDraft({
   economicsActivityVersion?: EconomicsActivityVersion;
 }): TrainingDraft {
   const now = new Date().toISOString();
-  if (economicsTopicId && economicsActivityVersion) requireEconomicsMethods(selectedMethods);
+  if (economicsTopicId && economicsActivityVersion) requireEconomicsMethods(selectedMethods, economicsTopicId);
 
   return {
     schemaVersion: TRAINING_DRAFT_SCHEMA_VERSION,

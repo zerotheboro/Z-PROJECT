@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React, { useState } from "react";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("../../firebase", () => ({ auth: { currentUser: null, app: { options: { projectId: "demo-economics-runtime" } } }, db: {} }));
 import { METHOD_POOL } from "../../../methodPool.js";
@@ -20,7 +20,7 @@ import { assertMaterialPresentations, collectMaterialPresentations } from "../ec
 import { economicsPacks } from "../economics9708/packs";
 import { completionFromDraft } from "../../services/trainingCompletion";
 import { validateCompletion } from "../../../backend/trainingCompletionContract";
-import type { TrainingMethodId } from "../type";
+import type { MethodExperimentResult, TrainingMethodId } from "../type";
 import { scoreMultipleChoice } from "../engines/shared/scoring";
 import { encodeFirestoreTrainingDraft, decodeFirestoreTrainingDraft } from "../../services/trainingDraftFirestoreCodec";
 import { renderedMaterialText } from "../economics9708/MappedActivity";
@@ -42,7 +42,7 @@ function draftFor(method: TrainingMethodId, topic = "1.5", mapped = true): Train
   d.completed.methodIntroduction={methods:[method],correct:1,total:1,score:1};
   return d;
 }
-function Harness({ initial, capture, done = () => {} }: { initial: TrainingDraft; capture: (d: TrainingDraft) => void; done?: () => void }) {
+function Harness({ initial, capture, done = () => {} }: { initial: TrainingDraft; capture: (d: TrainingDraft) => void; done?: (result: MethodExperimentResult) => void }) {
   const [draft,setDraft] = useState(initial); capture(draft);
   return <TrainingProgressStateProvider state={draft.internalState} onChange={state=>setDraft(d=>({...d, internalState:state}))}>
     {getMethodDefinition(initial.selectedMethods[0]).renderLab(initial.labContentSetIds[0], done)}
@@ -53,11 +53,11 @@ describe("new Economics compatibility activation", () => {
   it("resolves all 37 canonical entries, with explicit training-only methods and no invented Practice Testing entry", () => {
     expect(economicsMethodInventory.map(m=>m.name)).toEqual(METHOD_POOL.map(m=>m.name));
     expect(economicsMethodInventory).toHaveLength(37);
-    expect(economicsMethodInventory.filter(m=>m.status==="supported")).toHaveLength(15);
-    expect(economicsMethodInventory.filter(m=>m.status==="unsupported")).toHaveLength(5);
+    expect(economicsMethodInventory.filter(m=>m.status==="supported")).toHaveLength(18);
+    expect(economicsMethodInventory.filter(m=>m.status==="unsupported")).toHaveLength(2);
     expect(economicsMethodInventory.filter(m=>m.status==="non-trainable")).toHaveLength(14);
     expect(economicsMethodInventory.filter(m=>m.status==="out-of-scope")).toHaveLength(3);
-    expect(supportedEconomicsMethods()).toHaveLength(18);
+    expect(supportedEconomicsMethods()).toHaveLength(22);
     expect(economicsMethodInventory.find(m=>m.name==="Calm Start")?.status).toBe("non-trainable");
     expect(economicsMethodInventory.find(m=>m.name==="Post-Learning Rest")?.status).toBe("out-of-scope");
     expect(economicsMethodInventory.some(m=>m.name==="Practice Testing")).toBe(false);
@@ -69,7 +69,7 @@ describe("new Economics compatibility activation", () => {
       expect(selected).toHaveLength(advice.length ? 3 : 4);
       expect(selected).toEqual(rankMethodsForSelection(situation,baseline,advice).filter(row=>allowed.includes(row.method)).slice(0,selected.length).map(row=>row.method));
     }
-    expect(selectMethods(situation,baseline,["doodle-effect"],allowed)).toHaveLength(4);
+    expect(selectMethods(situation,baseline,["doodle-effect"],allowed)).toHaveLength(3);
     expect(selectMethods(situation,baseline,["doodle-effect"])).toHaveLength(3);
   });
   it.each(economicsPacks)("builds actual compatible engine data without changing question scores for $topicId", p => {
@@ -80,13 +80,16 @@ describe("new Economics compatibility activation", () => {
       const data=getTrainingContentSet<EconomicsTemplate>(trainingLabContentSets[method],id).data;
       const old=getTrainingContentSet<EconomicsTemplate>(trainingLabContentSets[method],oldId).data;
       expect(data.runtime?.version).toBe("mapped-1");
-      expect(data.questions).toEqual(old.questions); expect(data.practice).toEqual(old.practice); expect(data.test).toEqual(old.test);
+      expect(data.questions).toEqual(old.questions);
+      if (method === "interleaving") expect(new Set(data.practice?.map(q=>q.id))).toEqual(new Set(old.practice?.map(q=>q.id)));
+      else expect(data.practice).toEqual(old.practice);
+      expect(data.test).toEqual(old.test);
       const qs=data.test?.length ? data.test : data.questions ?? [];
       expect(scoreMultipleChoice(qs,Object.fromEntries(qs.map(q=>[q.id,q.correct]))).score).toBe(1);
     }
   });
   it("rejects new unsupported IDs while preserving old saved activities and draft decisions", () => {
-    for(const method of ["interleaving","derive-basics","doodle-effect","eighty-twenty-rule","two-x-video-speed"] as const) {
+    for(const method of ["derive-basics","eighty-twenty-rule"] as const) {
       const old=draftFor(method,"1.5",false);
       expect(readEconomicsActivityVersion(old.internalState)).toBeUndefined();
       expect(validateTrainingDraft(old)).toMatchObject({valid:true});
@@ -94,6 +97,98 @@ describe("new Economics compatibility activation", () => {
       expect(()=>draftFor(method)).toThrow(/not supported/);
       expect(()=>getTrainingContentSet<EconomicsTemplate>(trainingLabContentSets[method],old.labContentSetIds[0]+"-mapped1")).toThrow(/Unsupported/);
     }
+  });
+});
+
+describe("mapped Economics Doodling activation", () => {
+  it.each([["lab", "doodle"], ["lab", "reconstruct"], ["match", "doodle"], ["match", "reconstruct"]] as const)("resumes old %s/%s drafts without displaying or changing saved drawing descriptions", async (phase, oldStage) => {
+    const canvas = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+    try {
+      let current = draftFor("doodle-effect");
+      if (phase === "match") {
+        current.section = 5; current.phase = "match"; current.verificationMethodOrder = ["doodle-effect"];
+        current.matchContentSetIds = economicsAssignments(["doodle-effect"], "match", "1.5", "mapped-1");
+        current.completed.methodLab = { experiments: [{ method: "doodle-effect", category: "understanding", score: 1, correct: 4, total: 4, confidence: 3, ease: 3, willingnessToUse: 3, timeSpentMs: 1000 }] };
+      }
+      const id = (phase === "lab" ? current.labContentSetIds : current.matchContentSetIds)[0];
+      const scope = `${phase}:doodle-effect:${id}`, question = resolveEconomicsAssessment(id).scored[0];
+      const timer = { accumulatedMs: 1234, running: true };
+      const slots: unknown[] = [oldStage, "OLD PRIVATE DESCRIPTION", "OLD PRIVATE RECONSTRUCTION", { [question.id]: question.correct }, 0, null];
+      if (phase === "lab") slots.push(null, null);
+      slots.push(timer);
+      current.internalState[scope] = { slots, named: {} };
+      function Resumed() {
+        const [draft, setDraft] = useState(current); current = draft;
+        return <TrainingProgressStateProvider state={draft.internalState} onChange={state => setDraft(d => ({ ...d, internalState: state }))}>
+          {phase === "lab" ? getMethodDefinition("doodle-effect").renderLab(id, vi.fn()) : getMethodDefinition("doodle-effect").renderMatch(id, 1, vi.fn())}
+        </TrainingProgressStateProvider>;
+      }
+      render(<Resumed />);
+      await waitFor(() => expect(current.internalState[scope].slots[0]).toBe("study"));
+      expect(screen.queryByText(/OLD PRIVATE/)).toBeNull(); expect(screen.queryByRole("textbox")).toBeNull();
+      expect(current.internalState[scope].slots.slice(1, 5)).toEqual(slots.slice(1, 5));
+      expect(current.internalState[scope].slots.at(-1)).toEqual(timer);
+      expect(validateTrainingDraft(current)).toMatchObject({ valid: true });
+      click("Continue to test");
+      expect(screen.getByRole("heading", { name: question.question })).toBeTruthy();
+      expect(current.internalState[scope].slots[3]).toEqual({ [question.id]: question.correct });
+    } finally { canvas.mockRestore(); }
+  });
+  it.each(economicsPacks)("completes the actual $topicId Lab with unchanged scored questions and resumable evidence", async pack => {
+    const canvas = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+    try {
+      let current = draftFor("doodle-effect", pack.topicId);
+      const done = vi.fn<(result: MethodExperimentResult) => void>();
+      render(<Harness initial={current} capture={d => { current = d; }} done={done} />);
+      click("Start experiment");
+      expect(screen.getByLabelText("Freehand doodling canvas")).toBeTruthy();
+      const data = getTrainingContentSet<EconomicsTemplate>(trainingLabContentSets["doodle-effect"], current.labContentSetIds[0]).data;
+      expect(data.runtime?.howTo).toEqual(getMethodDefinition("doodle-effect").introduction.howTo);
+      await waitFor(() => expect(collectMaterialPresentations(current)?.records.length).toBeGreaterThan(0));
+      expect(screen.queryByRole("textbox")).toBeNull();
+      expect(screen.queryByText(/describe.*doodle|reconstruct.*doodle/i)).toBeNull();
+      click("Continue to test");
+      expect(document.querySelector("canvas")).toBeNull();
+      expect(screen.queryByRole("button", { name: "Check source" })).toBeNull();
+      for (const [index, q] of data.questions!.entries()) {
+        expect(document.querySelectorAll(".option-grid button")).toHaveLength(4);
+        click(index === 1 ? q.options.find(option => option !== q.correct)! : q.correct);
+        click(index === data.questions!.length - 1 ? "Finish test" : "Next question");
+      }
+      for (const prompt of ["How confident were you?", "How easy was the method?", `Would you use ${getMethodDefinition("doodle-effect").name} while studying?`]) {
+        const scale = screen.getByRole("heading", { name: prompt }).nextElementSibling as HTMLElement;
+        fireEvent.click(within(scale).getByRole("button", { name: "3" }));
+      }
+      click("Complete experiment");
+      expect(done).toHaveBeenCalledTimes(1);
+      expect(done.mock.calls[0][0]).toMatchObject({ method: "doodle-effect", correct: 3, total: 4, score: .75 });
+      current.completed.methodLab = { experiments: [done.mock.calls[0][0]] };
+      // Mirror Assessment's normal onComplete transition before validating the
+      // parent draft; Lab evidence is not valid while still in section four.
+      current.section = 5; current.phase = "match";
+      current.verificationMethodOrder = ["doodle-effect"];
+      const validation = validateTrainingDraft(current);
+      if (!validation.valid) throw new Error(validation.reason);
+      const refreshed = JSON.parse(JSON.stringify(current)) as TrainingDraft;
+      expect(validateTrainingDraft(refreshed)).toMatchObject({ valid: true });
+      expect(collectEconomicsResponses(refreshed)).toEqual(collectEconomicsResponses(current));
+      expect(collectEconomicsResponses(current)?.activities[0].responses).toHaveLength(4);
+    } finally { canvas.mockRestore(); }
+  });
+  it.each(["1.5", "2.2"])("completes %s top-two Doodling Match without changing verification scoring", topic => {
+    const canvas = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+    const id = economicsAssignments(["doodle-effect"], "match", topic, "mapped-1")[0];
+    const done = vi.fn();
+    render(getMethodDefinition("doodle-effect").renderMatch(id, .75, done));
+    expect(screen.queryByRole("textbox")).toBeNull();
+    click("Continue to test");
+    const form = resolveEconomicsAssessment(id);
+    for (const [index, q] of form.scored.entries()) {
+      click(q.correct); click(index === form.scored.length - 1 ? "Finish test" : "Next question");
+    }
+    click("3"); click("Complete verification");
+    expect(done).toHaveBeenCalledWith(expect.objectContaining({ method: "doodle-effect", firstScore: .75, verificationScore: 1 }));
+    canvas.mockRestore();
   });
 });
 
@@ -185,8 +280,9 @@ describe("presentation persistence and evidence separation", () => {
       expect(collectEconomicsResponses(other)!.activities.every(a => a.responses.length === 0)).toBe(true);
     }
   });
-  it.each([["auto",3],["auto",4],["manual",1],["manual",3]] as const)("retains %s/%i completion, scores and frozen mapped forms without inventing presentations", (mode,count) => {
-    const allMethods:TrainingMethodId[]=["active-recall","feynman","cornell","memory-palace"];
+  it.each([["auto",3,false],["auto",4,false],["manual",1,false],["manual",3,false],
+    ["auto",3,true],["auto",4,true],["manual",1,true],["manual",3,true]] as const)("retains %s/%i completion (Doodling: %s), scores and frozen mapped forms without inventing presentations", (mode,count,includeDoodle) => {
+    const allMethods:TrainingMethodId[]=[includeDoodle ? "doodle-effect" : "active-recall","feynman","cornell","memory-palace"];
     const methods=allMethods.slice(0,count);
     const d=createTrainingDraft({owner:{kind:"user",uid:"synthetic-student-a"},mode,selectedMethods:methods,sessionId:`mapped-${mode}-${count}`,economicsTopicId:"2.2",economicsActivityVersion:"mapped-1"});
     d.createdAt="2026-11-04T08:00:00.000Z";

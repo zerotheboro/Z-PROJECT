@@ -7,7 +7,8 @@ import {
   cleanup,
   fireEvent,
   render,
-  screen
+  screen,
+  within
 } from "@testing-library/react";
 
 import {
@@ -465,7 +466,7 @@ describe("training entry choices", () => {
 
     expect(accessMocks.state.plan).toBe("free");
     expect(screen.getByText("FREE PLAN")).toBeTruthy();
-    expect(screen.getByRole("status").textContent)
+    expect(within(screen.getByRole("region", { name: "Today's Training access" })).getByRole("status").textContent)
       .toContain("Confirming Premium");
     expect(accessMocks.state.refreshAccess)
       .toHaveBeenCalledTimes(1);
@@ -507,7 +508,7 @@ describe("training entry choices", () => {
       }
       expect(accessMocks.state.refreshAccess)
         .toHaveBeenCalledTimes(5);
-      expect(screen.getByRole("status").textContent)
+      expect(within(screen.getByRole("region", { name: "Today's Training access" })).getByRole("status").textContent)
         .toContain("still being confirmed");
 
       await act(async () => {

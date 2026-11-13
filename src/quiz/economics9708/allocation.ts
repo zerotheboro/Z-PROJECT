@@ -8,7 +8,7 @@ import type { EconomicsActivityVersion } from "./runtime";
 export function economicsAssignments(methods: readonly TrainingMethodId[], phase: "lab" | "match", topicId: string, activityVersion?: EconomicsActivityVersion): string[] {
   let offset = 0;
   const pack = requireEconomicsPack(topicId);
-  if (activityVersion) requireEconomicsMethods(methods);
+  if (activityVersion) requireEconomicsMethods(methods, topicId);
   return methods.map(method => {
     const count = economicsFormats[method][phase].reduce((sum, n) => sum + n, 0);
     const id = economicsContentId(topicId, `${phase}-${method}`) + (activityVersion ? "-mapped1" : "") + (offset ? `-q${offset}` : "");

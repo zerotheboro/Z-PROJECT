@@ -546,9 +546,11 @@
   gap: var(--space-4);
   margin: var(--space-3) 0;
 
-  max-height: 420px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
+  // Use the page scroll: the old nested 420px viewport cut through cards,
+  // availability text and offset shadows, especially on small screens.
+  max-height: none;
+  overflow: visible;
+  padding: 0 0.5rem 0.5rem 0;
 }
 
 
@@ -591,7 +593,7 @@
   }
 
 
-  .method-picker-grid .method-picker-card {
+  .method-picker .method-picker-grid .method-picker-card {
 
     display: flex;
 
@@ -602,6 +604,14 @@
     gap: 0.75rem;
 
     min-height: 190px;
+    height: auto;
+    max-height: none;
+    width: 100%;
+    min-width: 0;
+    flex: 1;
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
 
     margin: 0;
 
@@ -617,22 +627,27 @@
 
     color: var(--font-color);
 
-    box-shadow: none;
+    box-shadow: var(--shadow);
   }
 
 
-  .method-picker-grid .method-picker-card:hover {
+  .method-picker .method-picker-grid .method-picker-card:hover {
 
     border-color: var(--energetic--yellow);
 
     background:
       rgba(32, 178, 170, 0.13);
 
-    box-shadow: none;
+    box-shadow: var(--shadow);
+  }
+
+  .method-picker .method-picker-grid .method-picker-card:disabled {
+    opacity: 1;
+    cursor: not-allowed;
   }
 
 
-  .method-picker-grid .method-picker-card.selected {
+  .method-picker .method-picker-grid .method-picker-card.selected {
 
     border-color:
       var(--energetic--yellow);
@@ -656,7 +671,7 @@
   }
 
 
-  .method-picker-card > span:last-child {
+  .method-picker-card .method-picker-description {
 
     color: rgba(245, 245, 245, 0.72);
 
@@ -677,8 +692,7 @@
 
 
   .method-picker-actions {
-  position: sticky;
-  bottom: 0;
+  position: static;
   background: inherit;
   padding-top: var(--space-3);
   z-index: 2;
@@ -2562,3 +2576,84 @@ a.nav-logo h3{
 }
 .assessment-v2 .economics-diagram { margin-block: var(--space-2); }
 .assessment-v2 .economics-diagram figcaption { font-size: .9em; }
+
+/* Existing functional labels, using the original picker palette. These do not
+   override the original card surfaces, proportions, spacing or selected state. */
+.training-page {
+  .method-picker-name { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+  .method-availability-badge { background: #F75A5A; color: var(--complement-of-yellow); border: 1px solid var(--darker-black); border-radius: var(--radius); padding: .15rem .5rem; font: 700 .8rem/1.5 var(--font-body); }
+  .method-availability-message { font-size: .85rem; color: rgba(245, 245, 245, 0.72); }
+  .method-profile-suggestion { padding: .2rem .5rem; background: rgba(32, 178, 170, 0.13); border-inline-start: 3px solid var(--lightblue); font-size: .85rem; color: var(--font-color); }
+}
+.economics-topic-images { display: grid; gap: var(--space-2); margin-block: var(--space-2); }
+.economics-topic-image {
+  margin: 0; max-inline-size: min(100%, 46rem); color: inherit;
+  img { inline-size: 100%; block-size: auto; object-fit: contain; border-radius: var(--radius); background: var(--font-color); }
+  figcaption { font: 400 .9rem/1.6 var(--font-body); margin-top: .5rem; }
+}
+
+/* Economics study media only. Assessments, timers and answer grids are unchanged. */
+.economics-study-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-areas: "passage illustration";
+  gap: var(--space-2);
+  align-items: start;
+  .economics-study-passage { grid-area: passage; min-width: 0; }
+  .economics-study-illustration { grid-area: illustration; min-width: 0; }
+  .economics-topic-images { margin: 0; }
+  .economics-topic-image { max-inline-size: 100%; }
+  &:not(:has(> .economics-study-illustration img)) { display: block; }
+  .economics-study-illustration:not(:has(img)) { display: none; }
+}
+.assessment.assessment-v2 .study-content:has(> .economics-topic-images) {
+  display: flow-root;
+  > .economics-topic-images { float: right; width: 42%; margin: 0 0 var(--space-2) var(--space-2); }
+}
+.doodle-study-layout {
+  display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--space-2); align-items: start;
+  > .study-content { min-width: 0; margin-block: 0; }
+  .economics-study-layout {
+    display: flow-root;
+    .economics-study-illustration { float: right; width: min(32%, 13rem); margin: 0 0 1rem 1.25rem; }
+    .economics-study-passage { display: contents; }
+    .economics-topic-image img { max-height: 10rem; object-fit: contain; }
+    .economics-topic-image figcaption { font-size: .75rem; line-height: 1.4; }
+    .economics-topic-images { gap: .65rem; }
+  }
+  p { max-width: none; font-size: clamp(1rem, 1.2vw, 1.12rem); line-height: 1.75; margin: 0 0 1rem; overflow-wrap: anywhere; }
+  .economics-study-passage > p + p { clear: both; }
+  > .doodle-canvas-panel { position: sticky; top: 1rem; }
+}
+.doodle-canvas-panel {
+  min-width: 0; padding: var(--space-2); border: 2px solid var(--lightblue); border-radius: var(--radius);
+  background: var(--complement-of-yellow); color: var(--font-color); box-shadow: var(--shadow);
+  h3 { margin-top: 0; color: var(--energetic--yellow); }
+  p { font-size: .9rem; }
+  canvas { display: block; width: 100%; height: 18rem; border: 2px solid var(--energetic--yellow); border-radius: var(--radius);
+    background: var(--darker-black); touch-action: none; cursor: crosshair; }
+  .doodle-canvas-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; }
+}
+.economics-video-player {
+  min-width: 0;
+  iframe { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 2px solid var(--lightblue); border-radius: var(--radius); }
+  a { display: inline-block; margin: .5rem; color: var(--energetic--yellow); text-decoration: underline; }
+}
+.two-x-economics-study {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--space-2); align-items: start;
+  > div { min-width: 0; }
+  .two-x-economics-passage p { max-width: none; margin: 0 0 1rem; line-height: 1.7; }
+}
+.two-x-video-method .economics-study-layout:has(.two-x-economics-study) {
+  grid-template-columns: minmax(0, 1fr); grid-template-areas: "illustration" "passage";
+  .economics-study-illustration { max-width: 12rem; }
+}
+@media (max-width: 720px) { .two-x-economics-study { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 720px) {
+  .economics-study-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "illustration" "passage"; }
+  .doodle-study-layout { grid-template-columns: minmax(0, 1fr); }
+  .doodle-study-layout .economics-study-layout .economics-study-illustration { float: none; width: min(100%, 19rem); margin: 0 auto 1rem; }
+  .doodle-study-layout .economics-study-layout .economics-topic-image img { max-height: 13rem; }
+  .doodle-study-layout > .doodle-canvas-panel { position: static; }
+  .assessment.assessment-v2 .study-content > .economics-topic-images { float: none; width: 100%; margin: 0 0 var(--space-2); }
+}

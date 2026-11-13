@@ -14,6 +14,7 @@ import type {
 import type {
   TrainingMethodId
 } from "../quiz/type";
+import { isTrainingMethodId } from "../quiz/type";
 
 export const GUEST_TRAINING_ACCESS_STORAGE_KEY =
   "edulience.training-access.v1.guest";
@@ -309,6 +310,8 @@ export async function reserveTrainingAccess(
   const { dayKey, timezone } = calendar(context);
 
   if (
+    !Array.isArray(input.methodIds) ||
+    !input.methodIds.every(isTrainingMethodId) ||
     (input.mode === "auto" &&
       input.methodIds.length !== 0) ||
     (input.mode === "manual" &&

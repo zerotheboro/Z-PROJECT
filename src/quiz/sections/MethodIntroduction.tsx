@@ -266,7 +266,7 @@ function MethodIntroduction({
             {currentData.name}
           </h1>
 
-          <p>
+          <p className="method-introduction-description">
             {
               currentData
                 .description

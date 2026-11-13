@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useEffect,
   useRef,
   useState
@@ -64,6 +66,8 @@ import {
   startTrainingSession
 } from "../services/startTrainingSession";
 
+const DevelopmentStudyGuidance = import.meta.env.DEV ? lazy(() => import("../components/TrainingStudyGuidance")) : null;
+
 function Training() {
 
   const navigate =
@@ -88,7 +92,16 @@ function Training() {
     useState<string | null>(null);
   const [starting, setStarting] =
     useState(false);
-  const [economicsTopicId, setEconomicsTopicId] = useState("");
+  // Topic choices belong to this exact signed-in instance, never the next
+  // student's route. Guidance does not write a draft or change a saved topic.
+  const guidanceActive = import.meta.env.DEV && import.meta.env.VITE_STUDY_TRAINING_GUIDANCE === "emulator-only";
+  const topicOwner = guidanceActive && owner?.kind === "user" ? trainingAccess.user : null;
+  const topicScope = guidanceActive ? owner?.kind === "user" ? owner.uid : "guest" : "";
+  const [topicChoice, setTopicChoice] = useState<{ owner: typeof topicOwner; scope: string; topic: string } | null>(null);
+  const economicsTopicId = topicChoice?.owner === topicOwner && topicChoice.scope === topicScope ? topicChoice.topic : "";
+  const setEconomicsTopicId = (topic: string) => setTopicChoice({ owner: topicOwner, scope: topicScope, topic });
+  // Reset even when returning to the same UID after a different account.
+  useEffect(() => { setTopicChoice(null); }, [topicOwner, topicScope]);
   useEffect(() => {
     if (import.meta.env.DEV && owner?.kind === "user" && auth.currentUser?.uid === owner.uid)
       noteStudyTrainingVisit(auth.currentUser, new Date().toISOString());
@@ -469,6 +482,11 @@ function Training() {
         </p>
       )}
 
+      {DevelopmentStudyGuidance && guidanceActive && !loading && !loadError && owner?.kind === "user" && accessIdentityMatches &&
+        <Suspense fallback={<p role="status">Loading optional study guidance…</p>}>
+          <DevelopmentStudyGuidance key={owner.uid} uid={owner.uid} hasDraft={Boolean(validation)} disabled={starting || discarding} selectedTopic={economicsTopicId}
+            onUse={setEconomicsTopicId} />
+        </Suspense>}
       <EconomicsTopicPicker value={economicsTopicId} onChange={setEconomicsTopicId} disabled={starting || discarding} />
       <section
         className="training-entry-options"

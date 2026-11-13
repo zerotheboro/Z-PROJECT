@@ -25,6 +25,7 @@ import {
 } from "../engines/shared";
 import TenMinuteWallStareExperiment
   from "../experiments/TenMinuteWallStareExperiment";
+import { TimedActivityIdentity } from "../timedActivities/TimedActivityIdentity";
 import {
   wallStareExperiment
 } from "../methodLabData";
@@ -223,12 +224,14 @@ describe("scoped resumable component state", () => {
     expect(onRead).toHaveBeenLastCalledWith(7_000);
   });
 
-  it("does not finish the wall-stare timer while the app is closed", () => {
+  it("resumes the original wall-stare deadline after closure instead of pausing its clock", () => {
+    localStorage.clear();
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
     const scope = "lab:ten-minute-wall-stare:timer-test";
     let snapshot: TrainingInternalState = {};
     const renderWallStare = () => render(
+      <TimedActivityIdentity value={{ owner: "timer-owner", project: "demo-test", sessionId: "timer-test" }}>
       <TrainingProgressStateProvider
         state={snapshot}
         onChange={state => {
@@ -245,6 +248,7 @@ describe("scoped resumable component state", () => {
           />
         </TrainingStateScope>
       </TrainingProgressStateProvider>
+      </TimedActivityIdentity>
     );
 
     const first = renderWallStare();
@@ -268,11 +272,12 @@ describe("scoped resumable component state", () => {
     expect(
       screen.getByLabelText("wall stare time remaining")
         .textContent
-    ).toBe("9:57");
+    ).toBe("0:00");
     expect(
       (screen.getByRole("button", {
         name: "Start studying"
       }) as HTMLButtonElement).disabled
-    ).toBe(true);
+    ).toBe(false);
+    expect(screen.getByRole("alert").textContent).toContain("First interruption");
   });
 });

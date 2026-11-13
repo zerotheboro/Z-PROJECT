@@ -18,6 +18,7 @@ import {
 import type {
   User
 } from "firebase/auth";
+import { createTrainingDraft, validateTrainingDraft } from "../quiz/trainingProgress";
 
 const DAY_ONE = new Date("2026-10-06T03:00:00.000Z");
 const DAY_TWO = new Date("2026-10-07T03:00:00.000Z");
@@ -46,6 +47,24 @@ describe("Training access client", () => {
   beforeEach(() => {
     storage = memoryStorage();
   });
+  it("accepts the canonical 100-second method and preserves a guest's reservation on identical retry", async () => {
+    const input = { sessionId: "delay-registration", mode: "manual" as const, methodIds: ["hundred-second-delay" as const] };
+    const context = { storage, now: DAY_ONE, timeZone: "UTC" };
+    await reserveTrainingAccess(null, input, context); await reserveTrainingAccess(null, input, context);
+    expect(await loadTrainingAccess(null, context)).toMatchObject({ usage: { manualMethodsStarted: 1 } });
+  });
+  it.each(["post-sleep", "100-second-delay"])("rejects stale %s before requesting a token, writing quota, or changing an existing draft", async method => {
+    const fetcher = vi.fn(), getIdToken = vi.fn();
+    const existing = createTrainingDraft({ owner: { kind: "guest" }, mode: "manual", selectedMethods: ["active-recall"], sessionId: "valid-existing-progress" });
+    expect(validateTrainingDraft(existing)).toMatchObject({ valid: true });
+    storage.setItem("edulience.training-progress.v1.guest", JSON.stringify(existing));
+    const before = storage.getItem("edulience.training-progress.v1.guest");
+    const input = { sessionId: "stale-registration", mode: "manual", methodIds: [method] };
+    await expect(Reflect.apply(reserveTrainingAccess, undefined, [null, input, { storage, fetcher }])).rejects.toMatchObject({ code: "invalid_training_reservation" });
+    await expect(Reflect.apply(reserveTrainingAccess, undefined, [{ getIdToken }, input, { storage, fetcher }])).rejects.toMatchObject({ code: "invalid_training_reservation" });
+    expect(fetcher).not.toHaveBeenCalled(); expect(getIdToken).not.toHaveBeenCalled();
+    expect(storage.getItem(GUEST_TRAINING_ACCESS_STORAGE_KEY)).toBeNull(); expect(storage.getItem("edulience.training-progress.v1.guest")).toBe(before);
+  });
 
   it("starts guests with the free daily allowance", async () => {
     await expect(loadTrainingAccess(null, {
@@ -63,6 +82,22 @@ describe("Training access client", () => {
         manualMethods: 3
       }
     });
+  });
+
+  it("uses the signed-in server's 2/4 limits without substituting the guest's 1/3 policy", async () => {
+    const getIdToken = vi.fn().mockResolvedValue("synthetic-quota-token");
+    const user = { getIdToken } as unknown as User;
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      plan: "free", planSource: "default", unlimited: false,
+      limits: { testMePerDay: 2, manualMethodsPerDay: 4 },
+      usage: { testMeStarted: 0, manualMethodsStarted: 0 },
+      remaining: { testMe: 2, manualMethods: 4 },
+      dayKey: "2026-10-06", timezone: "UTC"
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    expect(await loadTrainingAccess(user, { storage, fetcher, timeZone: "UTC", apiBase: "http://127.0.0.1:18084" }))
+      .toMatchObject({ limits: { testMePerDay: 2, manualMethodsPerDay: 4 }, remaining: { testMe: 2, manualMethods: 4 } });
+    expect(getIdToken).toHaveBeenCalledOnce();
+    expect(storage.getItem(GUEST_TRAINING_ACCESS_STORAGE_KEY)).toBeNull();
   });
 
   it("charges one guest Test Me once per session ID", async () => {

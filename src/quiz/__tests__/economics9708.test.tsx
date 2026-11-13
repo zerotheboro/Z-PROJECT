@@ -138,7 +138,7 @@ describe("same engines and counts, topic-specific material", () => {
       for(const id of ids) expect(id).toContain(p.topicId.replace(".","_"));
     }
   });
-  it.each(economicsPacks)("adapts all 23 methods without unrelated material or changed question counts: $topicId", p => {
+  it.each(economicsPacks)("adapts all registered methods without unrelated material or changed question counts: $topicId", p => {
     for (const m of TRAINING_METHOD_IDS) for (const phase of ["lab", "match"] as const) {
       const general = (phase === "lab" ? methodLabContentSets[m] : methodMatchContentSets[m])[0].data;
       const sets = phase === "lab" ? trainingLabContentSets[m] : trainingMatchContentSets[m];
@@ -157,7 +157,7 @@ describe("same engines and counts, topic-specific material", () => {
         "memory-palace":["pairings"], "active-blurting":["facts"], "one-sentence":["explanation"], "note-taking-4x4":["content"],
         "leitner-system":["cards"], "story-telling":["orderedItems"], "capture-create":["content"], abbreviation:["items"], "header-first":["sections"],
         "prime-question":["material"], "doodle-effect":["material"], "eighty-twenty-rule":["details"], "divide-steps":["overview"], "derive-basics":["source"],
-        "kidlin-rule":["context"], "premack-principle":["material"], "ten-minute-wall-stare":["material"], "strooper-effect":["material"], "two-x-video-speed":["reading"] };
+        "kidlin-rule":["context"], "premack-principle":["material"], "ten-minute-wall-stare":["material"], "strooper-effect":["material"], "two-x-video-speed":["reading"], "hundred-second-delay":["material"] };
       const record = data as Record<string, unknown>;
       const studied = JSON.stringify(fields[m].map(key => record[key]));
       for (const note of p.notes) expect(studied, `${m}:${phase}`).toContain(JSON.stringify(note).slice(1, -1));

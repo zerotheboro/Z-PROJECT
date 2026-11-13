@@ -5,14 +5,15 @@ import { economicsMethodGap, mapMethodLearningContent, requireSupportedLearningC
 import type { MethodContentForm } from "./methodContentMapping";
 import type { TopicPack } from "./types";
 import { mnemonicCues } from "./mnemonicCues";
+import { buildInterleaving } from "./interleaving";
 
 export const ECONOMICS_ACTIVITY_VERSION = "mapped-1" as const;
 export type EconomicsActivityVersion = typeof ECONOMICS_ACTIVITY_VERSION;
-export function supportedEconomicsMethods(): TrainingMethodId[] {
-  return TRAINING_METHOD_IDS.filter(id => !economicsMethodGap(id));
+export function supportedEconomicsMethods(topicId?: string): TrainingMethodId[] {
+  return TRAINING_METHOD_IDS.filter(id => !economicsMethodGap(id, topicId));
 }
-export function requireEconomicsMethods(methods: readonly TrainingMethodId[]): void {
-  for (const method of methods) if (economicsMethodGap(method)) throw new Error(`This Economics activity is not supported: ${method}. Choose another method; no allowance was reserved.`);
+export function requireEconomicsMethods(methods: readonly TrainingMethodId[], topicId?: string): void {
+  for (const method of methods) if (economicsMethodGap(method, topicId)) throw new Error(`This Economics activity is not supported: ${method}. ${economicsMethodGap(method, topicId)} Choose another method; no allowance was reserved.`);
 }
 export const economicsMethodInventory = METHOD_POOL.map(method => {
   const id = TRAINING_METHOD_IDS.find(id => reviewedMethodNames[id] === method.name) ?? null;
@@ -46,7 +47,10 @@ export function compileMappedEconomics<Data extends { title: string }>(base: Dat
   if (["prime-question", "kidlin-rule", "capture-create"].includes(method)) materials.push({ id: `ec9708-${pack.topicId}:scenario`, version: pack.version, objectiveIds: [], text: pack.scenario });
   const runtime: MappedRuntime = { version: ECONOMICS_ACTIVITY_VERSION, mappingVersion: plan.topic.mappingVersion,
     sourceVersion: pack.version, contentSetId, methodId: method, phase, materials,
-    howTo: plan.procedure.reviewedHow ?? plan.procedure.trainingHow };
+    howTo: method === "doodle-effect" ? plan.procedure.trainingHow : plan.procedure.reviewedHow ?? plan.procedure.trainingHow };
+  const pool = phase === "lab" ? pack.lab : pack.verification;
+  const mixed = method === "interleaving" ? buildInterleaving(pack,
+    form.practice.map(q => pool.find(item => item.id === q.id)!), form.test.map(q => pool.find(item => item.id === q.id)!)) : {};
   return { ...base, facts: notes, explanation: lesson, content: lesson, material: lesson,
     locations, pairings: objectives.map((o, i) => ({ location: locations[i], item: cues?.[o.noteIndex] ?? o.label, meaning: o.material })),
     items: method === "abbreviation" ? [...pack.terms] : notes, orderedItems: notes,
@@ -54,5 +58,5 @@ export function compileMappedEconomics<Data extends { title: string }>(base: Dat
     sections: objectives.map(o => ({ heading: o.label, content: o.material })),
     relationships: notes, details: notes, coreConcepts: [], overview: `${pack.scenario}\n\n${lesson}`,
     referenceSteps: pack.steps, source: lesson, basicPrinciples: notes, context: `${pack.scenario}\n\n${lesson}`,
-    runtime };
+    ...mixed, runtime };
 }

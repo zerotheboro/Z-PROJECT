@@ -10,6 +10,7 @@ import { getStudyComparison, resetStudyFollowThroughSession } from "../services/
 
 const mocks = vi.hoisted(() => ({ auth: { currentUser: null as User | null }, latest: null as CumulativeProfileSnapshot | null, start: vi.fn() }));
 vi.mock("../firebase", () => ({ auth: mocks.auth, db: {} }));
+vi.mock("../services/auth", () => ({ subscribeToAuth: (listener: (user: User | null) => void) => { listener(mocks.auth.currentUser); return () => {}; } }));
 vi.mock("../HEADER/header", () => ({ default: () => <nav aria-label="Main navigation" /> }));
 vi.mock("../services/localCumulativeProfileConfig", () => ({ localCumulativeProfileConfig: () => ({ acceptedPreview: true }) }));
 vi.mock("../services/localTrainingCompletionConfig", () => ({ localCompletionConfig: () => null }));

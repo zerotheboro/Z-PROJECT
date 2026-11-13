@@ -26,5 +26,6 @@ export const economicsFormats: Record<TrainingMethodId, { lab: readonly [number,
   "premack-principle": {lab:[3,0,0],match:[3,0,0]},
   "ten-minute-wall-stare": {lab:[3,0,0],match:[3,0,0]},
   "strooper-effect": {lab:[3,0,0],match:[3,0,0]},
-  "two-x-video-speed": {lab:[3,0,0],match:[3,0,0]}
+  "two-x-video-speed": {lab:[3,0,0],match:[3,0,0]},
+  "hundred-second-delay": {lab:[3,0,0],match:[3,0,0]}
 };

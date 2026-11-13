@@ -160,6 +160,7 @@ export type TwoXVideoEngineData = {
 };
 
 export type LabEngineProps<Data> = {
+  contentSetId?: string;
   method: TrainingMethodId;
   category: MethodCategory;
   name: string;
@@ -170,6 +171,7 @@ export type LabEngineProps<Data> = {
 };
 
 export type MatchEngineProps<Data> = {
+  contentSetId?: string;
   method: TrainingMethodId;
   name: string;
   shortName?: string;

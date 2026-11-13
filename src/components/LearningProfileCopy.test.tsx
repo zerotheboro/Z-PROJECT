@@ -11,6 +11,7 @@ import { completedSession } from "../quiz/__tests__/learningEvidenceFixtures";
 import { profileView } from "../quiz/__tests__/cumulativeProfileViewFixtures";
 
 const explanation = "Your practice sessions are saved. As you complete more comparable assessments, your progress trends will appear here.";
+const latestExplanation = "Your practice sessions are saved. Their available results remain in your history.";
 const historyExplanation = "Your available Test Me and individual practice history appears here. Some older records may contain less detail.";
 afterEach(cleanup);
 
@@ -28,7 +29,9 @@ it("uses simple student copy on the saved profile without changing counts, sourc
     expect(overview.getByText(label).nextElementSibling?.textContent).toBe(count);
   const progress = within(screen.getByRole("region", { name: "Progress Over Time" }));
   expect(progress.getByRole("heading", { name: "Not enough comparable results yet." })).toBeTruthy();
-  expect(progress.getByText(explanation)).toBeTruthy();
+  expect(progress.getByText(latestExplanation)).toBeTruthy();
+  expect(progress.getByText(/This latest-snapshot view does not build progress charts/)).toBeTruthy();
+  expect(progress.getByText(/do not by themselves prove learning gains/)).toBeTruthy();
   expect(progress.getByText("10 observations recorded")).toBeTruthy();
   expect(progress.queryByText(/sessions recorded/)).toBeNull();
   expect(progress.queryByRole("img")).toBeNull();
@@ -49,7 +52,7 @@ it.each([
 ])("does not present an unconfirmed observation total for incomplete or wrong-owner history: %j", overrides => {
   latest(overrides);
   const progress = within(screen.getByRole("region", { name: "Progress Over Time" }));
-  expect(progress.getByText(explanation)).toBeTruthy();
+  expect(progress.getByText(latestExplanation)).toBeTruthy();
   expect(progress.queryByText(/\d+ observations recorded/)).toBeNull();
   expect(progress.queryByRole("img")).toBeNull();
 });
@@ -61,6 +64,8 @@ it("simplifies the cumulative empty state while retaining authoritative counts a
   const progress = () => within(screen.getByRole("region", { name: "Progress Over Time" }));
   expect(progress().getByText("Not enough comparable results yet.")).toBeTruthy();
   expect(progress().getByText(explanation)).toBeTruthy();
+  expect(progress().getByText(/charts show recorded accuracy on comparable tasks, not a mastery score/)).toBeTruthy();
+  expect(progress().getByText(/does not by itself prove a learning gain/)).toBeTruthy();
   expect(progress().getByText(`${view.summary!.observationCount} observations recorded`)).toBeTruthy();
   expect(screen.getByText(historyExplanation)).toBeTruthy();
   expect(progress().queryByText(/scoring version|exposure conditions|bounded projection/)).toBeNull();

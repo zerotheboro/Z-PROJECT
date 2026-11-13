@@ -46,9 +46,31 @@ describe("new Training session startup", () => {
     expect(mocks.save).toHaveBeenCalledExactlyOnceWith(d,{allowCreate:true});
   });
   it("rejects unsupported new Economics methods before charging a reservation", async () => {
-    await expect(startTrainingSession({ user:null, owner:{kind:"guest"}, mode:"manual", methodIds:["doodle-effect"], economicsTopicId:"1.5" })).rejects.toThrow(/not supported/);
+    await expect(startTrainingSession({ user:null, owner:{kind:"guest"}, mode:"manual", methodIds:["derive-basics"], economicsTopicId:"1.5" })).rejects.toThrow(/not supported/);
     expect(mocks.reserve).not.toHaveBeenCalled(); expect(mocks.save).not.toHaveBeenCalled();
   });
+  it.each(["1.3", "1.4", "1.5", "1.6", "2.1", "2.2", "2.3", "2.4", "2.5"])("starts mapped %s Doodling with exactly the original one-method reservation", async topic => {
+    const draft = await startTrainingSession({ user: null, owner: { kind: "guest" }, mode: "manual", methodIds: ["doodle-effect"], economicsTopicId: topic, sessionId: "doodle-one-reservation" });
+    expect(draft.selectedMethods).toEqual(["doodle-effect"]);
+    expect(draft.internalState.curriculum.named.economics9708).toEqual({ topicId: topic, version: "2026-v2-pilot-1", activityVersion: "mapped-1" });
+    expect(mocks.reserve).toHaveBeenCalledExactlyOnceWith(null, { sessionId: "doodle-one-reservation", mode: "manual", methodIds: ["doodle-effect"] });
+    expect(mocks.save).toHaveBeenCalledExactlyOnceWith(draft, { allowCreate: true });
+  });
+  it("starts owner-approved video with the normal one-method reservation and draft", async () => {
+    const draft = await startTrainingSession({ user: null, owner: { kind: "guest" }, mode: "manual", methodIds: ["two-x-video-speed"], economicsTopicId: "1.5", sessionId: "approved-video-session" });
+    expect(draft.selectedMethods).toEqual(["two-x-video-speed"]);
+    expect(mocks.reserve).toHaveBeenCalledExactlyOnceWith(null, { sessionId: "approved-video-session", mode: "manual", methodIds: ["two-x-video-speed"] });
+    expect(mocks.save).toHaveBeenCalledExactlyOnceWith(draft, { allowCreate: true });
+  });
+  it("reserves the ordinary method allowance once for 100-second delay, including a mixed selection", async () => {
+    const request = { user: null, owner: { kind: "guest" as const }, mode: "manual" as const,
+      methodIds: ["hundred-second-delay", "feynman"] as const, economicsTopicId: "1.5", sessionId: "hundred-second-normal-quota" };
+    const draft = await startTrainingSession({ ...request, methodIds: [...request.methodIds] });
+    expect(draft.selectedMethods).toEqual(request.methodIds);
+    expect(mocks.reserve).toHaveBeenCalledExactlyOnceWith(null, { sessionId: request.sessionId, mode: "manual", methodIds: [...request.methodIds] });
+    expect(mocks.save).toHaveBeenCalledExactlyOnceWith(draft, { allowCreate: true });
+  });
+
   it("reserves and saves the exact same session ID", async () => {
     const draft = await startTrainingSession({
       user: null,

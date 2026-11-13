@@ -27,7 +27,8 @@ export function economicsIntroductionExample(method: TrainingMethodId, topicId: 
     "premack-principle": `Complete the agreed study task in ${topic} before taking your chosen enjoyable break.`,
     "ten-minute-wall-stare": `Take the existing quiet-break activity before studying ${topic}; the break is not a guarantee of better results.`,
     "strooper-effect": `Complete the existing attention exercise, then study ${topic} and test your economic understanding.`,
-    "two-x-video-speed": `Review the topic notes and watch the related ${topic} video at 2x before checking comprehension.`
+    "two-x-video-speed": `Review the topic notes and watch the related ${topic} video at 2x before checking comprehension.`,
+    "hundred-second-delay": `Read the mapped passage for ${topic}, hide it for 100 seconds, then answer the allocated questions without the notes.`
   };
   return examples[method];
 }

@@ -66,6 +66,7 @@ vi.mock("../services/startTrainingSession", () => ({
 }));
 
 import ChooseMethods from "./ChooseMethods";
+import { economicsMethodGap } from "./economics9708/methodContentMapping";
 
 afterEach(() => {
   cleanup();
@@ -136,6 +137,36 @@ function methodCheckbox(name: string) {
 }
 
 describe("manual method picker", () => {
+  it("keeps canonical descriptions on disabled Economics cards, with separate name badges and explanations", () => {
+    renderPicker();
+    fireEvent.change(screen.getByRole("combobox", { name: "Training subject" }), { target: { value: "9708" } });
+    for (const method of methodDefinitions) {
+      const option = methodCheckbox(method.name), disabled = Boolean(economicsMethodGap(method.id));
+      expect(option).toHaveProperty("disabled", disabled);
+      expect(option.querySelector(".method-picker-description")?.textContent).toBe(method.introduction.description);
+      expect(option.querySelector(".method-picker-name strong")?.textContent).toBe(method.name);
+      expect(option.getAttribute("aria-checked")).toBe("false");
+      expect(option.querySelector(".method-availability-badge")?.textContent ?? null).toBe(disabled ? "Unavailable" : null);
+      expect(option.querySelector(".method-availability-message")?.textContent ?? null).toBe(disabled ? "Not available for this Economics topic yet." : null);
+      if (disabled) { fireEvent.click(option); expect(option.getAttribute("aria-checked")).toBe("false"); }
+    }
+    expect(screen.getByText("0 / 3 selected")).toBeTruthy(); expect(accessMocks.start).not.toHaveBeenCalled();
+  });
+  it.each(["1.3", "1.4", "1.5", "1.6", "2.1", "2.2", "2.3", "2.4", "2.5"])("allows Doodling selection and startup for %s with normal owner-approved video eligibility", async topic => {
+    renderPicker();
+    fireEvent.change(screen.getByRole("combobox", { name: "Training subject" }), { target: { value: "9708" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Economics topic" }), { target: { value: topic } });
+    const doodle = methodCheckbox("the Doodle effect"), video = methodCheckbox("2X video speed");
+    expect(doodle).toHaveProperty("disabled", false);
+    expect(doodle.querySelector(".method-availability-badge")).toBeNull();
+    expect(video).toHaveProperty("disabled", false);
+    expect(video.querySelector(".method-availability-badge")).toBeNull();
+    fireEvent.click(doodle);
+    expect(doodle.getAttribute("aria-checked")).toBe("true");
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Start training" })); });
+    expect(accessMocks.start).toHaveBeenCalledTimes(1);
+    expect(accessMocks.start).toHaveBeenCalledWith(expect.objectContaining({ mode: "manual", methodIds: ["doodle-effect"], economicsTopicId: topic }));
+  });
   it("passes the selected Economics topic through the actual individual-method entry", async () => {
     renderPicker();
     fireEvent.change(screen.getByRole("combobox",{name:"Training subject"}),{target:{value:"9708"}});

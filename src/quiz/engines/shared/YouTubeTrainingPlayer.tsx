@@ -16,7 +16,7 @@ export type ResumableYouTubeProgress = {
   completed: boolean;
 };
 
-type YouTubePlayer = {
+export type YouTubePlayer = {
   destroy: () => void;
   getCurrentTime: () => number;
   seekTo: (
@@ -24,6 +24,9 @@ type YouTubePlayer = {
     allowSeekAhead: boolean
   ) => void;
   setPlaybackRate: (rate: number) => void;
+  getAvailablePlaybackRates?: () => number[];
+  getPlaybackRate?: () => number;
+  pauseVideo?: () => void;
 };
 
 type PlayerEvent = {
@@ -31,11 +34,13 @@ type PlayerEvent = {
   data: number;
 };
 
-type YouTubeApi = {
+export type YouTubeApi = {
   Player: new (
     element: HTMLIFrameElement,
     options: {
       events: {
+        onError?: (event: PlayerEvent) => void;
+        onPlaybackRateChange?: (event: PlayerEvent) => void;
         onReady: (event: PlayerEvent) => void;
         onStateChange: (
           event: PlayerEvent
@@ -57,7 +62,7 @@ type WindowWithYouTube = Window & {
 
 let apiPromise: Promise<YouTubeApi> | null = null;
 
-function loadYouTubeApi(): Promise<YouTubeApi> {
+export function loadYouTubeApi(): Promise<YouTubeApi> {
   const youtubeWindow =
     window as WindowWithYouTube;
 

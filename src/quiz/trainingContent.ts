@@ -27,7 +27,8 @@ export const trainingLabContentSets = {
   "premack-principle": withEconomics("premack-principle", "lab", methodLabContentSets["premack-principle"]),
   "ten-minute-wall-stare": withEconomics("ten-minute-wall-stare", "lab", methodLabContentSets["ten-minute-wall-stare"]),
   "strooper-effect": withEconomics("strooper-effect", "lab", methodLabContentSets["strooper-effect"]),
-  "two-x-video-speed": withEconomics("two-x-video-speed", "lab", methodLabContentSets["two-x-video-speed"])
+  "two-x-video-speed": withEconomics("two-x-video-speed", "lab", methodLabContentSets["two-x-video-speed"]),
+  "hundred-second-delay": withEconomics("hundred-second-delay", "lab", methodLabContentSets["hundred-second-delay"])
 };
 export const trainingMatchContentSets = {
   "active-recall": withEconomics("active-recall", "match", methodMatchContentSets["active-recall"]),
@@ -52,5 +53,6 @@ export const trainingMatchContentSets = {
   "premack-principle": withEconomics("premack-principle", "match", methodMatchContentSets["premack-principle"]),
   "ten-minute-wall-stare": withEconomics("ten-minute-wall-stare", "match", methodMatchContentSets["ten-minute-wall-stare"]),
   "strooper-effect": withEconomics("strooper-effect", "match", methodMatchContentSets["strooper-effect"]),
-  "two-x-video-speed": withEconomics("two-x-video-speed", "match", methodMatchContentSets["two-x-video-speed"])
+  "two-x-video-speed": withEconomics("two-x-video-speed", "match", methodMatchContentSets["two-x-video-speed"]),
+  "hundred-second-delay": withEconomics("hundred-second-delay", "match", methodMatchContentSets["hundred-second-delay"])
 };

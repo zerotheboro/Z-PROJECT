@@ -21,15 +21,15 @@ describe("newest method workflows", () => {
     expect(screen.getByText(primeQuestionExperiment.material)).toBeTruthy();
   });
 
-  it("requires a doodle description before reconstruction", () => {
+  it("keeps scribbling optional and tests knowledge without a drawing-description gate", () => {
+    const canvas = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
     render(<DoodleEffectExperiment method="doodle-effect" category="understanding" name="the Doodle effect" data={doodleEffectExperiment} onComplete={vi.fn()}/>);
     fireEvent.click(screen.getByRole("button", { name: "Start experiment" }));
-    fireEvent.click(screen.getByRole("button", { name: "Create a doodle" }));
-    const button = screen.getByRole("button", { name: "Use my doodle" }) as HTMLButtonElement;
-    expect(button.disabled).toBe(true);
-    fireEvent.change(screen.getByPlaceholderText("Describe your doodle and connections..."), { target: { value: "Arrows connect the grass, consumers, and decomposers." } });
-    fireEvent.click(button);
-    expect(screen.getByPlaceholderText("Reconstruct the material...")).toBeTruthy();
+    expect(screen.getByLabelText("Freehand doodling canvas")).toBeTruthy();
+    expect(screen.queryByRole("textbox")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Continue to test" }));
+    expect(screen.getByRole("heading", { name: doodleEffectExperiment.questions[0].question })).toBeTruthy();
+    canvas.mockRestore();
   });
 
   it("identifies high-value concepts before prioritizing them", () => {
